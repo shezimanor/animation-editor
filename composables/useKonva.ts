@@ -1,16 +1,14 @@
 // Konva: https://konvajs.org/api/Konva.html
 import Konva from 'konva';
-interface KonvaStageConfig {
+interface AdModuleConfig {
   width: number;
   height: number;
 }
-interface Window2 extends Window {
-  _img?: Konva.Image;
-}
 
-export const useKonva = (isMainEditor: boolean, stageConfig?: KonvaStageConfig) => {
+export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const DELTA = 4;
   const mainStageRef = useState<HTMLDivElement | null>('mainStageRef', () => null);
+  const mainStageBgRef = useState<HTMLDivElement | null>('mainStageBgRef', () => null);
   let stage = useState<Konva.Stage | null>('stage', () => null);
   let container = useState<HTMLDivElement | null>('container', () => null);
   let layer = useState<Konva.Layer | null>('layer', () => null);
@@ -23,19 +21,20 @@ export const useKonva = (isMainEditor: boolean, stageConfig?: KonvaStageConfig) 
   const y1 = ref(0);
   const x2 = ref(0);
   const y2 = ref(0);
+  const scaleBy = 1.05; // scale 的單位幅度
 
-  // 初始化 Konva
-  onMounted(() => {
-    if (!isMainEditor) return;
-    // console.log('useKonva mounted');
+  const initKonva = () => {
     // create Stage
     createStage();
     // create Layer
     createLayer();
     // create Transformer
     createTransformer();
+    // create adModule Rectangle(廣告框)
+    createAdModuleRect();
     // create Selection Rectangle(選取框)
     createSelectionRect();
+
     // 註冊 Stage 事件
     if (
       stage.value !== null &&
@@ -44,24 +43,25 @@ export const useKonva = (isMainEditor: boolean, stageConfig?: KonvaStageConfig) 
       container.value !== null
     )
       addStageEvents(stage.value, transformer.value, selectionRect.value, container.value);
+  };
 
-    // console.log('stage: ', stage);
-    // console.log('layer: ', layer);
-  });
+  // TODO: 清除 Konva
+  const destroyKonva = () => {};
 
   const createStage = () => {
     if (mainStageRef.value) {
       stage.value = new Konva.Stage({
         container: mainStageRef.value,
-        width: stageConfig?.width,
-        height: stageConfig?.height
+        width: window.innerWidth - 72, // 減去 aside width
+        height: window.innerHeight - 216 // 減去 header height + footer height: , (adModuleConfig?.height || 480) * 4
       });
       container.value = stage.value.container();
       container.value.tabIndex = 1;
       container.value.style.outline = 'none';
+      container.value.style.position = 'relative';
       container.value.focus();
     } else {
-      throw createError('mainStageRef Not Found');
+      throw new Error('mainStageRef Not Found');
     }
   };
 
@@ -108,6 +108,20 @@ export const useKonva = (isMainEditor: boolean, stageConfig?: KonvaStageConfig) 
       listening: false
     });
     layer.value?.add(selectionRect.value);
+  };
+
+  const createAdModuleRect = () => {
+    const adModuleRect = new Konva.Rect({
+      fill: 'rgba(220, 220, 220, 0.35)',
+      // disable events to not interrupt with events
+      width: adModuleConfig?.width || 320,
+      height: adModuleConfig?.height || 480,
+      // center
+      x: stage.value?.getAttr('width') / 2 - (adModuleConfig?.width || 320) / 2,
+      y: stage.value?.getAttr('height') / 2 - (adModuleConfig?.height || 480) / 2,
+      listening: false
+    });
+    layer.value?.add(adModuleRect);
   };
 
   const addStageEvents = (
@@ -218,7 +232,51 @@ export const useKonva = (isMainEditor: boolean, stageConfig?: KonvaStageConfig) 
       currentContainer.focus();
     });
 
-    // 5
+    // 5 zoom
+    currentStage.on('wheel', (e) => {
+      e.evt.preventDefault();
+      // 必須是在按下 ⌘ 時才能縮放
+      if (!e.evt.metaKey) return;
+
+      const oldScale = currentStage.scaleX();
+      const pointer = currentStage.getPointerPosition();
+      if (!pointer) return;
+
+      const mousePointTo = {
+        x: (pointer.x - currentStage.x()) / oldScale,
+        y: (pointer.y - currentStage.y()) / oldScale
+      };
+
+      // 決定是 Zoom In or Zoom Out
+      let direction = e.evt.deltaY > 0 ? 1 : -1;
+
+      const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+
+      const newPos = {
+        x: pointer.x - mousePointTo.x * newScale,
+        y: pointer.y - mousePointTo.y * newScale
+      };
+
+      currentStage.scale({ x: newScale, y: newScale });
+      currentStage.position(newPos);
+
+      if (mainStageBgRef.value) {
+        // TODO: 計算修正位移量
+        // const offsetX = mousePointTo.x * (1 - oldScale / newScale) * newScale;
+        // const offsetY = mousePointTo.y * (1 - oldScale / newScale) * newScale;
+        // console.log('newPos.X', newPos.x);
+        // console.log('newPos.Y', newPos.y);
+        // console.log('offsetX', offsetX);
+        // console.log('offsetY', offsetY);
+
+        // mainStageBgRef.value.style.transform = `scale(${newScale}) translate(${offsetX}px, ${offsetY}px)`;
+        mainStageBgRef.value.style.transform = `scale(${newScale})`;
+        mainStageBgRef.value.style.width = `${(1 / newScale) * 100}%`;
+        mainStageBgRef.value.style.height = `${(1 / newScale) * 100}%`;
+      }
+    });
+
+    // 6
     currentContainer.addEventListener('keydown', keyboardEventHandler);
   };
 
@@ -227,50 +285,32 @@ export const useKonva = (isMainEditor: boolean, stageConfig?: KonvaStageConfig) 
   };
 
   const keyboardEventHandler = (e: KeyboardEvent) => {
-    // 按下 Del 或 Backspace 鍵，刪除所有選取的物件
-    if (e.key === 'Delete' || e.key === 'Backspace') {
-      const selectedNodes = transformer.value?.nodes();
-      // 刪除所有選取的物件
-      if (selectedNodes && selectedNodes.length > 0) {
+    const selectedNodes = transformer.value?.nodes();
+    if (!selectedNodes || selectedNodes.length === 0) return;
+
+    switch (e.key) {
+      case 'Delete':
+      case 'Backspace':
         selectedNodes.forEach((node) => node.destroy());
-      }
-      // 清空變形器
-      clearTransformer();
-    }
-    // 按下 Esc，清空所有選取的物件
-    else if (e.key === 'Escape') {
-      // 清空變形器
-      clearTransformer();
-    }
-    // 按下方向鍵移動選取的物件
-    else if (
-      e.key === 'ArrowUp' ||
-      e.key === 'ArrowDown' ||
-      e.key === 'ArrowLeft' ||
-      e.key === 'ArrowRight'
-    ) {
-      const selectedNodes = transformer.value?.nodes();
-      const eventKey = e.key;
-      if (selectedNodes && selectedNodes.length > 0) {
-        selectedNodes.forEach((node) => {
-          switch (eventKey) {
-            case 'ArrowUp':
-              node.y(node.y() - DELTA);
-              break;
-            case 'ArrowDown':
-              node.y(node.y() + DELTA);
-              break;
-            case 'ArrowLeft':
-              node.x(node.x() - DELTA);
-              break;
-            case 'ArrowRight':
-              node.x(node.x() + DELTA);
-              break;
-            default:
-              break;
-          }
-        });
-      }
+        clearTransformer();
+        break;
+      case 'Escape':
+        clearTransformer();
+        break;
+      case 'ArrowUp':
+        selectedNodes.forEach((node) => node.y(node.y() - DELTA));
+        break;
+      case 'ArrowDown':
+        selectedNodes.forEach((node) => node.y(node.y() + DELTA));
+        break;
+      case 'ArrowLeft':
+        selectedNodes.forEach((node) => node.x(node.x() - DELTA));
+        break;
+      case 'ArrowRight':
+        selectedNodes.forEach((node) => node.x(node.x() + DELTA));
+        break;
+      default:
+        break;
     }
   };
 
@@ -316,8 +356,11 @@ export const useKonva = (isMainEditor: boolean, stageConfig?: KonvaStageConfig) 
 
   return {
     mainStageRef,
+    mainStageBgRef,
     stage,
     layer,
+    initKonva,
+    destroyKonva,
     addImage,
     addRect
   };

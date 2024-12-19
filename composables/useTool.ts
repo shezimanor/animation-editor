@@ -15,7 +15,7 @@ export const useTool = () => {
   const tools = computed<Tool[]>(() => [
     {
       id: 1,
-      label: '上傳',
+      label: '素材',
       icon: 'mdi:cloud-upload-outline',
       feature: 'upload',
       hoverClass: 'hover:text-blue-400',

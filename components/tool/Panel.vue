@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { getImageData } from '~/utils/konva';
 const { currentTool, closeTool } = useTool();
-const { addImage } = useKonva(false);
+const { addImage } = useKonva();
 const panelRef = ref<HTMLDivElement | null>(null);
 const file = ref<File | null>(null);
 const imgObj = ref<HTMLImageElement | null>(null);
@@ -22,7 +22,7 @@ const handleFileUpload = async (event: InputEvent) => {
   try {
     if (file.value) imgObj.value = await getImageData(file.value);
   } catch {
-    throw createError('Failed to get image data.');
+    throw new Error('Failed to get image data.');
   } finally {
     loading.value = false;
   }
