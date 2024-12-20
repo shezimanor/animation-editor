@@ -111,7 +111,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       y: stage.value?.getAttr('height') / 2 - (adModuleConfig?.height || 480) / 2,
       listening: false
     });
-    if (adModuleRect.value) console.log(adModuleRect.value.x(), adModuleRect.value.y());
+    // if (adModuleRect.value) console.log(adModuleRect.value.x(), adModuleRect.value.y());
     layer.value?.add(adModuleRect.value);
   };
 
@@ -146,6 +146,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       // if (e.target.getType() !== currentStage.getType()) return;
 
       e.evt.preventDefault();
+      e.evt.stopPropagation();
       // 起始點為空白區域才能接續後面的動作
       x1.value = currentStage.getPointerPosition()?.x || 0;
       y1.value = currentStage.getPointerPosition()?.y || 0;
@@ -162,6 +163,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       if (!selecting.value) return;
 
       e.evt.preventDefault();
+      e.evt.stopPropagation();
       x2.value = currentStage.getPointerPosition()?.x || 0;
       y2.value = currentStage.getPointerPosition()?.y || 0;
 
@@ -182,6 +184,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         return;
       }
       e.evt.preventDefault();
+      e.evt.stopPropagation();
       // update visibility in timeout, so we can check it in click event
       currentSelectionRect.visible(false);
       var stageItems = currentStage.find('.item');
@@ -237,6 +240,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     // 5 zoom
     currentStage.on('wheel', (e) => {
       e.evt.preventDefault();
+      e.evt.stopPropagation();
       // 必須是在按下 ⌘ 時才能縮放
       if (!e.evt.metaKey) return;
 
@@ -264,10 +268,10 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       console.log('new', newPos.x, newPos.y);
 
       if (mainStageBgRef.value) {
-        //  translate(${offsetX}px, ${offsetY}px)
-        mainStageBgRef.value.style.transform = `scale(${newScale}) translate(${newPos.x % 16}px, ${newPos.y % 16}px)`;
-        mainStageBgRef.value.style.width = `${Number((1 / newScale).toFixed(2)) * 100}%`;
-        mainStageBgRef.value.style.height = `${Number((1 / newScale).toFixed(2)) * 100}%`;
+        const scaleCorrection = Number((1 / newScale).toFixed(2));
+        mainStageBgRef.value.style.transform = `scale(${newScale})`;
+        mainStageBgRef.value.style.width = `${scaleCorrection * 100}%`;
+        mainStageBgRef.value.style.height = `${scaleCorrection * 100}%`;
       }
     });
 

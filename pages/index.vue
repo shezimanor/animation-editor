@@ -1,5 +1,7 @@
 <!-- 編輯頁：所以工具列在這頁 -->
 <script setup lang="ts">
+import { getImageData } from '~/utils/konva';
+
 export interface AdModuleConfig {
   width: number;
   height: number;
@@ -27,6 +29,20 @@ const { mainStageRef, mainStageBgRef, initKonva, destroyKonva, addImage, addRect
 
 const isHidedGridDot = useState('isHidedGridDot', () => false);
 
+const handleDrop = async (e: DragEvent) => {
+  e.stopPropagation();
+  e.preventDefault();
+  const file = e.dataTransfer?.files[0];
+
+  if (!file) return;
+  try {
+    const imgObj = await getImageData(file);
+    addImage(imgObj);
+  } catch {
+    throw new Error('Failed to get image data.');
+  }
+};
+
 onMounted(() => {
   initKonva();
 });
@@ -42,7 +58,7 @@ onUnmounted(() => {
     <main class="flex w-full flex-col justify-stretch bg-neutral-200">
       <!-- 編輯器主畫布 -->
       <div class="flex w-full flex-shrink flex-grow items-center justify-center overflow-hidden">
-        <div class="main-canvas">
+        <div class="main-canvas" @dragover.prevent.stop @dragenter.prevent.stop @drop="handleDrop">
           <div class="main-canvas__bg">
             <div
               ref="mainStageBgRef"
