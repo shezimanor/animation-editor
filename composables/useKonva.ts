@@ -14,6 +14,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   let layer = useState<Konva.Layer | null>('layer', () => null);
   let transformer = useState<Konva.Transformer | null>('transformer', () => null);
   let selectionRect = useState<Konva.Rect | null>('selectionRect', () => null);
+  let adModuleRect = useState<Konva.Rect | null>('adModuleRect', () => null);
   const selecting = ref(false);
   const newItemInitialX = ref(0);
   const newItemInitialY = ref(0);
@@ -99,19 +100,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     layer.value?.add(transformer.value);
   };
 
-  const createSelectionRect = () => {
-    selectionRect.value = new Konva.Rect({
-      fill: 'rgba(83, 122, 234, 0.5)',
-      stroke: 'rgba(83, 122, 234, 0.9)',
-      visible: false,
-      // disable events to not interrupt with events
-      listening: false
-    });
-    layer.value?.add(selectionRect.value);
-  };
-
   const createAdModuleRect = () => {
-    const adModuleRect = new Konva.Rect({
+    adModuleRect.value = new Konva.Rect({
       fill: 'rgba(220, 220, 220, 0.35)',
       // disable events to not interrupt with events
       width: adModuleConfig?.width || 320,
@@ -121,7 +111,19 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       y: stage.value?.getAttr('height') / 2 - (adModuleConfig?.height || 480) / 2,
       listening: false
     });
-    layer.value?.add(adModuleRect);
+    if (adModuleRect.value) console.log(adModuleRect.value.x(), adModuleRect.value.y());
+    layer.value?.add(adModuleRect.value);
+  };
+
+  const createSelectionRect = () => {
+    selectionRect.value = new Konva.Rect({
+      fill: 'rgba(83, 122, 234, 0.5)',
+      stroke: 'rgba(83, 122, 234, 0.9)',
+      visible: false,
+      // disable events to not interrupt with events
+      listening: false
+    });
+    layer.value?.add(selectionRect.value);
   };
 
   const addStageEvents = (
@@ -259,20 +261,13 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
 
       currentStage.scale({ x: newScale, y: newScale });
       currentStage.position(newPos);
+      console.log('new', newPos.x, newPos.y);
 
       if (mainStageBgRef.value) {
-        // TODO: 計算修正位移量
-        // const offsetX = mousePointTo.x * (1 - oldScale / newScale) * newScale;
-        // const offsetY = mousePointTo.y * (1 - oldScale / newScale) * newScale;
-        // console.log('newPos.X', newPos.x);
-        // console.log('newPos.Y', newPos.y);
-        // console.log('offsetX', offsetX);
-        // console.log('offsetY', offsetY);
-
-        // mainStageBgRef.value.style.transform = `scale(${newScale}) translate(${offsetX}px, ${offsetY}px)`;
-        mainStageBgRef.value.style.transform = `scale(${newScale})`;
-        mainStageBgRef.value.style.width = `${(1 / newScale) * 100}%`;
-        mainStageBgRef.value.style.height = `${(1 / newScale) * 100}%`;
+        //  translate(${offsetX}px, ${offsetY}px)
+        mainStageBgRef.value.style.transform = `scale(${newScale}) translate(${newPos.x % 16}px, ${newPos.y % 16}px)`;
+        mainStageBgRef.value.style.width = `${Number((1 / newScale).toFixed(2)) * 100}%`;
+        mainStageBgRef.value.style.height = `${Number((1 / newScale).toFixed(2)) * 100}%`;
       }
     });
 
