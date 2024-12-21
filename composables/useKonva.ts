@@ -1,5 +1,7 @@
 // Konva: https://konvajs.org/api/Konva.html
+import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
+
 interface AdModuleConfig {
   width: number;
   height: number;
@@ -36,6 +38,16 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     // create Selection Rectangle(選取框)
     createSelectionRect();
 
+    // 使用 resize 觀察者
+    useResizeObserver(mainStageRef, (entries) => {
+      console.log('resize');
+      const entry = entries[0];
+      // 響應式調整 Stage 寬高
+      const { width, height } = entry.contentRect;
+      stage.value?.width(width);
+      stage.value?.height(height);
+    });
+
     // 註冊 Stage 事件
     if (
       stage.value !== null &&
@@ -54,12 +66,14 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       stage.value = new Konva.Stage({
         container: mainStageRef.value,
         width: window.innerWidth - 72, // 減去 aside width
-        height: window.innerHeight - 216 // 減去 header height + footer height: , (adModuleConfig?.height || 480) * 4
+        height: window.innerHeight - 216, // 減去 header height + footer height: , (adModuleConfig?.height || 480) * 4
+        draggable: false
       });
       container.value = stage.value.container();
       container.value.tabIndex = 1;
       container.value.style.outline = 'none';
       container.value.style.position = 'relative';
+      // container.value.style.border = '1px solid red';
       container.value.focus();
     } else {
       throw new Error('mainStageRef Not Found');
@@ -249,8 +263,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       if (!pointer) return;
 
       const mousePointTo = {
-        x: (pointer.x - currentStage.x()) / oldScale,
-        y: (pointer.y - currentStage.y()) / oldScale
+        x: Number(((pointer.x - currentStage.x()) / oldScale).toFixed(2)),
+        y: Number(((pointer.y - currentStage.y()) / oldScale).toFixed(2))
       };
 
       // 決定是 Zoom In or Zoom Out
@@ -259,13 +273,12 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
 
       const newPos = {
-        x: pointer.x - mousePointTo.x * newScale,
-        y: pointer.y - mousePointTo.y * newScale
+        x: Number((pointer.x - mousePointTo.x * newScale).toFixed(2)),
+        y: Number((pointer.y - mousePointTo.y * newScale).toFixed(2))
       };
 
       currentStage.scale({ x: newScale, y: newScale });
       currentStage.position(newPos);
-      console.log('new', newPos.x, newPos.y);
 
       if (mainStageBgRef.value) {
         const scaleCorrection = Number((1 / newScale).toFixed(2));
