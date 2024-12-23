@@ -4,6 +4,7 @@ import UserDropdown from './UserDropdown.vue';
 const adModule = useCookie<AdModuleConfig>('adModuleInfo');
 const isHidedGridDot = useState('isHidedGridDot', () => false);
 const sizeIndex = computed(() => {
+  if (!adModule.value) return 0;
   const size = `${adModule.value.width}x${adModule.value.height}`;
   switch (size) {
     case '640x320':
