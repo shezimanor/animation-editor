@@ -26,6 +26,7 @@ const { mainStageRef, mainStageBgRef, initKonva, destroyKonva, addImage, addRect
   width: adModule.value.width,
   height: adModule.value.height
 });
+const { timelineStageRef, initTimelineKonva, destroyTimelineKonva } = useTimeline();
 
 const isHidedGridDot = useState('isHidedGridDot', () => false);
 
@@ -45,9 +46,11 @@ const handleDrop = async (e: DragEvent) => {
 
 onMounted(() => {
   initKonva();
+  initTimelineKonva();
 });
 onUnmounted(() => {
   destroyKonva();
+  destroyTimelineKonva();
 });
 </script>
 
@@ -72,10 +75,15 @@ onUnmounted(() => {
       </div>
       <!-- 時間軸畫布 -->
       <div
-        class="flex h-[160px] w-full flex-shrink-0 flex-grow-0 flex-col gap-y-2 border-t-2 border-neutral-300 px-4"
+        class="flex w-full flex-shrink-0 flex-grow-0 flex-col gap-y-2 border-t-2 border-neutral-300 px-4"
+        @dragover.prevent.stop
+        @dragenter.prevent.stop
+        @drop="handleDrop"
       >
         <!-- 時間軸標籤 -->
-        <ul class="flex w-full flex-row justify-between pt-1 tracking-wide text-neutral-500">
+        <ul
+          class="flex w-full flex-row justify-between pt-1 text-sm tracking-wide text-neutral-500"
+        >
           <li>0秒</li>
           <li>3秒</li>
           <li>6秒</li>
@@ -83,8 +91,8 @@ onUnmounted(() => {
           <li>12秒</li>
         </ul>
         <!-- 模擬時間軸條 -->
-        <div class="w-full pl-2 pr-3.5">
-          <div class="h-10 w-full rounded-md border-2 border-blue-300 bg-white"></div>
+        <div class="h-[240px] w-full">
+          <div ref="timelineStageRef"></div>
         </div>
       </div>
     </main>

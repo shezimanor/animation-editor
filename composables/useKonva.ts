@@ -1,6 +1,8 @@
 // Konva: https://konvajs.org/api/Konva.html
 import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
+import { v4 as uuid } from 'uuid';
+const { addTimelineItem } = useTimeline();
 
 interface AdModuleConfig {
   width: number;
@@ -8,6 +10,9 @@ interface AdModuleConfig {
 }
 
 export const useKonva = (adModuleConfig?: AdModuleConfig) => {
+  const HEADER_HEIGHT = 56;
+  const FOOTER_HEIGHT = 274;
+  const ASIDE_WIDTH = 72;
   const DELTA = 4;
   const mainStageRef = useState<HTMLDivElement | null>('mainStageRef', () => null);
   const mainStageBgRef = useState<HTMLDivElement | null>('mainStageBgRef', () => null);
@@ -65,14 +70,17 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     if (mainStageRef.value) {
       stage.value = new Konva.Stage({
         container: mainStageRef.value,
-        width: window.innerWidth - 72, // 減去 aside width
-        height: window.innerHeight - 216, // 減去 header height + footer height: , (adModuleConfig?.height || 480) * 4
+        width: window.innerWidth - ASIDE_WIDTH, // 減去 aside width
+        height: window.innerHeight - (FOOTER_HEIGHT + HEADER_HEIGHT),
         draggable: false
       });
       container.value = stage.value.container();
-      container.value.tabIndex = 1;
+      container.value.tabIndex = 2;
       container.value.style.outline = 'none';
       container.value.style.position = 'relative';
+      // Stage 初始位置
+      newItemInitialX.value = stage.value.width() / 2;
+      newItemInitialY.value = stage.value.height() / 2;
       // container.value.style.border = '1px solid red';
       container.value.focus();
     } else {
@@ -327,16 +335,20 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const addImage = (imgObj: HTMLImageElement) => {
+    const id = uuid();
     const imgItem = new Konva.Image({
+      id: id,
       name: 'item',
-      x: newItemInitialX.value,
-      y: newItemInitialY.value,
+      x: newItemInitialX.value - imgObj.naturalWidth / 2,
+      y: newItemInitialY.value - imgObj.naturalHeight / 2,
       image: imgObj,
       width: imgObj.naturalWidth,
       height: imgObj.naturalHeight,
       draggable: true
     });
     focusOnItem(imgItem);
+    addTimelineItem(imgObj, id);
+    updateInitialPosition();
   };
 
   const addRect = () => {
