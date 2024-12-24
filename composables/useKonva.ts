@@ -37,6 +37,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   let transformer = useState<Konva.Transformer | null>('transformer', () => null);
   let mainNodeList = useState<MyNode[]>('mainNodeList', () => []);
   const selecting = ref(false);
+  const adModuleX = ref(0);
+  const adModuleY = ref(0);
   const newItemInitialX = ref(0);
   const newItemInitialY = ref(0);
   const x1 = ref(0);
@@ -60,11 +62,40 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     // 使用 resize 觀察者
     useResizeObserver(mainStageRef, (entries) => {
       console.log('resize');
+      if (!stage.value || !layer.value) return;
       const entry = entries[0];
       // 響應式調整 Stage 寬高
       const { width, height } = entry.contentRect;
-      stage.value?.width(width);
-      stage.value?.height(height);
+      stage.value.width(width);
+      stage.value.height(height);
+      // 調整 newItemInitial
+      newItemInitialX.value = stage.value.width() / 2;
+      newItemInitialY.value = stage.value.height() / 2;
+      // 調整 adModuleRect 位置
+      const oldX = adModuleX.value;
+      const oldY = adModuleY.value;
+      adModuleX.value = stage.value.width() / 2 - (adModuleConfig?.width || 320) / 2;
+      adModuleY.value = stage.value.height() / 2 - (adModuleConfig?.height || 320) / 2;
+      adModuleRect.value?.setAttrs({
+        x: adModuleX.value,
+        y: adModuleY.value
+      });
+      // 調整 layer 所有 node 的位置
+      layer.value.getChildren().forEach((node) => {
+        if (node.hasName('item')) {
+          const nodeNewX = node.x() + (adModuleX.value - oldX);
+          const nodeNewY = node.y() + (adModuleY.value - oldY);
+          // 這是真實在 Stage 上的 x, y
+          node.x(nodeNewX);
+          node.y(nodeNewY);
+          // 同時調整 mainNodeList (mainNode 的 x, y 是相對於 adModuleRect 的)
+          const targetMainNode = mainNodeList.value.find((item) => item.id === node.id());
+          if (targetMainNode) {
+            targetMainNode.x = nodeNewX - adModuleX.value;
+            targetMainNode.y = nodeNewY - adModuleY.value;
+          }
+        }
+      });
     });
 
     // 註冊 Stage 事件
@@ -75,6 +106,11 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       container.value !== null
     )
       addStageEvents(stage.value, transformer.value, selectionRect.value, container.value);
+  };
+
+  // 用來觀察 Konva 的函數
+  const logKonva = () => {
+    console.log(layer.value?.getChildren());
   };
 
   // TODO: 清除 Konva
@@ -95,7 +131,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       // Stage 初始位置
       newItemInitialX.value = stage.value.width() / 2;
       newItemInitialY.value = stage.value.height() / 2;
-      // container.value.style.border = '1px solid red';
       container.value.focus();
     } else {
       throw new Error('mainStageRef Not Found');
@@ -177,14 +212,17 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const createAdModuleRect = () => {
+    adModuleX.value = stage.value?.getAttr('width') / 2 - (adModuleConfig?.width || 320) / 2;
+    adModuleY.value = stage.value?.getAttr('height') / 2 - (adModuleConfig?.height || 320) / 2;
+
     adModuleRect.value = new Konva.Rect({
       fill: 'rgba(220, 220, 220, 0.35)',
       // disable events to not interrupt with events
       width: adModuleConfig?.width || 320,
       height: adModuleConfig?.height || 480,
       // center
-      x: stage.value?.getAttr('width') / 2 - (adModuleConfig?.width || 320) / 2,
-      y: stage.value?.getAttr('height') / 2 - (adModuleConfig?.height || 480) / 2,
+      x: adModuleX.value,
+      y: adModuleY.value,
       listening: false
     });
     // if (adModuleRect.value) console.log(adModuleRect.value.x(), adModuleRect.value.y());
@@ -399,8 +437,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     selectedNodes.forEach((node) => {
       const targetMainNode = mainNodeList.value.find((item) => item.id === node.id());
       if (targetMainNode) {
-        targetMainNode.x = node.x();
-        targetMainNode.y = node.y();
+        targetMainNode.x = node.x() - adModuleX.value;
+        targetMainNode.y = node.y() - adModuleY.value;
       }
     });
   };
@@ -475,6 +513,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     transformer,
     addImage,
     addRect,
+    logKonva,
     mainNodeList
   };
 };

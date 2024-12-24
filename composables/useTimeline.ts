@@ -172,7 +172,6 @@ export const useTimeline = () => {
   const updateInitialPosition = () => {
     const groups = timelineLayer.value?.find('.item') ?? [];
     newItemInitialY.value = groups.length * 40;
-    console.log(newItemInitialY.value, groups.length);
   };
 
   return {
