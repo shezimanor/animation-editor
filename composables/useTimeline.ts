@@ -99,6 +99,8 @@ export const useTimeline = () => {
     groupItem.add(imgItem);
     transformerItem.nodes([groupItem]);
     timelineLayer.value?.add(groupItem);
+    groupItem.moveToBottom();
+    transformerItem.moveToTop();
     updateInitialPosition();
   };
 
@@ -110,17 +112,30 @@ export const useTimeline = () => {
       if (currentTransformer) return currentTransformer;
     }
     const transformer = new Konva.Transformer({
+      borderStroke: 'rgba(255, 255, 255, 0.6)',
       rotateEnabled: false,
       rotateLineVisible: false,
-      enabledAnchors: ['middle-left', 'middle-right']
+      enabledAnchors: ['middle-left', 'middle-right'],
+      anchorStyleFunc: (anchor) => {
+        // 左右錨點樣式
+        anchor.cornerRadius(3);
+        anchor.fill('#a5f3fc');
+        anchor.stroke('#67e8f9');
+        if (anchor.hasName('middle-left') || anchor.hasName('middle-right')) {
+          anchor.height(24);
+          anchor.offsetY(12);
+          anchor.width(6);
+          anchor.offsetX(3);
+        }
+      }
     });
     transformer.on('transform', function () {
       if (transformer.nodes().length === 0) return;
       const currentBar = transformer.nodes()[0] as Konva.Group;
       const currentImg = currentBar.findOne('.item_img') as Konva.Image;
-      console.log(currentImg);
       // 維持圖片比例
       currentImg.scaleX(Number((1 / currentBar.scaleX()).toFixed(2)));
+      // FIXME: 圖片的位置會隨著縮放而變動
     });
     timelineLayer.value?.add(transformer);
     timelineTransformers.value.push(transformer);
@@ -130,7 +145,7 @@ export const useTimeline = () => {
   const addImage = (imgObj: HTMLImageElement) => {
     return new Konva.Image({
       name: 'item_img',
-      x: 4,
+      x: 8,
       y: 4,
       image: imgObj,
       width: IMG_WIDTH,
@@ -149,9 +164,8 @@ export const useTimeline = () => {
       width: 120,
       height: 36,
       fill: 'rgba(255, 255, 255, 0.6)',
-      stroke: 'rgba(255, 255, 255, 1)',
       strokeWidth: 1,
-      cornerRadius: 4
+      cornerRadius: 2
     });
   };
 

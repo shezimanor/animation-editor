@@ -98,11 +98,9 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       // 外框線顏色
       borderStroke: '#6366f1',
       anchorStyleFunc: (anchor) => {
-        // anchor is Konva.Rect instance
-        // you manually change its styling
         anchor.cornerRadius(10);
-        // 錨點外框線顏色
         anchor.stroke('#6366f1');
+        // 中間的錨點樣式
         if (anchor.hasName('top-center') || anchor.hasName('bottom-center')) {
           anchor.height(6);
           anchor.offsetY(3);
@@ -115,8 +113,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
           anchor.width(6);
           anchor.offsetX(3);
         }
-        // you also can set other properties
-        // e.g. you can set fillPatternImage to set icon to the anchor
       }
     });
     layer.value?.add(transformer.value);
@@ -165,7 +161,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
           currentTransformer.nodes([e.target]);
         return;
       }
-      // if (e.target.getType() !== currentStage.getType()) return;
 
       e.evt.preventDefault();
       e.evt.stopPropagation();
