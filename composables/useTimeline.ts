@@ -10,10 +10,15 @@ export const useTimeline = () => {
   const ASIDE_WIDTH = 72;
   const PADDING_X = 16;
   const DELTA = 4;
-  const timelineStageRef = useState<HTMLDivElement | null>('timelineStageRef', () => null);
-  let timelineStage = useState<Konva.Stage | null>('timelineStage', () => null);
-  let timelineContainer = useState<HTMLDivElement | null>('timelineContainer', () => null);
-  let timelineLayer = useState<Konva.Layer | null>('timelineLayer', () => null);
+  const IMG_WIDTH = 28;
+  const timelineStageRef = useState<HTMLDivElement | null>('timelineStageRef', () =>
+    shallowRef(null)
+  );
+  let timelineStage = useState<Konva.Stage | null>('timelineStage', () => shallowRef(null));
+  let timelineContainer = useState<HTMLDivElement | null>('timelineContainer', () =>
+    shallowRef(null)
+  );
+  let timelineLayer = useState<Konva.Layer | null>('timelineLayer', () => shallowRef(null));
   const newItemInitialX = ref(0);
   const newItemInitialY = ref(0);
   const timelineTransformers = ref<Konva.Transformer[]>([]);
@@ -109,6 +114,14 @@ export const useTimeline = () => {
       rotateLineVisible: false,
       enabledAnchors: ['middle-left', 'middle-right']
     });
+    transformer.on('transform', function () {
+      if (transformer.nodes().length === 0) return;
+      const currentBar = transformer.nodes()[0] as Konva.Group;
+      const currentImg = currentBar.findOne('.item_img') as Konva.Image;
+      console.log(currentImg);
+      // 維持圖片比例
+      currentImg.scaleX(Number((1 / currentBar.scaleX()).toFixed(2)));
+    });
     timelineLayer.value?.add(transformer);
     timelineTransformers.value.push(transformer);
     return transformer;
@@ -120,8 +133,8 @@ export const useTimeline = () => {
       x: 4,
       y: 4,
       image: imgObj,
-      width: 28,
-      height: 28,
+      width: IMG_WIDTH,
+      height: IMG_WIDTH,
       stroke: 'rgba(90, 90, 90, 1)',
       strokeWidth: 1,
       cornerRadius: 2
