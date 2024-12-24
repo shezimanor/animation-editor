@@ -1,27 +1,41 @@
 // Konva: https://konvajs.org/api/Konva.html
 import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
-import { v4 as uuid } from 'uuid';
+import type { Node } from 'konva/lib/Node';
+import { v4 as uuid, type UUIDTypes } from 'uuid';
 const { addTimelineItem } = useTimeline();
 
 interface AdModuleConfig {
   width: number;
   height: number;
 }
+interface MyNode {
+  id: UUIDTypes;
+  name: string;
+  label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  opacity: number;
+  rotation: number;
+}
 
 export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const HEADER_HEIGHT = 56;
   const FOOTER_HEIGHT = 274;
-  const ASIDE_WIDTH = 72;
-  const DELTA = 4;
+  const ASIDE_WIDTH = 0; // 已拿掉左側工具列
+  const DELTA = 1;
   const mainStageRef = useState<HTMLDivElement | null>('mainStageRef', () => shallowRef(null));
   const mainStageBgRef = useState<HTMLDivElement | null>('mainStageBgRef', () => shallowRef(null));
   let stage = useState<Konva.Stage | null>('stage', () => shallowRef(null));
   let container = useState<HTMLDivElement | null>('container', () => shallowRef(null));
   let layer = useState<Konva.Layer | null>('layer', () => shallowRef(null));
-  let transformer = useState<Konva.Transformer | null>('transformer', () => shallowRef(null));
   let selectionRect = useState<Konva.Rect | null>('selectionRect', () => shallowRef(null));
   let adModuleRect = useState<Konva.Rect | null>('adModuleRect', () => shallowRef(null));
+  // 需要偵測他的 nodes 數量，所以不能用 shallowRef
+  let transformer = useState<Konva.Transformer | null>('transformer', () => null);
+  let mainNodeList = useState<MyNode[]>('mainNodeList', () => []);
   const selecting = ref(false);
   const newItemInitialX = ref(0);
   const newItemInitialY = ref(0);
@@ -115,6 +129,50 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         }
       }
     });
+
+    // 事件監聽
+    transformer.value.on('transform', (e) => {
+      const selectedNodes = transformer.value?.nodes();
+      if (!selectedNodes) return;
+      selectedNodes.forEach((node) => {
+        const scaleX = node.scaleX();
+        const scaleY = node.scaleY();
+        const rotation = node.rotation();
+        const width = node.width() * scaleX;
+        const height = node.height() * scaleY;
+        // 將變形後的屬性設定回去
+        node.setAttrs({
+          width,
+          height,
+          scaleX: 1,
+          scaleY: 1,
+          rotation
+        });
+        // 同時塞給 mainNodeList
+        const targetMainNode = mainNodeList.value.find((item) => item.id === node.id());
+        if (targetMainNode) {
+          targetMainNode.width = width;
+          targetMainNode.height = height;
+          targetMainNode.rotation = rotation;
+        }
+      });
+    });
+    transformer.value.on('dragmove', (e) => {
+      const selectedNodes = transformer.value?.nodes();
+      if (!selectedNodes) return;
+      selectedNodes.forEach((node) => {
+        const x = node.x();
+        const y = node.y();
+        // 將變形後的屬性設定回去
+        node.setAttrs({
+          x,
+          y
+        });
+        // 同時更新 mainNodeList
+        updateMainNodePosition(selectedNodes);
+      });
+    });
+
     layer.value?.add(transformer.value);
   };
 
@@ -306,7 +364,11 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     switch (e.key) {
       case 'Delete':
       case 'Backspace':
-        selectedNodes.forEach((node) => node.destroy());
+        selectedNodes.forEach((node) => {
+          // 同時移除 mainNodeList
+          deleteMainNode(node.id());
+          node.destroy();
+        });
         clearTransformer();
         break;
       case 'Escape':
@@ -314,36 +376,66 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         break;
       case 'ArrowUp':
         selectedNodes.forEach((node) => node.y(node.y() - DELTA));
+        updateMainNodePosition(selectedNodes);
         break;
       case 'ArrowDown':
         selectedNodes.forEach((node) => node.y(node.y() + DELTA));
+        updateMainNodePosition(selectedNodes);
         break;
       case 'ArrowLeft':
         selectedNodes.forEach((node) => node.x(node.x() - DELTA));
+        updateMainNodePosition(selectedNodes);
         break;
       case 'ArrowRight':
         selectedNodes.forEach((node) => node.x(node.x() + DELTA));
+        updateMainNodePosition(selectedNodes);
         break;
       default:
         break;
     }
   };
 
+  const updateMainNodePosition = (selectedNodes: Node[]) => {
+    selectedNodes.forEach((node) => {
+      const targetMainNode = mainNodeList.value.find((item) => item.id === node.id());
+      if (targetMainNode) {
+        targetMainNode.x = node.x();
+        targetMainNode.y = node.y();
+      }
+    });
+  };
+
+  const deleteMainNode = (id: UUIDTypes) => {
+    const targetIndex = mainNodeList.value.findIndex((item) => item.id === id);
+    if (targetIndex > -1) mainNodeList.value.splice(targetIndex, 1);
+  };
+
   const addImage = (imgObj: HTMLImageElement) => {
     const id = uuid();
-    const imgItem = new Konva.Image({
+    const imgConfig = {
       id: id,
       name: 'item',
+      label: '未命名',
       x: newItemInitialX.value - imgObj.naturalWidth / 2,
       y: newItemInitialY.value - imgObj.naturalHeight / 2,
-      image: imgObj,
       width: imgObj.naturalWidth,
       height: imgObj.naturalHeight,
+      rotation: 0,
+      opacity: 1
+    };
+    const imgItem = new Konva.Image({
+      ...imgConfig,
+      image: imgObj,
       draggable: true
     });
     focusOnItem(imgItem);
+    addMainNode(imgConfig);
     addTimelineItem(imgObj, id);
     updateInitialPosition();
+  };
+
+  const addMainNode = (imgNode: MyNode) => {
+    mainNodeList.value.push(imgNode);
   };
 
   const addRect = () => {
@@ -380,7 +472,9 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     layer,
     initKonva,
     destroyKonva,
+    transformer,
     addImage,
-    addRect
+    addRect,
+    mainNodeList
   };
 };

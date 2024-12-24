@@ -10,6 +10,7 @@ export interface AdModuleConfig {
   token: string;
   title: string;
 }
+
 const adModule = useCookie<AdModuleConfig>('adModuleInfo', {
   default: () => ({
     width: 320,
@@ -21,11 +22,11 @@ const adModule = useCookie<AdModuleConfig>('adModuleInfo', {
   })
 });
 
-const { currentToolId } = useTool();
 const { mainStageRef, mainStageBgRef, initKonva, destroyKonva, addImage, addRect } = useKonva({
   width: adModule.value.width,
   height: adModule.value.height
 });
+
 const { timelineStageRef, initTimelineKonva, destroyTimelineKonva } = useTimeline();
 
 const isHidedGridDot = useState('isHidedGridDot', () => false);
@@ -56,8 +57,6 @@ onUnmounted(() => {
 
 <template>
   <div class="flex h-full flex-row items-stretch">
-    <ToolMainNav />
-    <ToolPanel v-show="currentToolId" />
     <main class="flex w-full flex-col justify-stretch bg-neutral-200">
       <!-- 編輯器主畫布 -->
       <div class="flex w-full flex-shrink flex-grow items-center justify-center overflow-hidden">
@@ -96,7 +95,7 @@ onUnmounted(() => {
         </div>
       </div>
     </main>
-    <div></div>
+    <AppPanelGroup />
   </div>
 </template>
 
