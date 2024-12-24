@@ -109,13 +109,19 @@ export const useTimeline = () => {
       const currentTransformer = timelineTransformers.value.find(
         (transformer) => transformer.nodes().length === 0
       );
-      if (currentTransformer) return currentTransformer;
+      // 先開啟 visible 後回傳 Transformer
+      if (currentTransformer) {
+        currentTransformer.visible(true);
+        return currentTransformer;
+      }
     }
+    // 新增 Transformer
     const transformer = new Konva.Transformer({
       borderStroke: 'rgba(255, 255, 255, 0.6)',
       rotateEnabled: false,
       rotateLineVisible: false,
       enabledAnchors: ['middle-left', 'middle-right'],
+      visible: true,
       anchorStyleFunc: (anchor) => {
         // 左右錨點樣式
         anchor.cornerRadius(3);
@@ -169,15 +175,52 @@ export const useTimeline = () => {
     });
   };
 
+  const deleteTimelineItem = (id: UUIDTypes) => {
+    const groupItem = timelineLayer.value?.findOne(`#${id}`);
+    if (groupItem && groupItem instanceof Konva.Group) {
+      // 刪除 Group(這個動作並不會清空 Transformer)
+      groupItem.destroy();
+      // 隱藏空的變形器
+      hiddenEmptyTransformer(id);
+      // 更新所有 Group 的位置
+      updateAllGroupItems();
+      // 更新 Group 的建立位置
+      updateInitialPosition();
+    }
+  };
+
+  // 更新 Group 的建立位置
   const updateInitialPosition = () => {
     const groups = timelineLayer.value?.find('.item') ?? [];
     newItemInitialY.value = groups.length * 40;
+  };
+
+  // 隱藏空的變形器
+  const hiddenEmptyTransformer = (id: UUIDTypes) => {
+    for (let i = 0; i < timelineTransformers.value.length; i++) {
+      const transformer = timelineTransformers.value[i];
+      const groups = transformer.nodes();
+      if (groups.length > 0 && groups[0].id() === id) {
+        transformer.visible(false);
+        transformer.nodes([]);
+        break;
+      }
+    }
+  };
+
+  // 更新所有 Group 的位置
+  const updateAllGroupItems = () => {
+    const groups = timelineLayer.value?.find('.item') ?? [];
+    groups.forEach((group, index) => {
+      group.y(index * 40);
+    });
   };
 
   return {
     timelineStageRef,
     initTimelineKonva,
     destroyTimelineKonva,
-    addTimelineItem
+    addTimelineItem,
+    deleteTimelineItem
   };
 };

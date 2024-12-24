@@ -3,7 +3,7 @@ import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
 import type { Node } from 'konva/lib/Node';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
-const { addTimelineItem } = useTimeline();
+const { addTimelineItem, deleteTimelineItem } = useTimeline();
 
 interface AdModuleConfig {
   width: number;
@@ -61,7 +61,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
 
     // 使用 resize 觀察者
     useResizeObserver(mainStageRef, (entries) => {
-      console.log('resize');
       if (!stage.value || !layer.value) return;
       const entry = entries[0];
       // 響應式調整 Stage 寬高
@@ -402,11 +401,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     switch (e.key) {
       case 'Delete':
       case 'Backspace':
-        selectedNodes.forEach((node) => {
-          // 同時移除 mainNodeList
-          deleteMainNode(node.id());
-          node.destroy();
-        });
+        deleteItems(selectedNodes);
         clearTransformer();
         break;
       case 'Escape':
@@ -440,6 +435,17 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         targetMainNode.x = node.x() - adModuleX.value;
         targetMainNode.y = node.y() - adModuleY.value;
       }
+    });
+  };
+
+  const deleteItems = (selectedNodes: Node[]) => {
+    selectedNodes.forEach((node) => {
+      // 同時移除 mainNodeList
+      deleteMainNode(node.id());
+      // 同時刪除 TimelineItem
+      deleteTimelineItem(node.id());
+      // 刪除 Node(Img)
+      node.destroy();
     });
   };
 
