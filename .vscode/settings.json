@@ -26,7 +26,7 @@
   ],
   "github.copilot.chat.commitMessageGeneration.instructions": [
     {
-      "text": "MUST write commit message in English."
+      "text": "No matter what language my changes are in, commit messages must be written in English."
     },
     {
       "file": ".copilot-commit-message-instructions.md"
