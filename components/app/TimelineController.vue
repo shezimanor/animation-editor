@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { initializedGsap, playGsapTimeline, pauseGsapTimeline, paused } = useGsap();
+const { updateMainNodeState } = useKonva();
 </script>
 
 <template>
@@ -20,7 +21,7 @@ const { initializedGsap, playGsapTimeline, pauseGsapTimeline, paused } = useGsap
       size="sm"
       square
       variant="soft"
-      @click="pauseGsapTimeline"
+      @click="pauseGsapTimeline(updateMainNodeState)"
     />
   </div>
 </template>

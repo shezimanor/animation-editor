@@ -4,7 +4,7 @@ import Konva from 'konva';
 import type { Node } from 'konva/lib/Node';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
 const { addTimelineItem, deleteTimelineItem } = useTimeline();
-const { createGsapTimeline, getGsapTimeline } = useGsap();
+const { createGsapTimeline, createAnimation } = useGsap();
 
 interface AdModuleConfig {
   width: number;
@@ -183,7 +183,11 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
           height,
           scaleX: 1,
           scaleY: 1,
-          rotation
+          rotation,
+          offset: {
+            x: width / 2,
+            y: height / 2
+          }
         });
         // 同時塞給 mainNodeList
         const targetMainNode = mainNodeList.value.find((item) => item.id === node.id());
@@ -441,6 +445,42 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     });
   };
 
+  const updateMainNodeState = () => {
+    const allNodes = layer.value?.getChildren((node) => node.hasName('item'));
+    if (!allNodes) return;
+    allNodes.forEach((node) => {
+      const scaleX = node.scaleX();
+      const scaleY = node.scaleY();
+      const rotation = node.rotation();
+      const width = node.width() * scaleX;
+      const height = node.height() * scaleY;
+      // 將變形後的屬性設定回去
+      node.setAttrs({
+        width,
+        height,
+        scaleX: 1,
+        scaleY: 1,
+        rotation,
+        offset: {
+          x: width / 2,
+          y: height / 2
+        }
+      });
+      const targetMainNode = mainNodeList.value.find((item) => item.id === node.id());
+      if (targetMainNode) {
+        // position
+        targetMainNode.x = node.x() - adModuleX.value;
+        targetMainNode.y = node.y() - adModuleY.value;
+        // transform
+        targetMainNode.width = width;
+        targetMainNode.height = height;
+        targetMainNode.rotation = rotation;
+        // opacity
+        targetMainNode.opacity = node.opacity();
+      }
+    });
+  };
+
   const deleteItems = (selectedNodes: Node[]) => {
     selectedNodes.forEach((node) => {
       // 同時移除 mainNodeList
@@ -463,12 +503,16 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       id: id,
       name: 'item',
       label: '未命名',
-      x: newItemInitialX.value - imgObj.naturalWidth / 2,
-      y: newItemInitialY.value - imgObj.naturalHeight / 2,
+      x: newItemInitialX.value,
+      y: newItemInitialY.value,
       width: imgObj.naturalWidth,
       height: imgObj.naturalHeight,
       rotation: 0,
-      opacity: 1
+      opacity: 1,
+      offset: {
+        x: imgObj.naturalWidth / 2,
+        y: imgObj.naturalHeight / 2
+      }
     };
     const imgItem = new Konva.Image({
       ...imgConfig,
@@ -523,9 +567,9 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const addAnimation = (id: UUIDTypes) => {
     // 找到對應的 Node
     const targetNode = layer.value?.findOne(`#${id}`);
-    // 找到 Timeline
-    const gsapTimeline = getGsapTimeline();
-    if (!targetNode || !gsapTimeline) return;
+    if (!targetNode) return;
+    const response = createAnimation(targetNode);
+    console.log(response);
     // gsapTimeline.to(targetNode, { x: 1360, duration: 10 });
   };
 
@@ -542,6 +586,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     addAnimation,
     logKonva,
     updateLayer,
+    updateMainNodeState,
     mainNodeList
   };
 };

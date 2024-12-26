@@ -1,7 +1,8 @@
 import { gsap } from 'gsap';
+import type { Node } from 'konva/lib/Node';
+let gsapTimeline: gsap.core.Timeline | null = null;
 
 export const useGsap = () => {
-  let gsapTimeline: gsap.core.Timeline | null = null;
   const initializedGsap = useState('initializedGsap', () => false);
   const paused = useState('paused', () => true);
 
@@ -18,7 +19,6 @@ export const useGsap = () => {
       }
     });
     initializedGsap.value = true;
-    return gsapTimeline;
   };
 
   const getGsapTimeline = () => {
@@ -30,15 +30,17 @@ export const useGsap = () => {
     paused.value = false;
   };
 
-  const pauseGsapTimeline = () => {
+  const pauseGsapTimeline = (callback?: Function) => {
     getGsapTimeline()?.pause();
     paused.value = true;
+    // 更新所有 Konva 節點狀態
+    callback && callback();
   };
 
-  const stopGsapTimeline = () => {
-    getGsapTimeline()?.pause();
+  const stopGsapTimeline = (callback: Function) => {
+    pauseGsapTimeline();
     seekGsapTimeline(0);
-    paused.value = true;
+    callback && callback();
   };
 
   const seekGsapTimeline = (progress: number) => {
@@ -49,9 +51,45 @@ export const useGsap = () => {
     return getGsapTimeline()?.duration() || 0;
   };
 
+  const createAnimation = (targetNode: Node) => {
+    const gsapTimeline = getGsapTimeline();
+    console.log(gsapTimeline);
+    if (!gsapTimeline) return 'No timeline found';
+    gsapTimeline.to(targetNode, { x: targetNode.x() + 50, duration: 1 }, 0);
+    gsapTimeline.to(
+      targetNode,
+      {
+        x: targetNode.x() + 50,
+        y: targetNode.y() + 50,
+        duration: 1
+      },
+      1
+    );
+    gsapTimeline.to(
+      targetNode,
+      {
+        rotation: targetNode.rotation() + 360,
+        duration: 2
+      },
+      2
+    );
+    gsapTimeline.to(
+      targetNode,
+      {
+        scaleX: 3,
+        scaleY: 3,
+        opacity: 0,
+        duration: 2
+      },
+      4
+    );
+    return 'Animation created';
+  };
+
   return {
     createGsapTimeline,
     getGsapTimeline,
+    createAnimation,
     playGsapTimeline,
     pauseGsapTimeline,
     seekGsapTimeline,
