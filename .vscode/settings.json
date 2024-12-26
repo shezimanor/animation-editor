@@ -11,7 +11,7 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "css.lint.unknownAtRules": "ignore",
   "scss.lint.unknownAtRules": "ignore",
-  "cSpell.words": ["Konva"],
+  "cSpell.words": ["cmid", "Konva", "mmid", "pokedex"],
   "github.copilot.chat.codeGeneration.useInstructionFiles": true,
   "github.copilot.chat.codeGeneration.instructions": [
     {
