@@ -501,6 +501,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     transformer.value?.nodes([item]);
     // 把變形器移到最上面
     transformer.value?.moveToTop();
+    // 把選取框移到最上面
+    selectionRect.value?.moveToTop();
     // focus on container(可以使用鍵盤事件)
     container.value?.focus();
   };

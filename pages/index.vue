@@ -1,6 +1,9 @@
 <!-- 編輯頁：所以工具列在這頁 -->
 <script setup lang="ts">
 import { getImageData } from '~/utils/konva';
+import testImg1 from '~/assets/images/demo/pokedex-0006-3.png';
+import testImg2 from '~/assets/images/demo/pokedex-0006-1.png';
+import testImg3 from '~/assets/images/demo/pokedex-1020.png';
 
 export interface AdModuleConfig {
   width: number;
@@ -13,8 +16,8 @@ export interface AdModuleConfig {
 
 const adModule = useCookie<AdModuleConfig>('adModuleInfo', {
   default: () => ({
-    width: 320,
-    height: 480,
+    width: 640,
+    height: 320,
     mmid: 'test-mmid',
     cmid: 'test-cmid',
     token: 'test-token',
@@ -34,20 +37,37 @@ const isHidedGridDot = useState('isHidedGridDot', () => false);
 const handleDrop = async (e: DragEvent) => {
   e.stopPropagation();
   e.preventDefault();
-  const file = e.dataTransfer?.files[0];
+  const fileList = e.dataTransfer?.files;
 
-  if (!file) return;
+  if (!fileList || fileList.length === 0) return;
   try {
-    const imgObj = await getImageData(file);
-    addImage(imgObj);
+    const imgObjList = await Promise.all(Array.from(fileList).map((file) => getImageData(file)));
+    imgObjList.forEach((imgObj) => {
+      // 加入圖片至主畫布
+      addImage(imgObj);
+    });
   } catch {
-    throw new Error('Failed to get image data.');
+    throw new Error('Failed to load image data.');
+  }
+};
+
+const loadImages = async (imageUrls: string[]) => {
+  try {
+    const imgObjList = await Promise.all(imageUrls.map((url) => getImageDataByUrl(url)));
+    imgObjList.forEach((imgObj) => {
+      // 加入圖片至主畫布
+      addImage(imgObj);
+    });
+  } catch (error) {
+    throw new Error('Failed to load image data.');
   }
 };
 
 onMounted(() => {
   initKonva();
   initTimelineKonva();
+  // 自動建立測試圖層
+  // loadImages([testImg1, testImg2, testImg3]);
 });
 onUnmounted(() => {
   destroyKonva();
