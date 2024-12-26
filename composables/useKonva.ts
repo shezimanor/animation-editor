@@ -172,29 +172,9 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       const selectedNodes = transformer.value?.nodes();
       if (!selectedNodes) return;
       selectedNodes.forEach((node) => {
-        const scaleX = node.scaleX();
-        const scaleY = node.scaleY();
-        const rotation = node.rotation();
-        const width = node.width() * scaleX;
-        const height = node.height() * scaleY;
-        // 將變形後的屬性設定回去
-        node.setAttrs({
-          width,
-          height,
-          scaleX: 1,
-          scaleY: 1,
-          rotation,
-          offset: {
-            x: width / 2,
-            y: height / 2
-          }
-        });
-        // 同時塞給 mainNodeList
         const targetMainNode = mainNodeList.value.find((item) => item.id === node.id());
         if (targetMainNode) {
-          targetMainNode.width = width;
-          targetMainNode.height = height;
-          targetMainNode.rotation = rotation;
+          updateNodeAndMainNodeAttributes(node, targetMainNode);
         }
       });
     });
@@ -439,8 +419,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     selectedNodes.forEach((node) => {
       const targetMainNode = mainNodeList.value.find((item) => item.id === node.id());
       if (targetMainNode) {
-        targetMainNode.x = node.x() - adModuleX.value;
-        targetMainNode.y = node.y() - adModuleY.value;
+        updateNodeAndMainNodeAttributes(node, targetMainNode);
       }
     });
   };
@@ -449,36 +428,41 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     const allNodes = layer.value?.getChildren((node) => node.hasName('item'));
     if (!allNodes) return;
     allNodes.forEach((node) => {
-      const scaleX = node.scaleX();
-      const scaleY = node.scaleY();
-      const rotation = node.rotation();
-      const width = node.width() * scaleX;
-      const height = node.height() * scaleY;
-      // 將變形後的屬性設定回去
-      node.setAttrs({
-        width,
-        height,
-        scaleX: 1,
-        scaleY: 1,
-        rotation,
-        offset: {
-          x: width / 2,
-          y: height / 2
-        }
-      });
       const targetMainNode = mainNodeList.value.find((item) => item.id === node.id());
       if (targetMainNode) {
-        // position
-        targetMainNode.x = node.x() - adModuleX.value;
-        targetMainNode.y = node.y() - adModuleY.value;
-        // transform
-        targetMainNode.width = width;
-        targetMainNode.height = height;
-        targetMainNode.rotation = rotation;
-        // opacity
-        targetMainNode.opacity = node.opacity();
+        updateNodeAndMainNodeAttributes(node, targetMainNode);
       }
     });
+  };
+
+  const updateNodeAndMainNodeAttributes = (node: Node, targetMainNode: MyNode) => {
+    const scaleX = node.scaleX();
+    const scaleY = node.scaleY();
+    const rotation = node.rotation();
+    const width = node.width() * scaleX;
+    const height = node.height() * scaleY;
+
+    node.setAttrs({
+      width,
+      height,
+      scaleX: 1,
+      scaleY: 1,
+      rotation,
+      offset: {
+        x: width / 2,
+        y: height / 2
+      }
+    });
+
+    // position
+    targetMainNode.x = node.x() - adModuleX.value;
+    targetMainNode.y = node.y() - adModuleY.value;
+    // transform
+    targetMainNode.width = width;
+    targetMainNode.height = height;
+    targetMainNode.rotation = rotation;
+    // opacity
+    targetMainNode.opacity = node.opacity();
   };
 
   const deleteItems = (selectedNodes: Node[]) => {
