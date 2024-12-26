@@ -20,6 +20,7 @@
     "@nuxtjs/tailwindcss": "^6.12.2",
     "@vueuse/nuxt": "^12.0.0",
     "eslint": "^9.15.0",
+    "gsap": "^3.12.5",
     "konva": "^9.3.16",
     "nuxt": "^3.14.1592",
     "uuid": "^11.0.3",

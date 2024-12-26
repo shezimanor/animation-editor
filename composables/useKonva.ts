@@ -4,6 +4,7 @@ import Konva from 'konva';
 import type { Node } from 'konva/lib/Node';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
 const { addTimelineItem, deleteTimelineItem } = useTimeline();
+const { createGsapTimeline, getGsapTimeline } = useGsap();
 
 interface AdModuleConfig {
   width: number;
@@ -28,14 +29,14 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const DELTA = 1;
   const mainStageRef = useState<HTMLDivElement | null>('mainStageRef', () => shallowRef(null));
   const mainStageBgRef = useState<HTMLDivElement | null>('mainStageBgRef', () => shallowRef(null));
-  let stage = useState<Konva.Stage | null>('stage', () => shallowRef(null));
-  let container = useState<HTMLDivElement | null>('container', () => shallowRef(null));
-  let layer = useState<Konva.Layer | null>('layer', () => shallowRef(null));
-  let selectionRect = useState<Konva.Rect | null>('selectionRect', () => shallowRef(null));
-  let adModuleRect = useState<Konva.Rect | null>('adModuleRect', () => shallowRef(null));
+  const stage = useState<Konva.Stage | null>('stage', () => shallowRef(null));
+  const container = useState<HTMLDivElement | null>('container', () => shallowRef(null));
+  const layer = useState<Konva.Layer | null>('layer', () => shallowRef(null));
+  const selectionRect = useState<Konva.Rect | null>('selectionRect', () => shallowRef(null));
+  const adModuleRect = useState<Konva.Rect | null>('adModuleRect', () => shallowRef(null));
   // 需要偵測他的 nodes 數量，所以不能用 shallowRef
-  let transformer = useState<Konva.Transformer | null>('transformer', () => null);
-  let mainNodeList = useState<MyNode[]>('mainNodeList', () => []);
+  const transformer = useState<Konva.Transformer | null>('transformer', () => null);
+  const mainNodeList = useState<MyNode[]>('mainNodeList', () => []);
   const selecting = ref(false);
   const adModuleX = ref(0);
   const adModuleY = ref(0);
@@ -58,6 +59,10 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     createAdModuleRect();
     // create Selection Rectangle(選取框)
     createSelectionRect();
+    // create Timeline Instance, param: updateCallback
+    createGsapTimeline(() => {
+      updateLayer();
+    });
 
     // 使用 resize 觀察者
     useResizeObserver(mainStageRef, (entries) => {
@@ -108,9 +113,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   // 用來觀察 Konva 的函數
-  const logKonva = () => {
-    console.log(layer.value?.getChildren());
-  };
+  const logKonva = () => {};
 
   // TODO: 清除 Konva
   const destroyKonva = () => {};
@@ -482,6 +485,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     mainNodeList.value.push(imgNode);
   };
 
+  // ⚠️ addRect 可能用不到
   const addRect = () => {
     const rectItem = new Konva.Rect({
       name: 'item',
@@ -506,9 +510,23 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     // focus on container(可以使用鍵盤事件)
     container.value?.focus();
   };
+
   const updateInitialPosition = () => {
     newItemInitialX.value += 10;
     newItemInitialY.value += 10;
+  };
+
+  const updateLayer = () => {
+    layer.value?.draw();
+  };
+
+  const addAnimation = (id: UUIDTypes) => {
+    // 找到對應的 Node
+    const targetNode = layer.value?.findOne(`#${id}`);
+    // 找到 Timeline
+    const gsapTimeline = getGsapTimeline();
+    if (!targetNode || !gsapTimeline) return;
+    // gsapTimeline.to(targetNode, { x: 1360, duration: 10 });
   };
 
   return {
@@ -521,7 +539,9 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     transformer,
     addImage,
     addRect,
+    addAnimation,
     logKonva,
+    updateLayer,
     mainNodeList
   };
 };
