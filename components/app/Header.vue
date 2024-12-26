@@ -55,6 +55,9 @@ const changeModule = () => {
       </NuxtLink>
       <AppGhostButton>下載</AppGhostButton>
     </div>
+    <AppTimelineController
+      class="absolute bottom-0 left-0 right-0 top-0 m-auto h-10 w-10 rounded-md bg-white py-0 shadow-std"
+    />
     <div class="flex flex-row items-center gap-x-2">
       <USelectMenu v-model="selectedModule" :options="options" class="w-32" @change="changeModule">
         <template #leading>

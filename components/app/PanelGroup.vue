@@ -8,7 +8,6 @@ const { transformer, logKonva } = useKonva();
       <h2>圖層資訊</h2>
       <UButton size="xs" @click="logKonva">Log</UButton>
     </header>
-    <AppTimelineController />
     <div v-if="transformer && transformer?.nodes().length > 0">
       <AppPanel v-for="node in transformer.nodes()" :key="node.id" :node="node" />
     </div>

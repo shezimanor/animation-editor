@@ -62,8 +62,7 @@ const currentNode = computed(() => {
       </div>
     </div>
     <div class="flex justify-start">
-      <h3>功能測試區</h3>
-      <UButton size="xs" @click="addAnimation(currentNode.id)">建立動畫</UButton>
+      <!-- <UButton size="xs" @click="addAnimation(currentNode.id)">建立測試動畫</UButton> -->
     </div>
   </div>
 </template>
