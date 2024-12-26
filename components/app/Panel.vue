@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Node } from 'konva/lib/Node';
 import type { UUIDTypes } from 'uuid';
-const { mainNodeList } = useKonva();
+const { mainNodeList, addAnimation } = useKonva();
 
 const props = withDefaults(
   defineProps<{
@@ -19,7 +19,7 @@ const currentNode = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-1" v-if="currentNode">
+  <div class="flex flex-col gap-y-1 py-1" v-if="currentNode">
     <div class="flex items-center justify-between">
       <h3 class="text-sm font-semibold">{{ currentNode.label }}</h3>
       <UButton
@@ -60,6 +60,10 @@ const currentNode = computed(() => {
         <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Opacity</UKbd>
         <span class="text-xs text-neutral-500">{{ currentNode.opacity.toFixed(2) }}</span>
       </div>
+    </div>
+    <div class="flex justify-start">
+      <h3>功能測試區</h3>
+      <UButton size="xs" @click="addAnimation(currentNode.id)">建立動畫</UButton>
     </div>
   </div>
 </template>
