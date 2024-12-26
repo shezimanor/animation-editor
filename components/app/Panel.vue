@@ -12,6 +12,10 @@ const props = withDefaults(
   }
 );
 
+const emit = defineEmits<{
+  (e: 'openModal', id: UUIDTypes): void;
+}>();
+
 const currentNode = computed(() => {
   if (!props.node) return null;
   return mainNodeList.value.find((node) => node.id === props.node?.id());
@@ -20,8 +24,9 @@ const currentNode = computed(() => {
 
 <template>
   <div class="flex flex-col gap-y-1 py-1" v-if="currentNode">
-    <div class="flex items-center justify-between">
-      <h3 class="text-sm font-semibold">{{ currentNode.label }}</h3>
+    <div class="mb-1 flex items-center justify-between">
+      <!-- <h3 class="text-sm font-semibold"></h3> -->
+      <UInput v-model="currentNode.label" size="xs" />
       <UButton
         :padded="false"
         class="delete-button"
@@ -62,7 +67,7 @@ const currentNode = computed(() => {
       </div>
     </div>
     <div class="flex justify-start">
-      <!-- <UButton size="xs" @click="addAnimation(currentNode.id)">建立測試動畫</UButton> -->
+      <UButton size="xs" @click="emit('openModal', currentNode.id)">建立動畫</UButton>
     </div>
   </div>
 </template>
