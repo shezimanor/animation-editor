@@ -14,11 +14,11 @@ export const useTimeline = () => {
   const timelineStageRef = useState<HTMLDivElement | null>('timelineStageRef', () =>
     shallowRef(null)
   );
-  let timelineStage = useState<Konva.Stage | null>('timelineStage', () => shallowRef(null));
-  let timelineContainer = useState<HTMLDivElement | null>('timelineContainer', () =>
+  const timelineStage = useState<Konva.Stage | null>('timelineStage', () => shallowRef(null));
+  const timelineContainer = useState<HTMLDivElement | null>('timelineContainer', () =>
     shallowRef(null)
   );
-  let timelineLayer = useState<Konva.Layer | null>('timelineLayer', () => shallowRef(null));
+  const timelineLayer = useState<Konva.Layer | null>('timelineLayer', () => shallowRef(null));
   const newItemInitialX = ref(0);
   const newItemInitialY = ref(0);
   const timelineTransformers = ref<Konva.Transformer[]>([]);
