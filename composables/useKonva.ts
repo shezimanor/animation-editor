@@ -505,6 +505,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     });
     focusOnItem(imgItem);
     addMainNode(imgConfig);
+    // 替這張圖片新增 TimelineItem
     addTimelineItem(imgObj, id);
     updateInitialPosition();
   };

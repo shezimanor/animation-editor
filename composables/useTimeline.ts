@@ -1,16 +1,18 @@
 // Konva: https://konvajs.org/api/Konva.html
 import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
+import type { NodeConfig } from 'konva/lib/Node';
+import type { ImageConfig } from 'konva/lib/shapes/Image';
 import type { UUIDTypes } from 'uuid';
 
 export const useTimeline = () => {
   // const HEADER_HEIGHT = 56;
   // const FOOTER_HEIGHT = 274;
-  const TIMELINE_HEIGHT = 240;
-  const ASIDE_WIDTH = 72;
+  const TIMELINE_CONTAINER_HEIGHT = 240;
+  const ASIDE_WIDTH = 0;
   const PADDING_X = 16;
-  const DELTA = 4;
-  const IMG_WIDTH = 28;
+  const GAP_Y = 4;
+  const TRACK_HEIGHT = 24;
   const timelineStageRef = useState<HTMLDivElement | null>('timelineStageRef', () =>
     shallowRef(null)
   );
@@ -50,7 +52,7 @@ export const useTimeline = () => {
       timelineStage.value = new Konva.Stage({
         container: timelineStageRef.value,
         width: window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2),
-        height: TIMELINE_HEIGHT,
+        height: TIMELINE_CONTAINER_HEIGHT,
         draggable: false
       });
       timelineContainer.value = timelineStage.value.container();
@@ -69,38 +71,55 @@ export const useTimeline = () => {
   };
 
   const addTimelineItem = (imgObj: HTMLImageElement, itemId: string) => {
-    const groupItem = new Konva.Group({
-      id: itemId,
-      name: 'item',
-      x: newItemInitialX.value,
+    // const groupItem = new Konva.Group({
+    //   id: itemId,
+    //   name: 'item',
+    //   x: newItemInitialX.value,
+    //   y: newItemInitialY.value,
+    //   draggable: true,
+    //   dragBoundFunc: function (pos) {
+    //     return {
+    //       x:
+    //         pos.x < 0
+    //           ? 0
+    //           : pos.x >
+    //               (timelineStage.value?.width() ??
+    //                 window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2))
+    //             ? (timelineStage.value?.width() ??
+    //               window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2))
+    //             : pos.x,
+    //       y: this.absolutePosition().y
+    //     };
+    //   }
+    // });
+
+    const imgItem = addImage({
+      id: `img_${itemId}`,
+      name: 'item_img',
+      x: 0,
       y: newItemInitialY.value,
-      draggable: true,
-      dragBoundFunc: function (pos) {
-        return {
-          x:
-            pos.x < 0
-              ? 0
-              : pos.x >
-                  (timelineStage.value?.width() ??
-                    window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2))
-                ? (timelineStage.value?.width() ??
-                  window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2))
-                : pos.x,
-          y: this.absolutePosition().y
-        };
-      }
+      image: imgObj,
+      width: TRACK_HEIGHT,
+      height: TRACK_HEIGHT,
+      fill: 'rgba(255, 255, 255, 1)',
+      cornerRadius: 3,
+      draggable: false
     });
+    const trackItem = addRect({
+      id: `track_${itemId}`,
+      name: 'item_track',
+      x: TRACK_HEIGHT + 8,
+      y: newItemInitialY.value,
+      width: window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2),
+      height: TRACK_HEIGHT,
+      fill: 'rgba(255, 255, 255, 0.6)',
+      cornerRadius: 3,
+      draggable: false
+    });
+    // const transformerItem = addTransformer();
 
-    const imgItem = addImage(imgObj);
-    const rectItem = addRect();
-    const transformerItem = addTransformer();
-
-    groupItem.add(rectItem);
-    groupItem.add(imgItem);
-    transformerItem.nodes([groupItem]);
-    timelineLayer.value?.add(groupItem);
-    groupItem.moveToBottom();
-    transformerItem.moveToTop();
+    timelineLayer.value?.add(imgItem);
+    timelineLayer.value?.add(trackItem);
     updateInitialPosition();
   };
 
@@ -135,44 +154,17 @@ export const useTimeline = () => {
         }
       }
     });
-    transformer.on('transform', function () {
-      if (transformer.nodes().length === 0) return;
-      const currentBar = transformer.nodes()[0] as Konva.Group;
-      const currentImg = currentBar.findOne('.item_img') as Konva.Image;
-      // 維持圖片比例
-      currentImg.scaleX(Number((1 / currentBar.scaleX()).toFixed(2)));
-      // FIXME: 圖片的位置會隨著縮放而變動
-    });
     timelineLayer.value?.add(transformer);
     timelineTransformers.value.push(transformer);
     return transformer;
   };
 
-  const addImage = (imgObj: HTMLImageElement) => {
-    return new Konva.Image({
-      name: 'item_img',
-      x: 8,
-      y: 4,
-      image: imgObj,
-      width: IMG_WIDTH,
-      height: IMG_WIDTH,
-      stroke: 'rgba(90, 90, 90, 1)',
-      strokeWidth: 1,
-      cornerRadius: 2
-    });
+  const addImage = (imageConfig: ImageConfig) => {
+    return new Konva.Image(imageConfig);
   };
 
-  const addRect = () => {
-    return new Konva.Rect({
-      name: 'item_rect',
-      x: 0,
-      y: 0,
-      width: 120,
-      height: 36,
-      fill: 'rgba(255, 255, 255, 0.6)',
-      strokeWidth: 1,
-      cornerRadius: 2
-    });
+  const addRect = (rectConfig: Partial<NodeConfig>) => {
+    return new Konva.Rect(rectConfig);
   };
 
   const deleteTimelineItem = (id: UUIDTypes) => {
@@ -191,8 +183,8 @@ export const useTimeline = () => {
 
   // 更新 Group 的建立位置
   const updateInitialPosition = () => {
-    const groups = timelineLayer.value?.find('.item') ?? [];
-    newItemInitialY.value = groups.length * 40;
+    const tracks = timelineLayer.value?.find('.item_track') ?? [];
+    newItemInitialY.value = tracks.length * (TRACK_HEIGHT + GAP_Y);
   };
 
   // 隱藏空的變形器
