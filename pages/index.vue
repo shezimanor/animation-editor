@@ -25,7 +25,7 @@ const adModule = useCookie<AdModuleConfig>('adModuleInfo', {
   })
 });
 
-const { mainStageRef, mainStageBgRef, initKonva, destroyKonva, addImage, addRect } = useKonva({
+const { mainStageRef, mainStageBgRef, initKonva, destroyKonva, addImage } = useKonva({
   width: adModule.value.width,
   height: adModule.value.height
 });
@@ -34,11 +34,38 @@ const { timelineStageRef, initTimelineKonva, destroyTimelineKonva } = useTimelin
 
 const isHidedGridDot = useState('isHidedGridDot', () => false);
 
+const ticks = ref([
+  '0',
+  "'",
+  "'",
+  '1.5',
+  "'",
+  "'",
+  '3',
+  "'",
+  "'",
+  '4.5',
+  "'",
+  "'",
+  '6',
+  "'",
+  "'",
+  '7.5',
+  "'",
+  "'",
+  '9',
+  "'",
+  "'",
+  '10.5',
+  "'",
+  "'",
+  '12'
+]);
+
 const handleDrop = async (e: DragEvent) => {
   e.stopPropagation();
   e.preventDefault();
   const fileList = e.dataTransfer?.files;
-
   if (!fileList || fileList.length === 0) return;
   try {
     const imgObjList = await Promise.all(Array.from(fileList).map((file) => getImageData(file)));
@@ -96,19 +123,14 @@ onUnmounted(() => {
       <!-- 時間軸畫布 -->
       <div
         class="flex w-full flex-shrink-0 flex-grow-0 flex-col gap-y-2 border-t-2 border-neutral-300 px-4"
-        @dragover.prevent.stop
-        @dragenter.prevent.stop
-        @drop="handleDrop"
       >
         <!-- 時間軸標籤 -->
         <ul
-          class="flex w-full flex-row justify-between pt-1 text-sm tracking-wide text-neutral-500"
+          class="flex w-full flex-row justify-between pl-8 pt-1 text-sm tracking-wide text-neutral-500"
         >
-          <li>0秒</li>
-          <li>3秒</li>
-          <li>6秒</li>
-          <li>9秒</li>
-          <li>12秒</li>
+          <li v-for="(tick, index) in ticks" :key="index">
+            {{ tick }}
+          </li>
         </ul>
         <!-- 模擬時間軸條 -->
         <div class="h-[240px] w-full">

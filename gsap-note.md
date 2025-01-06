@@ -1,5 +1,7 @@
 # GSAP Timeline 筆記
 
+Eases: [docs](https://gsap.com/docs/v3/Eases)
+
 ```javascript
 gsapTimeline.to(targetNode, { x: targetNode.x() + 50, duration: 1 }, 0);
 gsapTimeline.to(
@@ -15,7 +17,8 @@ gsapTimeline.to(
   targetNode,
   {
     rotation: targetNode.rotation() + 360,
-    duration: 2
+    duration: 2,
+    ease: 'power1.inOut'
   },
   2
 );
