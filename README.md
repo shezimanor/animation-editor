@@ -19,3 +19,9 @@
 - 通用：undo、snap、輸入值。
 - 動畫設定：設定初始狀態、和結束狀態。
 - 時間軸：鍵盤操作、單一物件多影格操作。
+
+## Reference
+
+- [GSAP Timeline](https://gsap.com/docs/v3/GSAP/Timeline/)
+- [Konva](https://konvajs.org/api/Konva.html)
+- [Nuxt UI](https://ui.nuxt.com/)
