@@ -13,6 +13,7 @@ export const useTimeline = () => {
   const PADDING_X = 16;
   const GAP_Y = 4;
   const TRACK_HEIGHT = 24;
+  const POINTER_WIDTH = 4;
   const IMG_MARGIN = 8;
   const TRACK_START_X = TRACK_HEIGHT + IMG_MARGIN;
   const timelineStageRef = useState<HTMLDivElement | null>('timelineStageRef', () =>
@@ -36,6 +37,8 @@ export const useTimeline = () => {
     createStage();
     // create Layer
     createLayer();
+    // create Pointer(時間軸的指針)
+    createPointer();
 
     // 使用 resize 觀察者
     useResizeObserver(timelineStageRef, (entries) => {
@@ -72,6 +75,40 @@ export const useTimeline = () => {
     timelineStage.value?.add(timelineLayer.value);
   };
 
+  const createPointer = () => {
+    const pointer = addRect({
+      id: `pointer`,
+      name: 'item_pointer',
+      x: TRACK_START_X,
+      y: 0,
+      width: POINTER_WIDTH,
+      height: TIMELINE_CONTAINER_HEIGHT - POINTER_WIDTH,
+      fill: '#60a5fa',
+      cornerRadius: 2,
+      draggable: true,
+      dragBoundFunc: function (pos) {
+        const timelineStageWidth =
+          timelineStage.value?.width() ?? window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2);
+        return {
+          x:
+            pos.x < TRACK_START_X
+              ? TRACK_START_X
+              : pos.x + POINTER_WIDTH > timelineStageWidth
+                ? timelineStageWidth - POINTER_WIDTH
+                : pos.x,
+          y: this.absolutePosition().y
+        };
+      }
+    });
+    timelineLayer.value?.add(pointer);
+    pointer.moveToTop();
+  };
+
+  const pointerMoveToTop = () => {
+    const pointer = timelineLayer.value?.findOne('.item_pointer');
+    pointer?.moveToTop();
+  };
+
   const addTimelineTrack = (imgObj: HTMLImageElement, itemId: string) => {
     // 只用來放置動畫條
     const groupItem = new Konva.Group({
@@ -102,7 +139,7 @@ export const useTimeline = () => {
       name: 'item_track',
       x: TRACK_START_X,
       y: newItemInitialY.value,
-      width: window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2),
+      width: window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2) - TRACK_START_X,
       height: TRACK_HEIGHT,
       fill: 'rgba(255, 255, 255, 0.6)',
       cornerRadius: 2,
@@ -113,6 +150,7 @@ export const useTimeline = () => {
     timelineLayer.value?.add(trackItem);
     timelineLayer.value?.add(groupItem);
     updateInitialPosition();
+    pointerMoveToTop();
   };
 
   const getTargetNode = (id: string) => {
@@ -123,6 +161,7 @@ export const useTimeline = () => {
     const groupItem = getTargetNode(`group_${id}`);
     if (!groupItem || !(groupItem instanceof Konva.Group)) return;
     const barId = uuid();
+    const trackWidth = window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2) - TRACK_START_X;
     // 時間軸動畫條
     const barItem = addRect({
       id: `bar_${barId}`,
@@ -130,7 +169,7 @@ export const useTimeline = () => {
       // 這裡的 x,y 位置是相對於 group 的位置
       x: 0,
       y: 0,
-      width: (window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2)) / 12,
+      width: trackWidth / 12,
       height: TRACK_HEIGHT,
       fill: '#22d3ee',
       cornerRadius: 3,
@@ -153,6 +192,7 @@ export const useTimeline = () => {
     groupItem.add(barItem);
     // 加上變形器
     transformerItem.nodes([barItem]);
+    pointerMoveToTop();
   };
 
   const addTransformer = () => {
