@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Node } from 'konva/lib/Node';
 import type { UUIDTypes } from 'uuid';
-const { mainNodeList, addAnimation } = useKonva();
+const { mainNodeList } = useKonva();
 
 const props = withDefaults(
   defineProps<{
@@ -27,14 +27,16 @@ const currentNode = computed(() => {
     <div class="mb-1 flex items-center justify-between">
       <!-- <h3 class="text-sm font-semibold"></h3> -->
       <UInput v-model="currentNode.label" size="xs" />
-      <UButton
-        :padded="false"
-        class="delete-button"
-        icon="i-heroicons-x-mark-20-solid"
-        size="sm"
-        color="red"
-        variant="link"
-      />
+      <UTooltip text="刪除圖層" :popper="{ placement: 'bottom' }">
+        <UButton
+          :padded="false"
+          class="delete-button"
+          icon="i-heroicons-x-mark-20-solid"
+          size="sm"
+          color="red"
+          variant="link"
+        />
+      </UTooltip>
     </div>
     <div class="grid grid-cols-2 gap-x-2">
       <div class="flex items-center justify-between">
