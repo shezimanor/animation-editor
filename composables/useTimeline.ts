@@ -209,7 +209,9 @@ export const useTimeline = () => {
   };
 
   return {
+    // state
     timelineStageRef,
+    // action
     initTimelineKonva,
     destroyTimelineKonva,
     addTimelineItem,

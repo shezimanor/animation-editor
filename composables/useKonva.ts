@@ -25,6 +25,7 @@ interface MyNode {
 export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const HEADER_HEIGHT = 56;
   const FOOTER_HEIGHT = 274;
+  const SOURCE_IMG_LIMIT = 10;
   const ASIDE_WIDTH = 0; // 已拿掉左側工具列
   const DELTA = 1;
   const mainStageRef = useState<HTMLDivElement | null>('mainStageRef', () => shallowRef(null));
@@ -47,6 +48,9 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const x2 = ref(0);
   const y2 = ref(0);
   const scaleBy = 1.05; // scale 的單位幅度
+
+  // getter
+  const mainNodeLength = computed(() => mainNodeList.value.length);
 
   const initKonva = () => {
     // create Stage
@@ -482,6 +486,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const addImage = (imgObj: HTMLImageElement) => {
+    if (mainNodeLength.value >= SOURCE_IMG_LIMIT) return;
     const id = uuid();
     const imgConfig = {
       id: id,
@@ -559,19 +564,24 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   return {
+    // state
     mainStageRef,
     mainStageBgRef,
     stage,
     layer,
+    transformer,
+    mainNodeList,
+    SOURCE_IMG_LIMIT,
+    // getter
+    mainNodeLength,
+    // action
     initKonva,
     destroyKonva,
-    transformer,
     addImage,
     addRect,
     addAnimation,
     logKonva,
     updateLayer,
-    updateMainNodeState,
-    mainNodeList
+    updateMainNodeState
   };
 };

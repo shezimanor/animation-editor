@@ -87,6 +87,10 @@ export const useGsap = () => {
   };
 
   return {
+    // state
+    initializedGsap,
+    paused,
+    // action
     createGsapTimeline,
     getGsapTimeline,
     createAnimation,
@@ -94,8 +98,6 @@ export const useGsap = () => {
     pauseGsapTimeline,
     seekGsapTimeline,
     stopGsapTimeline,
-    initializedGsap,
-    paused,
     getTimelineDuration
   };
 };
