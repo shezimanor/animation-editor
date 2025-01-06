@@ -51,25 +51,15 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
 
   // getter
   const mainNodeLength = computed(() => mainNodeList.value.length);
-  const mainNodeMap = computed(() => {
-    console.log('mainNodeMap');
-    return mainNodeList.value.reduce(
+  const mainNodeMap = computed(() =>
+    mainNodeList.value.reduce(
       (acc, node) => {
         acc[`${node.id}`] = node;
         return acc;
       },
       {} as Record<string, MyNode>
-    );
-  });
-  // const mainNodeMap = computed(() =>
-  //   mainNodeList.value.reduce(
-  //     (acc, node) => {
-  //       acc[`${node.id}`] = node;
-  //       return acc;
-  //     },
-  //     {} as Record<string, MyNode>
-  //   )
-  // );
+    )
+  );
 
   const initKonva = () => {
     // create Stage
