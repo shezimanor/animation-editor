@@ -86,7 +86,7 @@ export const useTimeline = () => {
       fill: '#60a5fa',
       cornerRadius: 2,
       draggable: true,
-      dragBoundFunc: function (pos) {
+      dragBoundFunc(pos) {
         const timelineStageWidth =
           timelineStage.value?.width() ?? window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2);
         return {
@@ -174,7 +174,7 @@ export const useTimeline = () => {
       fill: '#22d3ee',
       cornerRadius: 3,
       draggable: true,
-      dragBoundFunc: function (pos) {
+      dragBoundFunc(pos) {
         const timelineStageWidth =
           timelineStage.value?.width() ?? window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2);
         return {
@@ -213,7 +213,20 @@ export const useTimeline = () => {
       rotateLineVisible: false,
       enabledAnchors: ['middle-left', 'middle-right'],
       visible: true,
-      anchorStyleFunc: (anchor) => {
+      boundBoxFunc(oldBox, newBox) {
+        // 限制變形器的範圍
+        if (newBox.x < TRACK_START_X) {
+          return oldBox;
+        }
+        if (
+          newBox.x + newBox.width >
+          (timelineStage.value?.width() ?? window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2))
+        ) {
+          return oldBox;
+        }
+        return newBox;
+      },
+      anchorStyleFunc(anchor) {
         // 左右錨點樣式
         anchor.cornerRadius(3);
         anchor.fill('#a5f3fc');
@@ -225,6 +238,12 @@ export const useTimeline = () => {
           anchor.offsetX(2);
         }
       }
+    });
+    // 維持 scaleX = 1, 並將 width 設為原本的 scaleX * width
+    transformer.on('transform', function () {
+      const currentBar = transformer.nodes()[0] as Konva.Rect;
+      currentBar.width(currentBar.scaleX() * currentBar.width());
+      currentBar.scaleX(1);
     });
     timelineLayer.value?.add(transformer);
     timelineTransformers.value.push(transformer);
