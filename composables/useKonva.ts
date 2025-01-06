@@ -51,6 +51,25 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
 
   // getter
   const mainNodeLength = computed(() => mainNodeList.value.length);
+  const mainNodeMap = computed(() => {
+    console.log('mainNodeMap');
+    return mainNodeList.value.reduce(
+      (acc, node) => {
+        acc[`${node.id}`] = node;
+        return acc;
+      },
+      {} as Record<string, MyNode>
+    );
+  });
+  // const mainNodeMap = computed(() =>
+  //   mainNodeList.value.reduce(
+  //     (acc, node) => {
+  //       acc[`${node.id}`] = node;
+  //       return acc;
+  //     },
+  //     {} as Record<string, MyNode>
+  //   )
+  // );
 
   const initKonva = () => {
     // create Stage
@@ -97,7 +116,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
           node.x(nodeNewX);
           node.y(nodeNewY);
           // 同時調整 mainNodeList (mainNode 的 x, y 是相對於 adModuleRect 的)
-          const targetMainNode = mainNodeList.value.find((item) => item.id === node.id());
+          const targetMainNode = mainNodeMap.value[node.id()];
           if (targetMainNode) {
             targetMainNode.x = nodeNewX - adModuleX.value;
             targetMainNode.y = nodeNewY - adModuleY.value;
@@ -176,7 +195,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       const selectedNodes = transformer.value?.nodes();
       if (!selectedNodes) return;
       selectedNodes.forEach((node) => {
-        const targetMainNode = mainNodeList.value.find((item) => item.id === node.id());
+        const targetMainNode = mainNodeMap.value[node.id()];
         if (targetMainNode) {
           updateNodeAndMainNodeAttributes(node, targetMainNode);
         }
@@ -421,7 +440,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
 
   const updateMainNodePosition = (selectedNodes: Node[]) => {
     selectedNodes.forEach((node) => {
-      const targetMainNode = mainNodeList.value.find((item) => item.id === node.id());
+      const targetMainNode = mainNodeMap.value[node.id()];
       if (targetMainNode) {
         updateNodeAndMainNodeAttributes(node, targetMainNode);
       }
@@ -432,7 +451,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     const allNodes = layer.value?.getChildren((node) => node.hasName('item'));
     if (!allNodes) return;
     allNodes.forEach((node) => {
-      const targetMainNode = mainNodeList.value.find((item) => item.id === node.id());
+      const targetMainNode = mainNodeMap.value[node.id()];
       if (targetMainNode) {
         updateNodeAndMainNodeAttributes(node, targetMainNode);
       }
@@ -574,6 +593,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     SOURCE_IMG_LIMIT,
     // getter
     mainNodeLength,
+    mainNodeMap,
     // action
     initKonva,
     destroyKonva,
