@@ -3,7 +3,7 @@ import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
 import type { Node } from 'konva/lib/Node';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
-const { addTimelineItem, deleteTimelineItem } = useTimeline();
+const { addTimelineTrack, deleteTimelineTrack } = useTimeline();
 const { createGsapTimeline, createAnimation } = useGsap();
 
 interface AdModuleConfig {
@@ -483,7 +483,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       // 同時移除 mainNodeList
       deleteMainNode(node.id());
       // 同時刪除 TimelineItem
-      deleteTimelineItem(node.id());
+      deleteTimelineTrack(node.id());
       // 刪除 Node(Img)
       node.destroy();
     });
@@ -492,6 +492,11 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const deleteMainNode = (id: UUIDTypes) => {
     const targetIndex = mainNodeList.value.findIndex((item) => item.id === id);
     if (targetIndex > -1) mainNodeList.value.splice(targetIndex, 1);
+  };
+
+  const getTargetNode = (id: UUIDTypes) => {
+    // 是 Konva 的 Node，不是 mainNode
+    return layer.value?.findOne(`#${id}`);
   };
 
   const addImage = (imgObj: HTMLImageElement) => {
@@ -520,7 +525,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     focusOnItem(imgItem);
     addMainNode(imgConfig);
     // 替這張圖片新增 TimelineItem
-    addTimelineItem(imgObj, id);
+    addTimelineTrack(imgObj, id);
     updateInitialPosition();
   };
 
@@ -563,15 +568,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     layer.value?.draw();
   };
 
-  const addAnimation = (id: UUIDTypes) => {
-    // 找到對應的 Node
-    const targetNode = layer.value?.findOne(`#${id}`);
-    if (!targetNode) return;
-    const response = createAnimation(targetNode);
-    console.log(response);
-    // gsapTimeline.to(targetNode, { x: 1360, duration: 10 });
-  };
-
   return {
     // state
     mainStageRef,
@@ -589,9 +585,9 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     destroyKonva,
     addImage,
     addRect,
-    addAnimation,
     logKonva,
     updateLayer,
-    updateMainNodeState
+    updateMainNodeState,
+    getTargetNode
   };
 };

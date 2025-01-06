@@ -1,14 +1,18 @@
 <script lang="ts" setup>
 import type { UUIDTypes } from 'uuid';
+const UNNAMED_LABEL = '未命名標籤';
 
-const { transformer, logKonva } = useKonva();
+const { transformer, logKonva, getTargetNode } = useKonva();
+
+const { createAnimation } = useGsap();
 
 const isOpen = ref(false);
 
-const animationLabel = ref('新的動畫標籤');
+const currentNodeId = ref<UUIDTypes | null>(null);
+const animationLabel = ref(UNNAMED_LABEL);
 
 const resetAnimationLabel = () => {
-  animationLabel.value = '新的動畫標籤';
+  animationLabel.value = UNNAMED_LABEL;
 };
 
 const closeModal = () => {
@@ -16,19 +20,22 @@ const closeModal = () => {
   resetAnimationLabel();
 };
 
-const createAnimation = () => {
-  console.log('createAnimation', animationLabel.value);
+const keydownToCreateAnimationTemplate = (event: KeyboardEvent) => {
+  if (event.isComposing) return;
+  if (animationLabel.value.trim().length <= 0 || !currentNodeId.value) return;
+  createAnimation(getTargetNode(currentNodeId.value), animationLabel.value);
   closeModal();
 };
 
-const beforeCreateAnimation = (event: KeyboardEvent) => {
-  if (event.isComposing) return;
-  if (animationLabel.value.trim().length <= 0) return;
-  createAnimation();
+const clickToCreateAnimationTemplate = () => {
+  if (animationLabel.value.trim().length <= 0 || !currentNodeId.value) return;
+  createAnimation(getTargetNode(currentNodeId.value), animationLabel.value);
+  closeModal();
 };
 
 const handleOpenModal = (id: UUIDTypes) => {
   isOpen.value = true;
+  currentNodeId.value = id;
 };
 </script>
 
@@ -62,6 +69,21 @@ const handleOpenModal = (id: UUIDTypes) => {
       :ui="{
         ring: '',
         divide: 'divide-y divide-gray-100 dark:divide-gray-800',
+        body: {
+          base: '',
+          background: '',
+          padding: 'p-4 sm:p-4'
+        },
+        header: {
+          base: '',
+          background: '',
+          padding: 'p-4 sm:p-4'
+        },
+        footer: {
+          base: '',
+          background: '',
+          padding: 'p-4 sm:p-4'
+        },
         shadow: 'shadow-none'
       }"
     >
@@ -77,23 +99,33 @@ const handleOpenModal = (id: UUIDTypes) => {
           />
         </div>
       </template>
-      <div class="flex items-center gap-x-4">
-        <label class="text-sm" name="animationLabel">動畫標籤</label>
-        <!-- IME (Input Method Editor) 組成狀態: KeyboardEvent.isComposing 必須用 keydown 觸發 -->
-        <UInput
-          class="grow"
-          v-model="animationLabel"
-          name="animationLabel"
-          size="sm"
-          placeholder="輸入動畫標籤"
-          autofocus
-          @keydown.enter="beforeCreateAnimation"
-        />
+      <div class="flex flex-col gap-y-4">
+        <div class="flex items-center gap-x-4">
+          <UTooltip text="命名動畫標籤，以便於識別" :popper="{ placement: 'bottom' }">
+            <label class="text-sm" name="animationLabel">動畫標籤</label>
+          </UTooltip>
+          <!-- IME (Input Method Editor) 組成狀態: KeyboardEvent.isComposing 必須用 keydown 觸發 -->
+          <UInput
+            class="grow"
+            v-model="animationLabel"
+            name="animationLabel"
+            size="sm"
+            placeholder="輸入動畫標籤"
+            autofocus
+            @keydown.enter="keydownToCreateAnimationTemplate"
+          />
+        </div>
+        <div class="text-xs text-neutral-500">
+          可按下 Enter 直接新增，後續於時間軸區域編輯動畫。
+        </div>
       </div>
       <template #footer>
         <div class="flex justify-end gap-x-2">
           <UButton color="gray" size="xs" variant="ghost" @click="closeModal">取消</UButton>
-          <UButton size="xs" @click="createAnimation" :disabled="animationLabel.trim().length <= 0"
+          <UButton
+            size="xs"
+            @click="clickToCreateAnimationTemplate"
+            :disabled="animationLabel.trim().length <= 0 || !currentNodeId"
             >新增</UButton
           >
         </div>

@@ -1,10 +1,15 @@
 import { gsap } from 'gsap';
 import type { Node } from 'konva/lib/Node';
 let gsapTimeline: gsap.core.Timeline | null = null;
+const { addTimelineBar } = useTimeline();
 
 export const useGsap = () => {
   const initializedGsap = useState('initializedGsap', () => false);
   const paused = useState('paused', () => true);
+  const gsapTimelineNodeMap = useState<Record<string, { duration: number; start: number }[]>>(
+    'gsapTimelineNodeMap',
+    () => ({})
+  );
 
   const createGsapTimeline = (updateFn: gsap.Callback) => {
     gsapTimeline = gsap.timeline({
@@ -51,38 +56,24 @@ export const useGsap = () => {
     return getGsapTimeline()?.duration() || 0;
   };
 
-  const createAnimation = (targetNode: Node) => {
+  const createAnimation = (targetNode: Node | undefined, label: string) => {
     const gsapTimeline = getGsapTimeline();
-    console.log(gsapTimeline);
+    // console.log(gsapTimeline);
     if (!gsapTimeline) return 'No timeline found';
-    gsapTimeline.to(targetNode, { x: targetNode.x() + 50, duration: 1 }, 0);
+    if (!targetNode) return 'No targetNode found';
+    const id = targetNode.id();
+    // 先建立時間為 1 秒的空動畫, 起始點需要考慮其他因素
     gsapTimeline.to(
       targetNode,
       {
-        x: targetNode.x() + 50,
-        y: targetNode.y() + 50,
+        ease: 'none',
         duration: 1
       },
-      1
+      0 // 起始點
     );
-    gsapTimeline.to(
-      targetNode,
-      {
-        rotation: targetNode.rotation() + 360,
-        duration: 2
-      },
-      2
-    );
-    gsapTimeline.to(
-      targetNode,
-      {
-        scaleX: 3,
-        scaleY: 3,
-        opacity: 0,
-        duration: 2
-      },
-      4
-    );
+    addTimelineBar(id);
+    // 加入 Node 的時間軸資料
+    gsapTimelineNodeMap.value[id] = [{ duration: 1, start: 0 }];
     return 'Animation created';
   };
 
