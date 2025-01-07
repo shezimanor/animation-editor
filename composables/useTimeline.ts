@@ -3,6 +3,7 @@ import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
 import type { NodeConfig } from 'konva/lib/Node';
 import type { ImageConfig } from 'konva/lib/shapes/Image';
+import type { GroupConfig } from 'konva/lib/Group';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
 
 export const useTimeline = () => {
@@ -15,6 +16,9 @@ export const useTimeline = () => {
   const TRACK_HEIGHT = 24;
   const POINTER_WIDTH = 4;
   const IMG_MARGIN = 8;
+  const POINTER_COLOR = 'rgba(129, 141, 248, 0.8)'; // '#818cf8'
+  const BAR_COLOR = '#22d3ee';
+  const BAR_ACTIVE_COLOR = '#60a5fa';
   const TRACK_START_X = TRACK_HEIGHT + IMG_MARGIN;
   const timelineStageRef = useState<HTMLDivElement | null>('timelineStageRef', () =>
     shallowRef(null)
@@ -24,9 +28,8 @@ export const useTimeline = () => {
     shallowRef(null)
   );
   const timelineLayer = useState<Konva.Layer | null>('timelineLayer', () => shallowRef(null));
-  const newItemInitialX = ref(0);
   const newItemInitialY = ref(0);
-  const timelineTransformers = ref<Konva.Transformer[]>([]);
+  const timelineTransformers = useState<Konva.Transformer[]>('timelineTransformers', () => []);
   const x1 = ref(0);
   const y1 = ref(0);
   const x2 = ref(0);
@@ -83,7 +86,7 @@ export const useTimeline = () => {
       y: 0,
       width: POINTER_WIDTH,
       height: TIMELINE_CONTAINER_HEIGHT - POINTER_WIDTH,
-      fill: '#60a5fa',
+      fill: POINTER_COLOR,
       cornerRadius: 2,
       draggable: true,
       dragBoundFunc(pos) {
@@ -110,8 +113,8 @@ export const useTimeline = () => {
   };
 
   const addTimelineTrack = (imgObj: HTMLImageElement, itemId: string) => {
-    // 只用來放置動畫條
-    const groupItem = new Konva.Group({
+    // 只用來放置整個軌道的動畫條群組
+    const groupItem = addGroup({
       id: `group_${itemId}`,
       name: 'item_bar_group',
       x: TRACK_START_X,
@@ -162,16 +165,18 @@ export const useTimeline = () => {
     if (!groupItem || !(groupItem instanceof Konva.Group)) return;
     const barId = uuid();
     const trackWidth = window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2) - TRACK_START_X;
+    // 移除其他 bar 的顯目顯示
+    removeActiveBarHighLight();
     // 時間軸動畫條
     const barItem = addRect({
-      id: `bar_${barId}`,
-      name: `item_bar`,
+      id: `bar_${barId}_${id}`,
+      name: `item_bar item_bar_active`,
       // 這裡的 x,y 位置是相對於 group 的位置
       x: 0,
       y: 0,
       width: trackWidth / 12,
       height: TRACK_HEIGHT,
-      fill: '#22d3ee',
+      fill: BAR_ACTIVE_COLOR,
       cornerRadius: 3,
       draggable: true,
       dragBoundFunc(pos) {
@@ -188,11 +193,26 @@ export const useTimeline = () => {
         };
       }
     });
-    const transformerItem = addTransformer();
+    barItem.on('pointerdown', function () {
+      removeActiveBarHighLight();
+      barItem.fill(BAR_ACTIVE_COLOR);
+      barItem.name('item_bar item_bar_active');
+    });
+    // 顯目當前的 barItem
+    // 加入到 groupItem
     groupItem.add(barItem);
     // 加上變形器
+    const transformerItem = addTransformer();
     transformerItem.nodes([barItem]);
     pointerMoveToTop();
+  };
+
+  const removeActiveBarHighLight = () => {
+    const activeBar = timelineLayer.value?.findOne('.item_bar_active');
+    if (activeBar && activeBar instanceof Konva.Rect) {
+      activeBar.fill(BAR_COLOR);
+      activeBar.name('item_bar');
+    }
   };
 
   const addTransformer = () => {
@@ -207,7 +227,7 @@ export const useTimeline = () => {
       }
     }
     // 新增 Transformer
-    const transformer = new Konva.Transformer({
+    const newTransformer = new Konva.Transformer({
       borderStroke: 'rgba(255, 255, 255, 0.6)',
       rotateEnabled: false,
       rotateLineVisible: false,
@@ -240,14 +260,14 @@ export const useTimeline = () => {
       }
     });
     // 維持 scaleX = 1, 並將 width 設為原本的 scaleX * width
-    transformer.on('transform', function () {
-      const currentBar = transformer.nodes()[0] as Konva.Rect;
+    newTransformer.on('transform', function () {
+      const currentBar = newTransformer.nodes()[0] as Konva.Rect;
       currentBar.width(currentBar.scaleX() * currentBar.width());
       currentBar.scaleX(1);
     });
-    timelineLayer.value?.add(transformer);
-    timelineTransformers.value.push(transformer);
-    return transformer;
+    timelineLayer.value?.add(newTransformer);
+    timelineTransformers.value.push(newTransformer);
+    return newTransformer;
   };
 
   const addImage = (imageConfig: ImageConfig) => {
@@ -258,7 +278,14 @@ export const useTimeline = () => {
     return new Konva.Rect(rectConfig);
   };
 
+  const addGroup = (groupConfig: GroupConfig) => {
+    return new Konva.Group(groupConfig);
+  };
+
   const deleteTimelineTrack = (id: UUIDTypes) => {
+    console.log(timelineTransformers.value);
+    // 隱藏空的變形器
+    hideEmptyTransformer(id);
     const imgItem = getTargetNode(`img_${id}`);
     if (imgItem && imgItem instanceof Konva.Image) {
       // 刪除 Img
@@ -291,19 +318,21 @@ export const useTimeline = () => {
   };
 
   // 隱藏空的變形器
-  const hiddenEmptyTransformer = (id: UUIDTypes) => {
+  const hideEmptyTransformer = (id: UUIDTypes) => {
+    console.log('hideEmptyTransformer', timelineTransformers.value);
     for (let i = 0; i < timelineTransformers.value.length; i++) {
       const transformer = timelineTransformers.value[i];
-      const groups = transformer.nodes();
-      if (groups.length > 0 && groups[0].id() === id) {
+      // 依據 function `addTimelineBar` 邏輯 transformer nodes 會長這樣: transformer.nodes([barItem])
+      const barItems = transformer.nodes();
+      console.log('barItems', barItems);
+      if (barItems.length > 0 && barItems[0].id().endsWith(`${id}`)) {
         transformer.visible(false);
         transformer.nodes([]);
-        break;
       }
     }
   };
 
-  // 更新所有 Group 的位置
+  // 更新相同類型物件的位置
   const updateAllItems = (selectorName: string) => {
     const items = timelineLayer.value?.find(selectorName) ?? [];
     items.forEach((item, index) => {
@@ -314,6 +343,7 @@ export const useTimeline = () => {
   return {
     // state
     timelineStageRef,
+    timelineTransformers,
     // action
     initTimelineKonva,
     destroyTimelineKonva,
