@@ -33,3 +33,17 @@ gsapTimeline.to(
   4
 );
 ```
+
+```
+// 漸變動畫
+var tween = gsap.to(element, { duration: 1, x: 100, opacity: 0.5 });
+tl.add(tween);
+
+// 指定位置
+var setValues = gsap.set(element, { x: 100, opacity: 0.5 });
+tl.add(setValues);
+
+// 頭尾設定
+var tween = gsap.fromTo(element, { x: -100 }, { duration: 1, x: 100 });
+tl.add(tween);
+```
