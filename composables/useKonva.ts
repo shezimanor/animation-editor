@@ -11,7 +11,7 @@ interface AdModuleConfig {
   width: number;
   height: number;
 }
-interface MyNode {
+export interface MyNode {
   id: UUIDTypes;
   name: string;
   label: string;

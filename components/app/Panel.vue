@@ -23,7 +23,7 @@ const currentNode = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-1 py-1" v-if="currentNode">
+  <div class="flex flex-col gap-y-1 rounded p-2 shadow" v-if="currentNode">
     <div class="mb-1 flex items-center justify-between">
       <!-- <h3 class="text-sm font-semibold"></h3> -->
       <UInput v-model="currentNode.label" size="xs" />
@@ -68,8 +68,11 @@ const currentNode = computed(() => {
         <span class="text-xs text-neutral-500">{{ currentNode.opacity.toFixed(2) }}</span>
       </div>
     </div>
-    <div class="flex justify-start">
-      <UButton size="xs" @click="emit('openModal', currentNode.id)">建立動畫</UButton>
+    <div class="mt-2 flex justify-start gap-x-2 border-t border-neutral-200 pt-2">
+      <UButton size="xs" icon="i-heroicons-plus" @click="emit('openModal', currentNode.id)"
+        >動畫</UButton
+      >
+      <UButton size="xs" icon="i-heroicons-plus" color="purple">節點</UButton>
     </div>
   </div>
 </template>
