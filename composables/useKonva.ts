@@ -3,8 +3,8 @@ import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
 import type { Node } from 'konva/lib/Node';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
-const { addTimelineTrack, deleteTimelineTrack } = useTimeline();
-const { createGsapTimeline, createAnimation } = useGsap();
+const { addTimelineTrack, deleteTimelineTrack, timelineTransformers } = useTimeline();
+const { createGsapTimeline } = useGsap();
 
 interface AdModuleConfig {
   width: number;
@@ -126,7 +126,9 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   // 用來觀察 Konva 的函數
-  const logKonva = () => {};
+  const logKonva = () => {
+    console.log('timelineTransformers:', timelineTransformers.value);
+  };
 
   // TODO: 清除 Konva
   const destroyKonva = () => {};

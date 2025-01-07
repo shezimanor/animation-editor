@@ -3,7 +3,6 @@ import type { UUIDTypes } from 'uuid';
 const UNNAMED_LABEL = '未命名標籤';
 
 const { transformer, logKonva, getTargetNode } = useKonva();
-
 const { createAnimation } = useGsap();
 
 const isOpen = ref(false);
