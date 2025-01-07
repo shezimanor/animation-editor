@@ -1,13 +1,11 @@
 <script lang="ts" setup>
 import type { UUIDTypes } from 'uuid';
-const UNNAMED_LABEL = '未命名標籤';
 
+const UNNAMED_LABEL = '未命名標籤';
+const { isOpen_createAnimationModal, currentNodeId, currentActiveAnimationId } = useGlobal();
 const { transformer, logKonva, getTargetNode } = useKonva();
 const { createAnimation } = useGsap();
 
-const isOpen = ref(false);
-
-const currentNodeId = ref<UUIDTypes | null>(null);
 const animationLabel = ref(UNNAMED_LABEL);
 
 const resetAnimationLabel = () => {
@@ -15,7 +13,7 @@ const resetAnimationLabel = () => {
 };
 
 const closeModal = () => {
-  isOpen.value = false;
+  isOpen_createAnimationModal.value = false;
   resetAnimationLabel();
 };
 
@@ -33,7 +31,7 @@ const clickToCreateAnimationTemplate = () => {
 };
 
 const handleOpenModal = (id: UUIDTypes) => {
-  isOpen.value = true;
+  isOpen_createAnimationModal.value = true;
   currentNodeId.value = id;
 };
 </script>
@@ -53,8 +51,9 @@ const handleOpenModal = (id: UUIDTypes) => {
       />
     </div>
   </div>
+  <!-- 新增動畫 Modal -->
   <UModal
-    v-model="isOpen"
+    v-model="isOpen_createAnimationModal"
     :ui="{
       wrapper: 'z-[200]',
       container: 'items-center',

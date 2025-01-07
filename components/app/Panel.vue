@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { Node } from 'konva/lib/Node';
 import type { UUIDTypes } from 'uuid';
-const { mainNodeList } = useKonva();
 
+const { mainNodeList } = useKonva();
 const props = withDefaults(
   defineProps<{
     node: Node | null;

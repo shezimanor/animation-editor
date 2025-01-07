@@ -5,6 +5,7 @@ import type { NodeConfig } from 'konva/lib/Node';
 import type { ImageConfig } from 'konva/lib/shapes/Image';
 import type { GroupConfig } from 'konva/lib/Group';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
+const { currentActiveAnimationId } = useGlobal();
 
 export const useTimeline = () => {
   // const HEADER_HEIGHT = 56;
@@ -167,7 +168,7 @@ export const useTimeline = () => {
     const trackWidth = window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2) - TRACK_START_X;
     // 移除其他 bar 的顯目顯示
     removeActiveBarHighLight();
-    // 時間軸動畫條
+    // 時間軸動畫條(直接醒目顯示)
     const barItem = addRect({
       id: `bar_${barId}_${id}`,
       name: `item_bar item_bar_active`,
@@ -193,17 +194,22 @@ export const useTimeline = () => {
         };
       }
     });
+    // 事件監聽
     barItem.on('pointerdown', function () {
       removeActiveBarHighLight();
       barItem.fill(BAR_ACTIVE_COLOR);
       barItem.name('item_bar item_bar_active');
+      // 設定 currentActiveAnimationId
+      currentActiveAnimationId.value = barItem.id();
     });
-    // 顯目當前的 barItem
+    // 設定 currentActiveAnimationId
+    currentActiveAnimationId.value = barItem.id();
     // 加入到 groupItem
     groupItem.add(barItem);
     // 加上變形器
     const transformerItem = addTransformer();
     transformerItem.nodes([barItem]);
+    // 將指針推到最上面
     pointerMoveToTop();
   };
 
