@@ -18,15 +18,16 @@ const closeModal = () => {
 };
 
 const keydownToCreateAnimationTemplate = (event: KeyboardEvent) => {
+  // IME (Input Method Editor) 組成狀態: KeyboardEvent.isComposing 用來辨識中文輸入法是否已完成文字組成
   if (event.isComposing) return;
-  if (animationLabel.value.trim().length <= 0 || !currentNodeId.value) return;
-  createAnimation(getTargetNode(currentNodeId.value), animationLabel.value);
-  closeModal();
+  createAnimationTemplate();
 };
 
-const clickToCreateAnimationTemplate = () => {
+const createAnimationTemplate = () => {
   if (animationLabel.value.trim().length <= 0 || !currentNodeId.value) return;
-  createAnimation(getTargetNode(currentNodeId.value), animationLabel.value);
+  const targetNode = getTargetNode(currentNodeId.value);
+  if (!targetNode) return;
+  createAnimation(targetNode, animationLabel.value);
   closeModal();
 };
 
@@ -124,7 +125,7 @@ const handleOpenModal = (id: UUIDTypes) => {
           <UButton color="gray" size="xs" variant="ghost" @click="closeModal">取消</UButton>
           <UButton
             size="xs"
-            @click="clickToCreateAnimationTemplate"
+            @click="createAnimationTemplate"
             :disabled="animationLabel.trim().length <= 0 || !currentNodeId"
             >新增</UButton
           >
