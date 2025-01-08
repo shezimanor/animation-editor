@@ -5,7 +5,7 @@ import type { Node } from 'konva/lib/Node';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
 const { addTimelineTrack, deleteTimelineTrack, timelineTransformers } = useTimeline();
 const { createGsapTimeline } = useGsap();
-const { isOpen_createAnimationModal, currentNodeId } = useGlobal();
+const { isOpen_createAnimationModal, isOpen_createFlashPointModal, currentNodeId } = useGlobal();
 
 interface AdModuleConfig {
   width: number;
@@ -426,10 +426,16 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         selectedNodes.forEach((node) => node.x(node.x() + DELTA));
         updateMainNodePosition(selectedNodes);
         break;
-      case 'a':
+      case 'e': // 快捷鍵新增動畫
         if (!e.metaKey || selectedNodes.length !== 1) break;
         // 開啟新增動畫 Modal
         isOpen_createAnimationModal.value = true;
+        currentNodeId.value = selectedNodes[0].id();
+        break;
+      case 'r': // 快捷鍵新增節點
+        if (!e.metaKey || selectedNodes.length !== 1) break;
+        // 開啟新增節點 Modal
+        isOpen_createFlashPointModal.value = true;
         currentNodeId.value = selectedNodes[0].id();
         break;
       default:

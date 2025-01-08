@@ -110,6 +110,8 @@ const handleOpenModal = (id: UUIDTypes) => {
             size="sm"
             placeholder="輸入動畫標籤"
             autofocus
+            icon="i-icon-park-outline-enter-key"
+            trailing
             @keydown.enter="keydownToCreateAnimationTemplate"
           />
         </div>

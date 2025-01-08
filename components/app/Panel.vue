@@ -2,6 +2,7 @@
 import type { Node } from 'konva/lib/Node';
 import type { UUIDTypes } from 'uuid';
 
+const { metaSymbol } = useShortcuts();
 const { mainNodeList } = useKonva();
 const props = withDefaults(
   defineProps<{
@@ -68,11 +69,31 @@ const currentNode = computed(() => {
         <span class="text-xs text-neutral-500">{{ currentNode.opacity.toFixed(2) }}</span>
       </div>
     </div>
-    <div class="mt-2 flex justify-start gap-x-2 border-t border-neutral-200 pt-2">
-      <UButton size="xs" icon="i-heroicons-plus" @click="emit('openModal', currentNode.id)"
-        >動畫</UButton
-      >
-      <UButton size="xs" icon="i-heroicons-plus" color="purple">節點</UButton>
+    <div class="mt-2 flex flex-col items-start gap-y-2 border-t border-neutral-200 pt-2">
+      <div class="flex w-full flex-row items-center justify-between">
+        <UButton
+          size="xs"
+          color="gray"
+          icon="i-heroicons-plus-solid"
+          variant="solid"
+          @click="emit('openModal', currentNode.id)"
+        >
+          新增動畫
+        </UButton>
+        <div class="flex flex-row gap-x-1">
+          <UKbd size="sm">{{ metaSymbol }}</UKbd>
+          <UKbd size="sm">E</UKbd>
+        </div>
+      </div>
+      <div class="flex w-full flex-row items-center justify-between">
+        <UButton size="xs" icon="i-heroicons-plus-solid" color="gray" variant="solid">
+          新增節點
+        </UButton>
+        <div class="flex flex-row gap-x-1">
+          <UKbd size="sm">{{ metaSymbol }}</UKbd>
+          <UKbd size="sm">R</UKbd>
+        </div>
+      </div>
     </div>
   </div>
 </template>
