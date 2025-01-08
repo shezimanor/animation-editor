@@ -10,8 +10,10 @@ export const useGlobal = () => {
     'currentActiveFlashPointId',
     () => null
   );
+  const TOTAL_DURATION = 12;
   return {
     // state
+    TOTAL_DURATION,
     isOpen_createAnimationModal,
     isOpen_createFlashPointModal,
     currentNodeId,
