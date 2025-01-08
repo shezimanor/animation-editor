@@ -6,6 +6,8 @@ Eases: [docs](https://gsap.com/docs/v3/Eases)
 
 tween 物件加入 timeline 後，一旦開始播放過 timeline 後，任何手動的修改 tween 物件，都不會影響 timeline 的動畫，在 timeline 播放前的修改才有作用。
 
+當整個 timeline 有設定 duration (t) 時，如果加入的 tween 總時數不滿指定的 duration，會改變 timescale，可以用 timeline.set (node, varsObj, t) 來解決。
+
 ```javascript
 gsapTimeline.to(targetNode, { x: targetNode.x() + 50, duration: 1 }, 0);
 gsapTimeline.to(

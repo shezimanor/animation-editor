@@ -23,7 +23,7 @@ export const useGsap = () => {
 
   const createGsapTimeline = () => {
     const { updateLayer } = useKonva();
-    const { updateTimelineLayer, updatePointer, lockPointer, unlockPointer } = useTimeline();
+    const { updateTimelineLayer, updatePointer } = useTimeline();
 
     gsapTimeline = gsap.timeline({
       repeat: -1,
@@ -92,14 +92,14 @@ export const useGsap = () => {
     const duration = gsap.utils.random(1, 8, 1);
     const start = 0;
     // 先建立時間為 1 秒的空動畫, TODO: start 需要考慮其他因素, duration 也會有相關限制
-    const tween = addEmptyTween(targetNode, duration, start);
+    const tween = addEmptyTween2(targetNode, duration, start);
     // 加入對應的時間軸動畫條(動畫條 ID 會回傳)
     const barId = addTimelineBar(nodeId, duration, start);
     if (!barId || !tween) return 'Animation failed';
     // 儲存 Tween 到 gsapTimelineNodeMap 裡面
     if (!gsapTimelineNodeMap.value[nodeId]) gsapTimelineNodeMap.value[nodeId] = {};
     gsapTimelineNodeMap.value[nodeId][barId] = tween;
-    // TEST
+    // TODO: 需要設置一個於 12 秒的結尾點
     // testTlMethods2(gsapTimeline, targetNode);
     return 'Animation created';
   };
@@ -124,6 +124,7 @@ export const useGsap = () => {
     return tween;
   };
 
+  // 建立新的 Tween
   const addTween = (
     targetNode: Node,
     duration: number,
@@ -138,12 +139,58 @@ export const useGsap = () => {
       { ...fromVars },
       {
         duration,
-        ...toVars,
-        x: targetNode.x() + gsap.utils.random(-200, 200, 5),
-        y: targetNode.y() + gsap.utils.random(-200, 200, 5)
+        ...toVars
       }
     );
     gsapTimeline.add(tween, start);
+    return tween;
+  };
+
+  // test
+  const addEmptyTween2 = (targetNode: Node, duration: number, start: number) => {
+    const { adModuleX, adModuleY, mainNodeMap } = useKonva();
+    const id = targetNode.id();
+    const targetMainNode = mainNodeMap.value[id]; // 響應式 Node
+    if (!targetMainNode) return;
+    const { x, y, width, height, opacity, rotation } = targetMainNode;
+    const tweenVars = {
+      x: x + adModuleX.value,
+      y: y + adModuleY.value,
+      width,
+      height,
+      opacity,
+      rotation,
+      ease: 'none'
+    };
+    const tween = addTween2(targetNode, duration, start, tweenVars, tweenVars);
+    return tween;
+  };
+
+  // test
+  const addTween2 = (
+    targetNode: Node,
+    duration: number,
+    start: number,
+    fromVars: TweenVars,
+    toVars: TweenVars
+  ) => {
+    const gsapTimeline = getGsapTimeline();
+    if (!gsapTimeline || !targetNode) return null;
+    const newX = targetNode.x() + gsap.utils.random(-200, 200, 5);
+    const newY = targetNode.y() + gsap.utils.random(-200, 200, 5);
+    const tween = gsap.fromTo(
+      targetNode,
+      { ...fromVars },
+      {
+        duration,
+        ...toVars,
+        x: newX,
+        y: newY
+      }
+    );
+    gsapTimeline.add(tween, start);
+    // 設置一個結尾點，讓 timescale 維持 1（每次有新動畫就要更新）
+    gsapTimeline.set(targetNode, { ...toVars, x: newX, y: newY }, 12);
     return tween;
   };
 

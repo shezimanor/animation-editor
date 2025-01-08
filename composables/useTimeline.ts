@@ -104,16 +104,7 @@ export const useTimeline = () => {
     });
     // 事件監聽
     pointer.on('dragmove', function () {
-      const { getGsapTimeline, TOTAL_DURATION } = useGsap();
-      const gsapTimeline = getGsapTimeline();
-      if (gsapTimeline) {
-        const currentTime =
-          ((this.x() - TRACK_START_X) /
-            (window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2) - TRACK_START_X)) *
-          TOTAL_DURATION;
-        // 更新 gsap 時間軸
-        gsapTimeline.seek(currentTime);
-      }
+      updateGsapTimelineByPointerPosition(this.x());
     });
     pointer.on('dragstart', function () {
       isDraggingPointer.value = true;
@@ -236,6 +227,8 @@ export const useTimeline = () => {
       barItem.name('item_bar item_bar_active');
       // 設定 currentActiveAnimationId
       currentActiveAnimationId.value = barItem.id();
+      // 讓 pointer 移到動畫條的起點
+      movePointer(barItem.x());
     });
     // 設定 currentActiveAnimationId
     currentActiveAnimationId.value = barId;
@@ -326,7 +319,6 @@ export const useTimeline = () => {
   };
 
   const deleteTimelineTrack = (id: UUIDTypes) => {
-    console.log(timelineTransformers.value);
     // 隱藏空的變形器
     hideEmptyTransformer(id);
     const imgItem = getTargetNode(`img_${id}`);
@@ -362,12 +354,11 @@ export const useTimeline = () => {
 
   // 隱藏空的變形器
   const hideEmptyTransformer = (id: UUIDTypes) => {
-    console.log('hideEmptyTransformer', timelineTransformers.value);
+    // console.log('hideEmptyTransformer', timelineTransformers.value);
     for (let i = 0; i < timelineTransformers.value.length; i++) {
       const transformer = timelineTransformers.value[i];
       // 依據 function `addTimelineBar` 邏輯 transformer nodes 會長這樣: transformer.nodes([barItem])
       const barItems = transformer.nodes();
-      console.log('barItems', barItems);
       if (barItems.length > 0 && barItems[0].id().endsWith(`${id}`)) {
         transformer.visible(false);
         transformer.nodes([]);
@@ -387,8 +378,29 @@ export const useTimeline = () => {
     if (timelinePointer.value && gsapTimeline && !isDraggingPointer.value) {
       const progress = gsapTimeline.progress();
       const trackWidth = window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2) - TRACK_START_X;
-      console.log(progress);
       timelinePointer.value.x(trackWidth * progress + TRACK_START_X);
+      // console.log('progress:', progress);
+    }
+  };
+
+  const movePointer = (x: number) => {
+    // 移動 pointer
+    timelinePointer.value?.x(x + TRACK_START_X);
+    // 更新 gsap 時間軸
+    updateGsapTimelineByPointerPosition(x);
+  };
+
+  const updateGsapTimelineByPointerPosition = (x: number) => {
+    const { getGsapTimeline, TOTAL_DURATION } = useGsap();
+    const gsapTimeline = getGsapTimeline();
+    if (gsapTimeline) {
+      const currentTime =
+        ((x - TRACK_START_X) /
+          (window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2) - TRACK_START_X)) *
+        TOTAL_DURATION;
+      // 更新 gsap 時間軸
+      gsapTimeline.seek(currentTime);
+      // console.log('currentTime:', currentTime);
     }
   };
 
