@@ -5,7 +5,7 @@ import type { NodeConfig } from 'konva/lib/Node';
 import type { ImageConfig } from 'konva/lib/shapes/Image';
 import type { GroupConfig } from 'konva/lib/Group';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
-const { currentActiveAnimationId } = useGlobal();
+const { TOTAL_DURATION, currentActiveAnimationId } = useGlobal();
 
 export const useTimeline = () => {
   // const HEADER_HEIGHT = 56;
@@ -21,7 +21,6 @@ export const useTimeline = () => {
   const BAR_COLOR = '#22d3ee';
   const BAR_ACTIVE_COLOR = '#60a5fa';
   const TRACK_START_X = TRACK_HEIGHT + IMG_MARGIN;
-  const TOTAL_TIME = 12;
   const timelineStageRef = useState<HTMLDivElement | null>('timelineStageRef', () =>
     shallowRef(null)
   );
@@ -31,8 +30,9 @@ export const useTimeline = () => {
   );
   const timelineLayer = useState<Konva.Layer | null>('timelineLayer', () => shallowRef(null));
   const timelinePointer = useState<Konva.Rect | null>('timelinePointer', () => shallowRef(null));
-  const newItemInitialY = ref(0);
   const timelineTransformers = useState<Konva.Transformer[]>('timelineTransformers', () => []);
+  const newItemInitialY = ref(0);
+  const isDraggingPointer = ref(false);
 
   const initTimelineKonva = () => {
     // create Stage
@@ -101,6 +101,25 @@ export const useTimeline = () => {
           y: this.absolutePosition().y
         };
       }
+    });
+    // 事件監聽
+    pointer.on('dragmove', function () {
+      const { getGsapTimeline, TOTAL_DURATION } = useGsap();
+      const gsapTimeline = getGsapTimeline();
+      if (gsapTimeline) {
+        const currentTime =
+          ((this.x() - TRACK_START_X) /
+            (window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2) - TRACK_START_X)) *
+          TOTAL_DURATION;
+        // 更新 gsap 時間軸
+        gsapTimeline.seek(currentTime);
+      }
+    });
+    pointer.on('dragstart', function () {
+      isDraggingPointer.value = true;
+    });
+    pointer.on('dragend', function () {
+      isDraggingPointer.value = false;
     });
     timelineLayer.value?.add(pointer);
     pointer.moveToTop();
@@ -189,9 +208,9 @@ export const useTimeline = () => {
       id: `bar_${barId}_${id}`,
       name: `item_bar item_bar_active`,
       // 這裡的 x,y 位置是相對於 group 的位置
-      x: trackWidth * (start / TOTAL_TIME),
+      x: trackWidth * (start / TOTAL_DURATION),
       y: 0,
-      width: trackWidth * (duration / TOTAL_TIME),
+      width: trackWidth * (duration / TOTAL_DURATION),
       height: TRACK_HEIGHT,
       fill: BAR_ACTIVE_COLOR,
       cornerRadius: 3,
@@ -365,12 +384,11 @@ export const useTimeline = () => {
   };
 
   const updatePointer = (gsapTimeline: GSAPTimeline | null) => {
-    if (timelinePointer.value && gsapTimeline) {
+    if (timelinePointer.value && gsapTimeline && !isDraggingPointer.value) {
       const progress = gsapTimeline.progress();
-      const time = gsapTimeline.time(); // 目前的時長
       const trackWidth = window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2) - TRACK_START_X;
-      const currentTimelineWidth = trackWidth * (time / TOTAL_TIME);
-      timelinePointer.value.x(TRACK_START_X + currentTimelineWidth * progress);
+      console.log(progress);
+      timelinePointer.value.x(trackWidth * progress + TRACK_START_X);
     }
   };
 
