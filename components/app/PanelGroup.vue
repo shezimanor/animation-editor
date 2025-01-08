@@ -4,7 +4,7 @@ import type { UUIDTypes } from 'uuid';
 const UNNAMED_LABEL = '未命名標籤';
 const { isOpen_createAnimationModal, currentNodeId, currentActiveAnimationId } = useGlobal();
 const { transformer, logKonva, getTargetNode } = useKonva();
-const { createAnimation } = useGsap();
+const { createAnimation, logTl } = useGsap();
 
 const animationLabel = ref(UNNAMED_LABEL);
 
@@ -35,13 +35,21 @@ const handleOpenModal = (id: UUIDTypes) => {
   isOpen_createAnimationModal.value = true;
   currentNodeId.value = id;
 };
+
+const logSomething = () => {
+  if (!currentNodeId.value || !currentActiveAnimationId.value) return;
+  const targetNode = getTargetNode(currentNodeId.value);
+  if (!targetNode) return;
+  logTl(targetNode, currentActiveAnimationId.value);
+};
 </script>
 
 <template>
   <div class="panel-group-wrapper">
     <header class="mb-2 flex items-center justify-between">
       <h2>圖層資訊</h2>
-      <UButton size="xs" @click="logKonva">Log</UButton>
+      <UButton size="xs" @click="logKonva">logKonva</UButton>
+      <UButton size="xs" @click="logSomething">log</UButton>
     </header>
     <div v-if="transformer && transformer?.nodes().length > 0" class="flex flex-col gap-y-2">
       <AppPanel

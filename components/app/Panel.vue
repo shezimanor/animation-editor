@@ -91,7 +91,7 @@ const currentNode = computed(() => {
         </UButton>
         <div class="flex flex-row gap-x-1">
           <UKbd size="sm">{{ metaSymbol }}</UKbd>
-          <UKbd size="sm">R</UKbd>
+          <UKbd size="sm">W</UKbd>
         </div>
       </div>
     </div>
