@@ -27,6 +27,8 @@ export const useGsap = () => {
     gsapTimeline = gsap.timeline({
       repeat: -1,
       paused: paused.value,
+      duration: 12, // 預設時間 12 秒
+      ease: 'none',
       onUpdate() {
         updateLayer();
         updatePointer(gsapTimeline);
@@ -39,6 +41,7 @@ export const useGsap = () => {
         paused.value = true;
       }
     });
+    // 給定預設時間12秒
     initializedGsap.value = true;
   };
 

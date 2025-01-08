@@ -366,8 +366,6 @@ export const useTimeline = () => {
 
   const updatePointer = (gsapTimeline: GSAPTimeline | null) => {
     if (timelinePointer.value && gsapTimeline) {
-      timelinePointer.value.draggable(false);
-      console.log('test', timelineStage.value?.width());
       const progress = gsapTimeline.progress();
       const time = gsapTimeline.time(); // 目前的時長
       const trackWidth = window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2) - TRACK_START_X;
