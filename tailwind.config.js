@@ -17,10 +17,16 @@ export default {
       // => @media (min-width: 1280px) { ... }
     },
     extend: {
+      // default spacing: https://tailwindcss.com/docs/customizing-spacing#default-spacing-scale
       spacing: {
-        15: '60px',
-        18: '72px',
-        '2/5': '40%'
+        13: '3.25rem', // 52px
+        15: '3.75rem', // 60px
+        18: '4.5rem', // 72px
+        25: '6.25rem', // 100px
+        128: '32rem', // 512px
+        144: '36rem', // 576px
+        160: '40rem', // 640px
+        180: '45rem' // 720px
       },
       boxShadow: {
         std: '0 0 10px rgba(0, 0, 0, 0.2)',

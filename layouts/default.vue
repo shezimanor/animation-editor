@@ -1,9 +1,9 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div class="flex w-full min-w-96 flex-col">
+  <div class="min-w-180 flex w-full flex-col">
     <AppHeader />
-    <div class="h-screen pt-14">
+    <div class="min-h-180 h-screen pt-14">
       <slot />
     </div>
   </div>

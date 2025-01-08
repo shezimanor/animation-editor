@@ -57,7 +57,7 @@ const handleOpenModal = (id: UUIDTypes) => {
     :ui="{
       wrapper: 'z-[200]',
       container: 'items-center',
-      width: 'w-full max-w-[640px]',
+      width: 'w-full max-w-160',
       shadow: 'shadow'
     }"
     :transition="false"
@@ -134,6 +134,6 @@ const handleOpenModal = (id: UUIDTypes) => {
 
 <style lang="scss" scoped>
 .panel-group-wrapper {
-  @apply fixed right-4 top-15 z-[12] flex w-[240px] flex-col rounded-lg bg-white px-2 py-2 shadow-std dark:bg-neutral-900;
+  @apply fixed right-4 top-15 z-[12] flex w-60 flex-col rounded-lg bg-white px-2 py-2 shadow-std dark:bg-neutral-900;
 }
 </style>

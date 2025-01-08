@@ -133,7 +133,7 @@ onUnmounted(() => {
           </li>
         </ul>
         <!-- 模擬時間軸條 -->
-        <div class="h-[240px] w-full">
+        <div class="h-60 w-full">
           <div ref="timelineStageRef"></div>
         </div>
       </div>
