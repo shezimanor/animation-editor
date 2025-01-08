@@ -40,8 +40,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const transformer = useState<Konva.Transformer | null>('transformer', () => null);
   const mainNodeList = useState<MyNode[]>('mainNodeList', () => []);
   const selecting = ref(false);
-  const adModuleX = ref(0);
-  const adModuleY = ref(0);
+  const adModuleX = useState('adModuleX', () => 0);
+  const adModuleY = useState('adModuleY', () => 0);
   const newItemInitialX = ref(0);
   const newItemInitialY = ref(0);
   const x1 = ref(0);
@@ -536,14 +536,16 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       draggable: true
     });
     focusOnItem(imgItem);
-    addMainNode(imgConfig);
+    addMainNode(imgItem, imgConfig);
     // 替這張圖片新增 TimelineItem
     addTimelineTrack(imgObj, id);
     updateInitialPosition();
   };
 
-  const addMainNode = (imgNode: MyNode) => {
+  const addMainNode = (imgItem: Konva.Image, imgNode: MyNode) => {
     mainNodeList.value.push(imgNode);
+    // 更新數據
+    updateNodeAndMainNodeAttributes(imgItem, imgNode);
   };
 
   // ⚠️ addRect 可能用不到
@@ -595,6 +597,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     transformer,
     mainNodeList,
     SOURCE_IMG_LIMIT,
+    adModuleX,
+    adModuleY,
     // getter
     mainNodeLength,
     mainNodeMap,
