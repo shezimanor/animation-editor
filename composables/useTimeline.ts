@@ -113,6 +113,8 @@ export const useTimeline = () => {
   };
 
   const addTimelineTrack = (imgObj: HTMLImageElement, itemId: string) => {
+    const { selectTargetNode } = useKonva();
+
     // 只用來放置整個軌道的動畫條群組
     const groupItem = addGroup({
       id: `group_${itemId}`,
@@ -134,6 +136,21 @@ export const useTimeline = () => {
       fill: 'rgba(255, 255, 255, 1)',
       cornerRadius: 2,
       draggable: false
+    });
+
+    imgItem.on('click', function () {
+      // 點擊圖片可以選取到主畫布的素材
+      selectTargetNode(itemId);
+    });
+
+    imgItem.on('mouseenter', function () {
+      imgItem.opacity(0.6);
+      if (timelineStage.value) timelineStage.value.container().style.cursor = 'pointer';
+    });
+
+    imgItem.on('mouseleave mouseout', function () {
+      imgItem.opacity(1);
+      if (timelineStage.value) timelineStage.value.container().style.cursor = 'default';
     });
 
     // 時間軸軌道背景
@@ -194,7 +211,7 @@ export const useTimeline = () => {
       }
     });
     // 事件監聽
-    barItem.on('pointerdown', function () {
+    barItem.on('click', function () {
       removeActiveBarHighLight();
       barItem.fill(BAR_ACTIVE_COLOR);
       barItem.name('item_bar item_bar_active');

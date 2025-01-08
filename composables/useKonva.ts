@@ -572,6 +572,11 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     container.value?.focus();
   };
 
+  const selectTargetNode = (id: string) => {
+    const targetNode = getTargetNode(id) as Konva.Image;
+    if (targetNode) focusOnItem(targetNode);
+  };
+
   const updateInitialPosition = () => {
     newItemInitialX.value += 100;
     newItemInitialY.value += 100;
@@ -601,6 +606,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     logKonva,
     updateLayer,
     updateMainNodeState,
-    getTargetNode
+    getTargetNode,
+    selectTargetNode
   };
 };
