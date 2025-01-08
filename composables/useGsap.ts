@@ -10,6 +10,7 @@ interface TweenVars {
   ease?: string;
 }
 
+const { TOTAL_DURATION } = useGlobal();
 let gsapTimeline: GSAPTimeline | null = null;
 
 export const useGsap = () => {
@@ -27,7 +28,7 @@ export const useGsap = () => {
     gsapTimeline = gsap.timeline({
       repeat: -1,
       paused: paused.value,
-      duration: 12, // 預設時間 12 秒
+      duration: TOTAL_DURATION, // 預設時間 12 秒
       ease: 'none',
       onUpdate() {
         updateLayer();
@@ -105,12 +106,20 @@ export const useGsap = () => {
 
   // 建立一個 from,to 狀態相同的不變動畫
   const addEmptyTween = (targetNode: Node, duration: number, start: number) => {
-    const { mainNodeMap } = useKonva();
+    const { adModuleX, adModuleY, mainNodeMap } = useKonva();
     const id = targetNode.id();
     const targetMainNode = mainNodeMap.value[id]; // 響應式 Node
     if (!targetMainNode) return;
     const { x, y, width, height, opacity, rotation } = targetMainNode;
-    const tweenVars = { x, y, width, height, opacity, rotation, ease: 'none' };
+    const tweenVars = {
+      x: x + adModuleX.value,
+      y: y + adModuleY.value,
+      width,
+      height,
+      opacity,
+      rotation,
+      ease: 'none'
+    };
     const tween = addTween(targetNode, duration, start, tweenVars, tweenVars);
     return tween;
   };
@@ -206,6 +215,7 @@ export const useGsap = () => {
     // state
     initializedGsap,
     paused,
+    TOTAL_DURATION,
     // action
     createGsapTimeline,
     getGsapTimeline,
