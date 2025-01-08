@@ -3,9 +3,9 @@ import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
 import type { Node } from 'konva/lib/Node';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
-const { addTimelineTrack, deleteTimelineTrack, timelineTransformers } = useTimeline();
-const { createGsapTimeline } = useGsap();
 const { isOpen_createAnimationModal, isOpen_createFlashPointModal, currentNodeId } = useGlobal();
+const { createGsapTimeline } = useGsap();
+const { addTimelineTrack, deleteTimelineTrack, timelineTransformers } = useTimeline();
 
 interface AdModuleConfig {
   width: number;
@@ -73,10 +73,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     createAdModuleRect();
     // create Selection Rectangle(選取框)
     createSelectionRect();
-    // create Timeline Instance, param: updateCallback
-    createGsapTimeline(() => {
-      updateLayer();
-    });
+    // create Timeline Instance
+    createGsapTimeline();
 
     // 使用 resize 觀察者
     useResizeObserver(mainStageRef, (entries) => {
@@ -432,7 +430,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         isOpen_createAnimationModal.value = true;
         currentNodeId.value = selectedNodes[0].id();
         break;
-      case 'r': // 快捷鍵新增節點
+      case 'w': // 快捷鍵新增節點
         if (!e.metaKey || selectedNodes.length !== 1) break;
         // 開啟新增節點 Modal
         isOpen_createFlashPointModal.value = true;
@@ -575,8 +573,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const updateInitialPosition = () => {
-    newItemInitialX.value += 10;
-    newItemInitialY.value += 10;
+    newItemInitialX.value += 100;
+    newItemInitialY.value += 100;
   };
 
   const updateLayer = () => {

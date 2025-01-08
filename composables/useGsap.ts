@@ -7,28 +7,35 @@ interface TweenVars {
   height?: number;
   opacity?: number;
   rotation?: number;
+  ease?: string;
 }
 
-let gsapTimeline: gsap.core.Timeline | null = null;
-const { addTimelineBar } = useTimeline();
+let gsapTimeline: GSAPTimeline | null = null;
 
 export const useGsap = () => {
   const initializedGsap = useState('initializedGsap', () => false);
   const paused = useState('paused', () => true);
-  const gsapTimelineNodeMap = useState<Record<string, { duration: number; start: number }[]>>(
+  const gsapTimelineNodeMap = useState<Record<string, Record<string, gsap.core.Tween>>>(
     'gsapTimelineNodeMap',
     () => ({})
   );
 
-  const createGsapTimeline = (updateFn: gsap.Callback) => {
+  const createGsapTimeline = () => {
+    const { updateLayer } = useKonva();
+    const { updateTimelineLayer, updatePointer, lockPointer, unlockPointer } = useTimeline();
+
     gsapTimeline = gsap.timeline({
-      repeat: 1,
+      repeat: -1,
       paused: paused.value,
-      onUpdate: updateFn,
-      onStart: () => {
+      onUpdate() {
+        updateLayer();
+        updatePointer(gsapTimeline);
+        updateTimelineLayer();
+      },
+      onStart() {
         paused.value = false;
       },
-      onComplete: () => {
+      onComplete() {
         paused.value = true;
       }
     });
@@ -40,13 +47,20 @@ export const useGsap = () => {
   };
 
   const playGsapTimeline = () => {
+    const { lockPointer } = useTimeline();
     getGsapTimeline()?.play();
     paused.value = false;
+    // 鎖定時間軸指針
+    lockPointer();
   };
 
   const pauseGsapTimeline = (callback?: Function) => {
+    const { unlockPointer } = useTimeline();
+
     getGsapTimeline()?.pause();
     paused.value = true;
+    // 解鎖時間軸指針
+    unlockPointer();
     // 更新所有 Konva 節點狀態
     callback && callback();
   };
@@ -65,30 +79,37 @@ export const useGsap = () => {
     return getGsapTimeline()?.duration() || 0;
   };
 
-  const createAnimation = (targetNode: Node | undefined, label: string) => {
+  const createAnimation = (targetNode: Node, label: string) => {
+    const { addTimelineBar } = useTimeline();
     const gsapTimeline = getGsapTimeline();
     // console.log(gsapTimeline);
     if (!gsapTimeline) return 'No timeline found';
-    if (!targetNode) return 'No targetNode found';
-    const id = targetNode.id();
-    // 先建立時間為 1 秒的空動畫, 起始點需要考慮其他因素
-    addEmptyTween(targetNode, 1, 0);
-    addTimelineBar(id);
-    // 加入 Node 的時間軸資料
-    gsapTimelineNodeMap.value[id] = [{ duration: 1, start: 0 }];
+    const nodeId = targetNode.id();
+    const duration = gsap.utils.random(1, 8, 1);
+    const start = 0;
+    // 先建立時間為 1 秒的空動畫, TODO: start 需要考慮其他因素, duration 也會有相關限制
+    const tween = addEmptyTween(targetNode, duration, start);
+    // 加入對應的時間軸動畫條(動畫條 ID 會回傳)
+    const barId = addTimelineBar(nodeId, duration, start);
+    if (!barId || !tween) return 'Animation failed';
+    // 儲存 Tween 到 gsapTimelineNodeMap 裡面
+    if (!gsapTimelineNodeMap.value[nodeId]) gsapTimelineNodeMap.value[nodeId] = {};
+    gsapTimelineNodeMap.value[nodeId][barId] = tween;
     // TEST
     // testTlMethods2(gsapTimeline, targetNode);
     return 'Animation created';
   };
 
+  // 建立一個 from,to 狀態相同的不變動畫
   const addEmptyTween = (targetNode: Node, duration: number, start: number) => {
-    const id = targetNode.id();
     const { mainNodeMap } = useKonva();
+    const id = targetNode.id();
     const targetMainNode = mainNodeMap.value[id]; // 響應式 Node
     if (!targetMainNode) return;
     const { x, y, width, height, opacity, rotation } = targetMainNode;
-    const tweenVars = { x, y, width, height, opacity, rotation };
-    addTween(targetNode, duration, start, tweenVars, tweenVars);
+    const tweenVars = { x, y, width, height, opacity, rotation, ease: 'none' };
+    const tween = addTween(targetNode, duration, start, tweenVars, tweenVars);
+    return tween;
   };
 
   const addTween = (
@@ -99,12 +120,48 @@ export const useGsap = () => {
     toVars: TweenVars
   ) => {
     const gsapTimeline = getGsapTimeline();
-    if (!gsapTimeline || !targetNode) return;
-    const tween = gsap.fromTo(targetNode, fromVars, { duration, ...toVars });
+    if (!gsapTimeline || !targetNode) return null;
+    const tween = gsap.fromTo(
+      targetNode,
+      { ...fromVars },
+      {
+        duration,
+        ...toVars,
+        x: targetNode.x() + gsap.utils.random(-200, 200, 5),
+        y: targetNode.y() + gsap.utils.random(-200, 200, 5)
+      }
+    );
     gsapTimeline.add(tween, start);
+    return tween;
   };
 
-  const testTlMethods = (gsapTimeline: gsap.core.Timeline, targetNode: Node) => {
+  // 更新動畫條的起始狀態
+  // 更新過程:
+  const updateFromVars = (targetNode: Node, barId: string, fromVars: TweenVars) => {
+    const gsapTimeline = getGsapTimeline();
+    if (!gsapTimeline) return null;
+  };
+
+  // 更新動畫條的結尾狀態
+  // 更新過程:
+  const updateToVars = (targetNode: Node, barId: string, toVars: TweenVars) => {
+    const gsapTimeline = getGsapTimeline();
+    if (!gsapTimeline) return null;
+  };
+
+  // test functions
+  const logTl = (targetNode: Node, barId: string) => {
+    const gsapTimeline = getGsapTimeline();
+    if (!gsapTimeline) return null;
+    const nodeId = targetNode.id();
+    const tweenObj = gsapTimelineNodeMap.value[nodeId][barId];
+    console.log('tweenObj:', (tweenObj.vars.x = 200));
+    gsapTimeline.restart();
+    console.log(gsapTimeline.getChildren());
+  };
+
+  // test functions
+  const testTlMethods = (gsapTimeline: GSAPTimeline, targetNode: Node) => {
     // 這個測試為了確認 gsapTimeline 的方法是如何運作的
     // add 兩段動畫
     const tween1 = gsap.fromTo(
@@ -119,10 +176,10 @@ export const useGsap = () => {
       { duration: 2, x: targetNode.x() + 200, y: targetNode.y() + 400 }
     );
     gsapTimeline.add(tween2, 5);
-    console.log(gsapTimeline.time());
   };
 
-  const testTlMethods2 = (gsapTimeline: gsap.core.Timeline, targetNode: Node) => {
+  // test functions
+  const testTlMethods2 = (gsapTimeline: GSAPTimeline, targetNode: Node) => {
     // 這個測試為了確認 gsapTimeline 的方法是如何運作的
     // add 兩段動畫後原地瞬間消失
     const tween1 = gsap.fromTo(
@@ -154,6 +211,7 @@ export const useGsap = () => {
     pauseGsapTimeline,
     seekGsapTimeline,
     stopGsapTimeline,
-    getTimelineDuration
+    getTimelineDuration,
+    logTl
   };
 };
