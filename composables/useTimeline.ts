@@ -5,21 +5,18 @@ import type { NodeConfig } from 'konva/lib/Node';
 import type { ImageConfig } from 'konva/lib/shapes/Image';
 import type { GroupConfig } from 'konva/lib/Group';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
-const { timelineLayer, currentActiveAnimationId } = useGlobal();
+const { timelineLayer, timelinePointer, isDraggingTimelinePointer, currentActiveAnimationId } =
+  useGlobal();
 
 export const useTimeline = () => {
   console.log('useTimeline');
   // composable 專用常數
   const TIMELINE_CONTAINER_HEIGHT = 240;
-  const TIMELINE_CONTAINER_PADDING_X = 16;
   const TIMELINE_TRACK_GAP_Y = 4;
-  const TIMELINE_TRACK_HEIGHT = 24;
   const TIMELINE_POINTER_WIDTH = 4;
-  const TIMELINE_THUMBNAIL_MARGIN_RIGHT = 8;
   const TIMELINE_POINTER_COLOR = 'rgba(129, 141, 248, 0.8)'; // '#818cf8'
   const TIMELINE_BAR_COLOR = '#22d3ee';
   const TIMELINE_BAR_ACTIVE_COLOR = '#60a5fa';
-  const TIMELINE_TRACK_START_X = TIMELINE_TRACK_HEIGHT + TIMELINE_THUMBNAIL_MARGIN_RIGHT;
   // ---
   const timelineStageRef = useState<HTMLDivElement | null>('timelineStageRef', () =>
     shallowRef(null)
@@ -28,10 +25,8 @@ export const useTimeline = () => {
   const timelineContainer = useState<HTMLDivElement | null>('timelineContainer', () =>
     shallowRef(null)
   );
-  const timelinePointer = useState<Konva.Rect | null>('timelinePointer', () => shallowRef(null));
   const timelineTransformers = useState<Konva.Transformer[]>('timelineTransformers', () => []);
   const newItemInitialY = ref(0);
-  const isDraggingPointer = ref(false);
 
   const initTimelineKonva = () => {
     // create Stage
@@ -107,10 +102,10 @@ export const useTimeline = () => {
       updateGsapTimelineByPointerPosition(this.x());
     });
     pointer.on('dragstart', function () {
-      isDraggingPointer.value = true;
+      isDraggingTimelinePointer.value = true;
     });
     pointer.on('dragend', function () {
-      isDraggingPointer.value = false;
+      isDraggingTimelinePointer.value = false;
     });
     timelineLayer.value?.add(pointer);
     pointer.moveToTop();
@@ -380,18 +375,6 @@ export const useTimeline = () => {
     });
   };
 
-  const updatePointer = (gsapTimeline: GSAPTimeline | null) => {
-    if (timelinePointer.value && gsapTimeline && !isDraggingPointer.value) {
-      const progress = gsapTimeline.progress();
-      const trackWidth =
-        window.innerWidth -
-        (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2) -
-        TIMELINE_TRACK_START_X;
-      timelinePointer.value.x(trackWidth * progress + TIMELINE_TRACK_START_X);
-      // console.log('progress:', progress);
-    }
-  };
-
   const movePointer = (x: number) => {
     // 移動 pointer
     timelinePointer.value?.x(x + TIMELINE_TRACK_START_X);
@@ -415,13 +398,6 @@ export const useTimeline = () => {
     }
   };
 
-  const lockPointer = () => {
-    timelinePointer.value?.draggable(false);
-  };
-  const unlockPointer = () => {
-    timelinePointer.value?.draggable(true);
-  };
-
   return {
     // state
     timelineStageRef,
@@ -432,9 +408,6 @@ export const useTimeline = () => {
     destroyTimelineKonva,
     addTimelineTrack,
     addTimelineBar,
-    deleteTimelineTrack,
-    updatePointer,
-    lockPointer,
-    unlockPointer
+    deleteTimelineTrack
   };
 };

@@ -45,6 +45,27 @@ export const useGlobal = () => {
     timelineLayer.value?.draw();
   };
 
+  // 時間軸指針
+  const timelinePointer = useState<Konva.Rect | null>('timelinePointer', () => shallowRef(null));
+  const isDraggingTimelinePointer = useState('isDraggingTimelinePointer', () => false);
+  const updatePointer = (gsapTimeline: GSAPTimeline | null) => {
+    if (timelinePointer.value && gsapTimeline && !isDraggingTimelinePointer.value) {
+      const progress = gsapTimeline.progress();
+      const trackWidth =
+        window.innerWidth -
+        (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2) -
+        TIMELINE_TRACK_START_X;
+      timelinePointer.value.x(trackWidth * progress + TIMELINE_TRACK_START_X);
+      // console.log('progress:', progress);
+    }
+  };
+  const lockPointer = () => {
+    timelinePointer.value?.draggable(false);
+  };
+  const unlockPointer = () => {
+    timelinePointer.value?.draggable(true);
+  };
+
   const isOpen_createAnimationModal = useState('isOpen_createAnimationModal', () => false);
   const isOpen_createFlashPointModal = useState('isOpen_createFlashPointModal', () => false);
 
@@ -71,6 +92,13 @@ export const useGlobal = () => {
     // 時間軸畫布 layer
     timelineLayer, // state
     updateTimelineLayer, // method
+
+    // 時間軸指針
+    timelinePointer, // state
+    isDraggingTimelinePointer, // state
+    updatePointer, // method
+    lockPointer, // method
+    unlockPointer, // method
 
     // 其他
     isOpen_createAnimationModal,

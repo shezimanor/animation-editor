@@ -12,7 +12,16 @@ interface TweenVars {
 
 let gsapTimeline: GSAPTimeline | null = null;
 
-const { adModuleX, adModuleY, mainNodeMap, updateMainLayer, updateTimelineLayer } = useGlobal();
+const {
+  adModuleX,
+  adModuleY,
+  mainNodeMap,
+  updateMainLayer,
+  updateTimelineLayer,
+  updatePointer,
+  lockPointer,
+  unlockPointer
+} = useGlobal();
 
 export const useGsap = () => {
   console.log('useGsap');
@@ -24,8 +33,6 @@ export const useGsap = () => {
   );
 
   const createGsapTimeline = () => {
-    const { updatePointer } = useTimeline();
-
     gsapTimeline = gsap.timeline({
       repeat: -1,
       paused: paused.value,
@@ -52,7 +59,6 @@ export const useGsap = () => {
   };
 
   const playGsapTimeline = () => {
-    const { lockPointer } = useTimeline();
     getGsapTimeline()?.play();
     paused.value = false;
     // 鎖定時間軸指針
@@ -60,8 +66,6 @@ export const useGsap = () => {
   };
 
   const pauseGsapTimeline = (callback?: Function) => {
-    const { unlockPointer } = useTimeline();
-
     getGsapTimeline()?.pause();
     paused.value = true;
     // 解鎖時間軸指針
