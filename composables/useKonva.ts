@@ -24,11 +24,11 @@ export interface MyNode {
 }
 
 export const useKonva = (adModuleConfig?: AdModuleConfig) => {
-  const HEADER_HEIGHT = 56;
-  const FOOTER_HEIGHT = 274;
+  console.log('useKonva');
+  // composable 專用常數
   const SOURCE_IMG_LIMIT = 10;
-  const ASIDE_WIDTH = 0; // 已拿掉左側工具列
   const DELTA = 1;
+  // ---
   const mainStageRef = useState<HTMLDivElement | null>('mainStageRef', () => shallowRef(null));
   const mainStageBgRef = useState<HTMLDivElement | null>('mainStageBgRef', () => shallowRef(null));
   const stage = useState<Konva.Stage | null>('stage', () => shallowRef(null));

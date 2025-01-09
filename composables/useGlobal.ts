@@ -1,6 +1,7 @@
 import { type UUIDTypes } from 'uuid';
 
 export const useGlobal = () => {
+  console.log('useGlobal');
   const isOpen_createAnimationModal = useState('isOpen_createAnimationModal', () => false);
   const isOpen_createFlashPointModal = useState('isOpen_createFlashPointModal', () => false);
 
@@ -10,10 +11,8 @@ export const useGlobal = () => {
     'currentActiveFlashPointId',
     () => null
   );
-  const TOTAL_DURATION = 12;
   return {
     // state
-    TOTAL_DURATION,
     isOpen_createAnimationModal,
     isOpen_createFlashPointModal,
     currentNodeId,

@@ -1,6 +1,5 @@
 <!-- 編輯頁：所以工具列在這頁 -->
 <script setup lang="ts">
-import { getImageData } from '~/utils/konva';
 import testImg1 from '~/assets/images/demo/pokedex-0144-1.png';
 import testImg2 from '~/assets/images/demo/pokedex-0145-1.png';
 import testImg3 from '~/assets/images/demo/pokedex-0146-1.png';

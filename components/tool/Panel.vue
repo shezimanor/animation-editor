@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { getImageData } from '~/utils/konva';
 const { currentTool, closeTool } = useTool();
 const { addImage } = useKonva();
 const panelRef = ref<HTMLDivElement | null>(null);

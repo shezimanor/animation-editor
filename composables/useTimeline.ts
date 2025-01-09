@@ -5,22 +5,22 @@ import type { NodeConfig } from 'konva/lib/Node';
 import type { ImageConfig } from 'konva/lib/shapes/Image';
 import type { GroupConfig } from 'konva/lib/Group';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
-const { TOTAL_DURATION, currentActiveAnimationId } = useGlobal();
+const { currentActiveAnimationId } = useGlobal();
 
 export const useTimeline = () => {
-  // const HEADER_HEIGHT = 56;
-  // const FOOTER_HEIGHT = 274;
+  console.log('useTimeline');
+  // composable 專用常數
   const TIMELINE_CONTAINER_HEIGHT = 240;
-  const ASIDE_WIDTH = 0;
-  const PADDING_X = 16;
-  const GAP_Y = 4;
-  const TRACK_HEIGHT = 24;
-  const POINTER_WIDTH = 4;
-  const IMG_MARGIN = 8;
-  const POINTER_COLOR = 'rgba(129, 141, 248, 0.8)'; // '#818cf8'
-  const BAR_COLOR = '#22d3ee';
-  const BAR_ACTIVE_COLOR = '#60a5fa';
-  const TRACK_START_X = TRACK_HEIGHT + IMG_MARGIN;
+  const TIMELINE_CONTAINER_PADDING_X = 16;
+  const TIMELINE_TRACK_GAP_Y = 4;
+  const TIMELINE_TRACK_HEIGHT = 24;
+  const TIMELINE_POINTER_WIDTH = 4;
+  const TIMELINE_THUMBNAIL_MARGIN_RIGHT = 8;
+  const TIMELINE_POINTER_COLOR = 'rgba(129, 141, 248, 0.8)'; // '#818cf8'
+  const TIMELINE_BAR_COLOR = '#22d3ee';
+  const TIMELINE_BAR_ACTIVE_COLOR = '#60a5fa';
+  const TIMELINE_TRACK_START_X = TIMELINE_TRACK_HEIGHT + TIMELINE_THUMBNAIL_MARGIN_RIGHT;
+  // ---
   const timelineStageRef = useState<HTMLDivElement | null>('timelineStageRef', () =>
     shallowRef(null)
   );
@@ -58,7 +58,7 @@ export const useTimeline = () => {
     if (timelineStageRef.value) {
       timelineStage.value = new Konva.Stage({
         container: timelineStageRef.value,
-        width: window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2),
+        width: window.innerWidth - (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2),
         height: TIMELINE_CONTAINER_HEIGHT,
         draggable: false
       });
@@ -81,22 +81,23 @@ export const useTimeline = () => {
     const pointer = addRect({
       id: `pointer`,
       name: 'item_pointer',
-      x: TRACK_START_X,
+      x: TIMELINE_TRACK_START_X,
       y: 0,
-      width: POINTER_WIDTH,
-      height: TIMELINE_CONTAINER_HEIGHT - POINTER_WIDTH,
-      fill: POINTER_COLOR,
+      width: TIMELINE_POINTER_WIDTH,
+      height: TIMELINE_CONTAINER_HEIGHT - TIMELINE_POINTER_WIDTH,
+      fill: TIMELINE_POINTER_COLOR,
       cornerRadius: 2,
       draggable: true,
       dragBoundFunc(pos) {
         const timelineStageWidth =
-          timelineStage.value?.width() ?? window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2);
+          timelineStage.value?.width() ??
+          window.innerWidth - (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2);
         return {
           x:
-            pos.x < TRACK_START_X
-              ? TRACK_START_X
-              : pos.x + POINTER_WIDTH > timelineStageWidth
-                ? timelineStageWidth - POINTER_WIDTH
+            pos.x < TIMELINE_TRACK_START_X
+              ? TIMELINE_TRACK_START_X
+              : pos.x + TIMELINE_POINTER_WIDTH > timelineStageWidth
+                ? timelineStageWidth - TIMELINE_POINTER_WIDTH
                 : pos.x,
           y: this.absolutePosition().y
         };
@@ -129,7 +130,7 @@ export const useTimeline = () => {
     const groupItem = addGroup({
       id: `group_${itemId}`,
       name: 'item_bar_group',
-      x: TRACK_START_X,
+      x: TIMELINE_TRACK_START_X,
       y: newItemInitialY.value,
       draggable: false
     });
@@ -141,8 +142,8 @@ export const useTimeline = () => {
       x: 0,
       y: newItemInitialY.value,
       image: imgObj,
-      width: TRACK_HEIGHT,
-      height: TRACK_HEIGHT,
+      width: TIMELINE_TRACK_HEIGHT,
+      height: TIMELINE_TRACK_HEIGHT,
       fill: 'rgba(255, 255, 255, 1)',
       cornerRadius: 2,
       draggable: false
@@ -167,10 +168,13 @@ export const useTimeline = () => {
     const trackItem = addRect({
       id: `track_${itemId}`,
       name: 'item_track',
-      x: TRACK_START_X,
+      x: TIMELINE_TRACK_START_X,
       y: newItemInitialY.value,
-      width: window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2) - TRACK_START_X,
-      height: TRACK_HEIGHT,
+      width:
+        window.innerWidth -
+        (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2) -
+        TIMELINE_TRACK_START_X,
+      height: TIMELINE_TRACK_HEIGHT,
       fill: 'rgba(255, 255, 255, 0.6)',
       cornerRadius: 2,
       draggable: false
@@ -191,7 +195,8 @@ export const useTimeline = () => {
     const groupItem = getTargetNode(`group_${id}`);
     if (!groupItem || !(groupItem instanceof Konva.Group)) return '';
     const barId = uuid();
-    const trackWidth = window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2) - TRACK_START_X;
+    const trackWidth =
+      window.innerWidth - (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2) - TIMELINE_TRACK_START_X;
     // 移除其他 bar 的顯目顯示
     removeActiveBarHighLight();
     // 時間軸動畫條(直接醒目顯示)
@@ -202,17 +207,18 @@ export const useTimeline = () => {
       x: trackWidth * (start / TOTAL_DURATION),
       y: 0,
       width: trackWidth * (duration / TOTAL_DURATION),
-      height: TRACK_HEIGHT,
-      fill: BAR_ACTIVE_COLOR,
+      height: TIMELINE_TRACK_HEIGHT,
+      fill: TIMELINE_BAR_ACTIVE_COLOR,
       cornerRadius: 3,
       draggable: true,
       dragBoundFunc(pos) {
         const timelineStageWidth =
-          timelineStage.value?.width() ?? window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2);
+          timelineStage.value?.width() ??
+          window.innerWidth - (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2);
         return {
           x:
-            pos.x < TRACK_START_X
-              ? TRACK_START_X
+            pos.x < TIMELINE_TRACK_START_X
+              ? TIMELINE_TRACK_START_X
               : pos.x + this.width() > timelineStageWidth
                 ? timelineStageWidth - this.width()
                 : pos.x,
@@ -223,7 +229,7 @@ export const useTimeline = () => {
     // 事件監聽
     barItem.on('click', function () {
       removeActiveBarHighLight();
-      barItem.fill(BAR_ACTIVE_COLOR);
+      barItem.fill(TIMELINE_BAR_ACTIVE_COLOR);
       barItem.name('item_bar item_bar_active');
       // 設定 currentActiveAnimationId
       currentActiveAnimationId.value = barItem.id();
@@ -246,7 +252,7 @@ export const useTimeline = () => {
   const removeActiveBarHighLight = () => {
     const activeBar = timelineLayer.value?.findOne('.item_bar_active');
     if (activeBar && activeBar instanceof Konva.Rect) {
-      activeBar.fill(BAR_COLOR);
+      activeBar.fill(TIMELINE_BAR_COLOR);
       activeBar.name('item_bar');
     }
   };
@@ -271,12 +277,13 @@ export const useTimeline = () => {
       visible: true,
       boundBoxFunc(oldBox, newBox) {
         // 限制變形器的範圍
-        if (newBox.x < TRACK_START_X) {
+        if (newBox.x < TIMELINE_TRACK_START_X) {
           return oldBox;
         }
         if (
           newBox.x + newBox.width >
-          (timelineStage.value?.width() ?? window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2))
+          (timelineStage.value?.width() ??
+            window.innerWidth - (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2))
         ) {
           return oldBox;
         }
@@ -349,7 +356,7 @@ export const useTimeline = () => {
   // 更新起始位置 (用 track 來找)
   const updateInitialPosition = () => {
     const tracks = timelineLayer.value?.find('.item_track') ?? [];
-    newItemInitialY.value = tracks.length * (TRACK_HEIGHT + GAP_Y);
+    newItemInitialY.value = tracks.length * (TIMELINE_TRACK_HEIGHT + TIMELINE_TRACK_GAP_Y);
   };
 
   // 隱藏空的變形器
@@ -370,33 +377,38 @@ export const useTimeline = () => {
   const updateAllItems = (selectorName: string) => {
     const items = timelineLayer.value?.find(selectorName) ?? [];
     items.forEach((item, index) => {
-      item.y(index * (TRACK_HEIGHT + GAP_Y));
+      item.y(index * (TIMELINE_TRACK_HEIGHT + TIMELINE_TRACK_GAP_Y));
     });
   };
 
   const updatePointer = (gsapTimeline: GSAPTimeline | null) => {
     if (timelinePointer.value && gsapTimeline && !isDraggingPointer.value) {
       const progress = gsapTimeline.progress();
-      const trackWidth = window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2) - TRACK_START_X;
-      timelinePointer.value.x(trackWidth * progress + TRACK_START_X);
+      const trackWidth =
+        window.innerWidth -
+        (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2) -
+        TIMELINE_TRACK_START_X;
+      timelinePointer.value.x(trackWidth * progress + TIMELINE_TRACK_START_X);
       // console.log('progress:', progress);
     }
   };
 
   const movePointer = (x: number) => {
     // 移動 pointer
-    timelinePointer.value?.x(x + TRACK_START_X);
+    timelinePointer.value?.x(x + TIMELINE_TRACK_START_X);
     // 更新 gsap 時間軸
     updateGsapTimelineByPointerPosition(x);
   };
 
   const updateGsapTimelineByPointerPosition = (x: number) => {
-    const { getGsapTimeline, TOTAL_DURATION } = useGsap();
+    const { getGsapTimeline } = useGsap();
     const gsapTimeline = getGsapTimeline();
     if (gsapTimeline) {
       const currentTime =
-        ((x - TRACK_START_X) /
-          (window.innerWidth - (ASIDE_WIDTH + PADDING_X * 2) - TRACK_START_X)) *
+        ((x - TIMELINE_TRACK_START_X) /
+          (window.innerWidth -
+            (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2) -
+            TIMELINE_TRACK_START_X)) *
         TOTAL_DURATION;
       // 更新 gsap 時間軸
       gsapTimeline.seek(currentTime);

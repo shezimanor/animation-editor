@@ -25,3 +25,13 @@
 - [GSAP Timeline](https://gsap.com/docs/v3/GSAP/Timeline/)
 - [Konva](https://konvajs.org/api/Konva.html)
 - [Nuxt UI](https://ui.nuxt.com/)
+
+## 問題點
+
+- 循環引用：composable 的用法有問題，功能間過度耦合，相同的 useXxx 被不斷地重複呼叫。
+
+## 設計原則
+
+1. 單向依賴：確保 Composable A 和 Composable B 之間的依賴是單向的，避免循環引用。
+2. 集中狀態管理：使用 useState 來管理共享的狀態。
+3. 關注點分離 (Separation of Concerns)：將可重用的邏輯封裝到 composables，並僅暴露必要的函數與狀態。

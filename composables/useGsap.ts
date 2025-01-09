@@ -10,10 +10,10 @@ interface TweenVars {
   ease?: string;
 }
 
-const { TOTAL_DURATION } = useGlobal();
 let gsapTimeline: GSAPTimeline | null = null;
 
 export const useGsap = () => {
+  console.log('useGsap');
   const initializedGsap = useState('initializedGsap', () => false);
   const paused = useState('paused', () => true);
   const gsapTimelineNodeMap = useState<Record<string, Record<string, gsap.core.Tween>>>(
@@ -262,7 +262,6 @@ export const useGsap = () => {
     // state
     initializedGsap,
     paused,
-    TOTAL_DURATION,
     // action
     createGsapTimeline,
     getGsapTimeline,
