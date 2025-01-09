@@ -3,24 +3,22 @@ import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
 import type { Node } from 'konva/lib/Node';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
-const { isOpen_createAnimationModal, isOpen_createFlashPointModal, currentNodeId } = useGlobal();
+const {
+  adModuleX,
+  adModuleY,
+  mainNodeList,
+  mainNodeLength,
+  mainNodeMap,
+  isOpen_createAnimationModal,
+  isOpen_createFlashPointModal,
+  currentNodeId
+} = useGlobal();
 const { createGsapTimeline } = useGsap();
 const { addTimelineTrack, deleteTimelineTrack, timelineTransformers } = useTimeline();
 
 interface AdModuleConfig {
   width: number;
   height: number;
-}
-export interface MyNode {
-  id: UUIDTypes;
-  name: string;
-  label: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  opacity: number;
-  rotation: number;
 }
 
 export const useKonva = (adModuleConfig?: AdModuleConfig) => {
@@ -38,10 +36,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const adModuleRect = useState<Konva.Rect | null>('adModuleRect', () => shallowRef(null));
   // 需要偵測他的 nodes 數量，所以不能用 shallowRef
   const transformer = useState<Konva.Transformer | null>('transformer', () => null);
-  const mainNodeList = useState<MyNode[]>('mainNodeList', () => []);
   const selecting = ref(false);
-  const adModuleX = useState('adModuleX', () => 0);
-  const adModuleY = useState('adModuleY', () => 0);
+
   const newItemInitialX = ref(0);
   const newItemInitialY = ref(0);
   const x1 = ref(0);
@@ -49,18 +45,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const x2 = ref(0);
   const y2 = ref(0);
   const scaleBy = 1.05; // scale 的單位幅度
-
-  // getter
-  const mainNodeLength = computed(() => mainNodeList.value.length);
-  const mainNodeMap = computed(() =>
-    mainNodeList.value.reduce(
-      (acc, node) => {
-        acc[`${node.id}`] = node;
-        return acc;
-      },
-      {} as Record<string, MyNode>
-    )
-  );
 
   const initKonva = () => {
     // create Stage
@@ -595,13 +579,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     stage,
     layer,
     transformer,
-    mainNodeList,
     SOURCE_IMG_LIMIT,
-    adModuleX,
-    adModuleY,
-    // getter
-    mainNodeLength,
-    mainNodeMap,
     // action
     initKonva,
     destroyKonva,

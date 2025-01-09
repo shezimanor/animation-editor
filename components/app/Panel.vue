@@ -3,7 +3,7 @@ import type { Node } from 'konva/lib/Node';
 import type { UUIDTypes } from 'uuid';
 
 const { metaSymbol } = useShortcuts();
-const { mainNodeList } = useKonva();
+const { mainNodeMap } = useGlobal();
 const props = withDefaults(
   defineProps<{
     node: Node | null;
@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
 const currentNode = computed(() => {
   if (!props.node) return null;
-  return mainNodeList.value.find((node) => node.id === props.node?.id());
+  return mainNodeMap.value[props.node.id()];
 });
 </script>
 

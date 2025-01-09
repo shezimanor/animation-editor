@@ -12,6 +12,8 @@ interface TweenVars {
 
 let gsapTimeline: GSAPTimeline | null = null;
 
+const { adModuleX, adModuleY, mainNodeMap } = useGlobal();
+
 export const useGsap = () => {
   console.log('useGsap');
   const initializedGsap = useState('initializedGsap', () => false);
@@ -106,7 +108,6 @@ export const useGsap = () => {
 
   // 建立一個 from,to 狀態相同的不變動畫
   const addEmptyTween = (targetNode: Node, duration: number, start: number) => {
-    const { adModuleX, adModuleY, mainNodeMap } = useKonva();
     const id = targetNode.id();
     const targetMainNode = mainNodeMap.value[id]; // 響應式 Node
     if (!targetMainNode) return;
@@ -148,7 +149,6 @@ export const useGsap = () => {
 
   // test
   const addEmptyTween2 = (targetNode: Node, duration: number, start: number) => {
-    const { adModuleX, adModuleY, mainNodeMap } = useKonva();
     const id = targetNode.id();
     const targetMainNode = mainNodeMap.value[id]; // 響應式 Node
     if (!targetMainNode) return;
