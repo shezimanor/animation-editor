@@ -14,42 +14,19 @@ const {
   adModuleX,
   adModuleY,
   mainNodeMap,
-  updateMainLayer,
-  updateTimelineLayer,
-  updatePointer,
   lockPointer,
   unlockPointer,
-  gsapTimeline
+  gsapTimeline,
+  initializedGsap,
+  paused
 } = useGlobal();
 
 export const useGsap = () => {
   console.log('useGsap');
-  const initializedGsap = useState('initializedGsap', () => false);
-  const paused = useState('paused', () => true);
   const gsapTimelineNodeMap = useState<Record<string, Record<string, gsap.core.Tween>>>(
     'gsapTimelineNodeMap',
     () => ({})
   );
-
-  const createGsapTimeline = () => {
-    gsapTimeline.value = gsap.timeline({
-      repeat: -1,
-      paused: paused.value,
-      duration: TOTAL_DURATION, // 預設時間 12 秒
-      onUpdate() {
-        updateMainLayer();
-        updatePointer(gsapTimeline.value);
-        updateTimelineLayer();
-      },
-      onStart() {
-        paused.value = false;
-      },
-      onComplete() {
-        paused.value = true;
-      }
-    });
-    initializedGsap.value = true;
-  };
 
   const playGsapTimeline = () => {
     gsapTimeline.value?.play();
@@ -220,7 +197,6 @@ export const useGsap = () => {
     initializedGsap,
     paused,
     // action
-    createGsapTimeline,
     createAnimation,
     playGsapTimeline,
     pauseGsapTimeline,

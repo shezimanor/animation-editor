@@ -6,15 +6,15 @@ import { v4 as uuid, type UUIDTypes } from 'uuid';
 const {
   adModuleX,
   adModuleY,
+  mainLayer,
   mainNodeList,
   mainNodeLength,
   mainNodeMap,
+  createGsapTimeline,
   isOpen_createAnimationModal,
   isOpen_createFlashPointModal,
-  currentNodeId,
-  mainLayer
+  currentNodeId
 } = useGlobal();
-const { createGsapTimeline } = useGsap();
 const { addTimelineTrack, deleteTimelineTrack, timelineTransformers } = useTimeline();
 
 interface AdModuleConfig {

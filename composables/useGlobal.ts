@@ -1,5 +1,7 @@
-import { type UUIDTypes } from 'uuid';
 import Konva from 'konva';
+import { gsap } from 'gsap';
+
+import { type UUIDTypes } from 'uuid';
 
 export interface MyNode {
   id: UUIDTypes;
@@ -68,6 +70,27 @@ export const useGlobal = () => {
 
   // gsap
   const gsapTimeline = useState<GSAPTimeline | null>('gsapTimeline', () => shallowRef(null));
+  const initializedGsap = useState('initializedGsap', () => false);
+  const paused = useState('paused', () => true);
+  const createGsapTimeline = () => {
+    gsapTimeline.value = gsap.timeline({
+      repeat: -1,
+      paused: paused.value,
+      duration: TOTAL_DURATION, // 預設時間 12 秒
+      onUpdate() {
+        updateMainLayer();
+        updatePointer(gsapTimeline.value);
+        updateTimelineLayer();
+      },
+      onStart() {
+        paused.value = false;
+      },
+      onComplete() {
+        paused.value = true;
+      }
+    });
+    initializedGsap.value = true;
+  };
 
   const isOpen_createAnimationModal = useState('isOpen_createAnimationModal', () => false);
   const isOpen_createFlashPointModal = useState('isOpen_createFlashPointModal', () => false);
@@ -105,6 +128,9 @@ export const useGlobal = () => {
 
     // gsap
     gsapTimeline, // state
+    initializedGsap, // state
+    paused, // state
+    createGsapTimeline, // method
 
     // 其他
     isOpen_createAnimationModal,
