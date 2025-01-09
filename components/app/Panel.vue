@@ -2,6 +2,7 @@
 import type { Node } from 'konva/lib/Node';
 import type { UUIDTypes } from 'uuid';
 
+console.log('-panel-');
 const { metaSymbol } = useShortcuts();
 const { mainNodeMap } = useGlobal();
 const props = withDefaults(

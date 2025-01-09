@@ -23,7 +23,7 @@ const adModule = useCookie<AdModuleConfig>('adModuleInfo', {
     title: '模組標題'
   })
 });
-
+console.log('-index-');
 const { mainStageRef, mainStageBgRef, initKonva, destroyKonva, addImage } = useKonva({
   width: adModule.value.width,
   height: adModule.value.height

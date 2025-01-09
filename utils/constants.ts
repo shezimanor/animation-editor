@@ -8,3 +8,4 @@ export const TIMELINE_THUMBNAIL_MARGIN_RIGHT = 8; // 時間軸縮圖右邊距
 export const TIMELINE_TRACK_START_X = TIMELINE_TRACK_HEIGHT + TIMELINE_THUMBNAIL_MARGIN_RIGHT; // 時間軸軌道起始 x 座標
 export const TIMELINE_BAR_COLOR = '#22d3ee'; // 時間軸動畫條顏色
 export const TIMELINE_BAR_ACTIVE_COLOR = '#60a5fa'; // 時間軸動畫條 active 顏色
+export const TIMELINE_TRACK_GAP_Y = 4; // 時間軸軌道上下間距

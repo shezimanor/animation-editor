@@ -15,12 +15,13 @@ const {
   mainTransformer,
   focusOnItem,
   timelineTransformers,
+  addTimelineTrack,
+  deleteTimelineTrack,
   createGsapTimeline,
   isOpen_createAnimationModal,
   isOpen_createFlashPointModal,
   currentNodeId
 } = useGlobal();
-const { addTimelineTrack, deleteTimelineTrack } = useTimeline();
 
 interface AdModuleConfig {
   width: number;
@@ -40,8 +41,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
 
   const selecting = ref(false);
 
-  const newItemInitialX = ref(0);
-  const newItemInitialY = ref(0);
+  const mainItemInitialX = ref(0);
+  const mainItemInitialY = ref(0);
   // 選取框的座標變數
   const x1 = ref(0);
   const y1 = ref(0);
@@ -72,8 +73,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       stage.value.width(width);
       stage.value.height(height);
       // 調整 newItemInitial
-      newItemInitialX.value = stage.value.width() / 2;
-      newItemInitialY.value = stage.value.height() / 2;
+      mainItemInitialX.value = stage.value.width() / 2;
+      mainItemInitialY.value = stage.value.height() / 2;
       // 調整 adModuleRect 位置
       const oldX = adModuleX.value;
       const oldY = adModuleY.value;
@@ -137,8 +138,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       mainContainer.value.style.outline = 'none';
       mainContainer.value.style.position = 'relative';
       // Stage 初始位置
-      newItemInitialX.value = stage.value.width() / 2;
-      newItemInitialY.value = stage.value.height() / 2;
+      mainItemInitialX.value = stage.value.width() / 2;
+      mainItemInitialY.value = stage.value.height() / 2;
       mainContainer.value.focus();
     } else {
       throw new Error('mainStageRef Not Found');
@@ -506,8 +507,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       id: id,
       name: 'item',
       label: '未命名',
-      x: newItemInitialX.value,
-      y: newItemInitialY.value,
+      x: mainItemInitialX.value,
+      y: mainItemInitialY.value,
       width: imgObj.naturalWidth,
       height: imgObj.naturalHeight,
       rotation: 0,
@@ -536,8 +537,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const updateInitialPosition = () => {
-    newItemInitialX.value += 100;
-    newItemInitialY.value += 100;
+    mainItemInitialX.value += 100;
+    mainItemInitialY.value += 100;
   };
 
   return {

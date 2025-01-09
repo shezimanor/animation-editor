@@ -2,6 +2,7 @@
 import type { UUIDTypes } from 'uuid';
 
 const UNNAMED_LABEL = '未命名標籤';
+console.log('-panel group-');
 const {
   mainTransformer,
   getTargetNodeFromMain,
