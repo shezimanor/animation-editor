@@ -7,10 +7,11 @@ import type { GroupConfig } from 'konva/lib/Group';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
 const {
   timelineLayer,
+  getTargetNodeFromTimeline,
+  timelineTransformers,
   timelinePointer,
   isDraggingTimelinePointer,
-  gsapTimeline,
-  currentActiveAnimationId
+  updateGsapTimelineByPointerPosition
 } = useGlobal();
 
 export const useTimeline = () => {
@@ -20,8 +21,6 @@ export const useTimeline = () => {
   const TIMELINE_TRACK_GAP_Y = 4;
   const TIMELINE_POINTER_WIDTH = 4;
   const TIMELINE_POINTER_COLOR = 'rgba(129, 141, 248, 0.8)'; // '#818cf8'
-  const TIMELINE_BAR_COLOR = '#22d3ee';
-  const TIMELINE_BAR_ACTIVE_COLOR = '#60a5fa';
   // ---
   const timelineStageRef = useState<HTMLDivElement | null>('timelineStageRef', () =>
     shallowRef(null)
@@ -30,7 +29,6 @@ export const useTimeline = () => {
   const timelineContainer = useState<HTMLDivElement | null>('timelineContainer', () =>
     shallowRef(null)
   );
-  const timelineTransformers = useState<Konva.Transformer[]>('timelineTransformers', () => []);
   const newItemInitialY = ref(0);
 
   const initTimelineKonva = () => {
@@ -117,11 +115,6 @@ export const useTimeline = () => {
     timelinePointer.value = pointer;
   };
 
-  const pointerMoveToTop = () => {
-    const pointer = timelineLayer.value?.findOne('.item_pointer');
-    pointer?.moveToTop();
-  };
-
   const addTimelineTrack = (imgObj: HTMLImageElement, itemId: string) => {
     const { selectTargetNode } = useKonva();
 
@@ -182,134 +175,10 @@ export const useTimeline = () => {
     timelineLayer.value?.add(imgItem);
     timelineLayer.value?.add(trackItem);
     timelineLayer.value?.add(groupItem);
-    updateInitialPosition();
-    pointerMoveToTop();
-  };
-
-  const getTargetNode = (id: string) => {
-    return timelineLayer.value?.findOne(`#${id}`);
-  };
-
-  const addTimelineBar = (id: UUIDTypes, duration: number, start: number): string => {
-    const groupItem = getTargetNode(`group_${id}`);
-    if (!groupItem || !(groupItem instanceof Konva.Group)) return '';
-    const barId = uuid();
-    const trackWidth =
-      window.innerWidth - (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2) - TIMELINE_TRACK_START_X;
-    // 移除其他 bar 的顯目顯示
-    removeActiveBarHighLight();
-    // 時間軸動畫條(直接醒目顯示)
-    const barItem = addRect({
-      id: `bar_${barId}_${id}`,
-      name: `item_bar item_bar_active`,
-      // 這裡的 x,y 位置是相對於 group 的位置
-      x: trackWidth * (start / TOTAL_DURATION),
-      y: 0,
-      width: trackWidth * (duration / TOTAL_DURATION),
-      height: TIMELINE_TRACK_HEIGHT,
-      fill: TIMELINE_BAR_ACTIVE_COLOR,
-      cornerRadius: 3,
-      draggable: true,
-      dragBoundFunc(pos) {
-        const timelineStageWidth =
-          timelineStage.value?.width() ??
-          window.innerWidth - (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2);
-        return {
-          x:
-            pos.x < TIMELINE_TRACK_START_X
-              ? TIMELINE_TRACK_START_X
-              : pos.x + this.width() > timelineStageWidth
-                ? timelineStageWidth - this.width()
-                : pos.x,
-          y: this.absolutePosition().y
-        };
-      }
-    });
-    // 事件監聽
-    barItem.on('click', function () {
-      removeActiveBarHighLight();
-      barItem.fill(TIMELINE_BAR_ACTIVE_COLOR);
-      barItem.name('item_bar item_bar_active');
-      // 設定 currentActiveAnimationId
-      currentActiveAnimationId.value = barItem.id();
-      // 讓 pointer 移到動畫條的起點
-      movePointer(barItem.x());
-    });
-    // 設定 currentActiveAnimationId
-    currentActiveAnimationId.value = barId;
-    // 加入到 groupItem
-    groupItem.add(barItem);
-    // 加上變形器
-    const transformerItem = addTransformer();
-    transformerItem.nodes([barItem]);
     // 將指針推到最上面
-    pointerMoveToTop();
-    // 回傳 barId
-    return barId;
-  };
-
-  const removeActiveBarHighLight = () => {
-    const activeBar = timelineLayer.value?.findOne('.item_bar_active');
-    if (activeBar && activeBar instanceof Konva.Rect) {
-      activeBar.fill(TIMELINE_BAR_COLOR);
-      activeBar.name('item_bar');
-    }
-  };
-
-  const addTransformer = () => {
-    if (timelineTransformers.value.length > 0) {
-      const currentTransformer = timelineTransformers.value.find(
-        (transformer) => transformer.nodes().length === 0
-      );
-      // 先開啟 visible 後回傳 Transformer
-      if (currentTransformer) {
-        currentTransformer.visible(true);
-        return currentTransformer;
-      }
-    }
-    // 新增 Transformer
-    const newTransformer = new Konva.Transformer({
-      borderStroke: 'rgba(255, 255, 255, 0.6)',
-      rotateEnabled: false,
-      rotateLineVisible: false,
-      enabledAnchors: ['middle-left', 'middle-right'],
-      visible: true,
-      boundBoxFunc(oldBox, newBox) {
-        // 限制變形器的範圍
-        if (newBox.x < TIMELINE_TRACK_START_X) {
-          return oldBox;
-        }
-        if (
-          newBox.x + newBox.width >
-          (timelineStage.value?.width() ??
-            window.innerWidth - (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2))
-        ) {
-          return oldBox;
-        }
-        return newBox;
-      },
-      anchorStyleFunc(anchor) {
-        // 左右錨點樣式
-        anchor.cornerRadius(3);
-        anchor.fill('#a5f3fc');
-        anchor.stroke('#67e8f9');
-        if (anchor.hasName('middle-left') || anchor.hasName('middle-right')) {
-          anchor.height(18);
-          anchor.offsetY(9);
-          anchor.width(4);
-          anchor.offsetX(2);
-        }
-      }
-    });
-    // 維持 scaleX = 1, 並將 width 設為原本的 scaleX * width
-    newTransformer.on('transform', function () {
-      const currentBar = newTransformer.nodes()[0] as Konva.Rect;
-      currentBar.width(currentBar.scaleX() * currentBar.width());
-      currentBar.scaleX(1);
-    });
-    timelineLayer.value?.add(newTransformer);
-    timelineTransformers.value.push(newTransformer);
-    return newTransformer;
+    timelinePointer.value?.moveToTop();
+    // 更新起始位置
+    updateInitialPosition();
   };
 
   const addImage = (imageConfig: ImageConfig) => {
@@ -327,21 +196,21 @@ export const useTimeline = () => {
   const deleteTimelineTrack = (id: UUIDTypes) => {
     // 隱藏空的變形器
     hideEmptyTransformer(id);
-    const imgItem = getTargetNode(`img_${id}`);
+    const imgItem = getTargetNodeFromTimeline(`img_${id}`);
     if (imgItem && imgItem instanceof Konva.Image) {
       // 刪除 Img
       imgItem.destroy();
       // 更新所有 Img 的位置
       updateAllItems('.item_img');
     }
-    const trackItem = getTargetNode(`track_${id}`);
+    const trackItem = getTargetNodeFromTimeline(`track_${id}`);
     if (trackItem && trackItem instanceof Konva.Rect) {
       // 刪除 Track
       trackItem.destroy();
       // 更新所有 Track 的位置
       updateAllItems('.item_track');
     }
-    const groupItem = getTargetNode(`group_${id}`);
+    const groupItem = getTargetNodeFromTimeline(`group_${id}`);
     if (groupItem && groupItem instanceof Konva.Group) {
       // 刪除 Bar Group
       groupItem.destroy();
@@ -380,37 +249,13 @@ export const useTimeline = () => {
     });
   };
 
-  const movePointer = (x: number) => {
-    // 移動 pointer
-    timelinePointer.value?.x(x + TIMELINE_TRACK_START_X);
-    // 更新 gsap 時間軸
-    updateGsapTimelineByPointerPosition(x);
-  };
-
-  const updateGsapTimelineByPointerPosition = (x: number) => {
-    if (gsapTimeline.value) {
-      const currentTime =
-        ((x - TIMELINE_TRACK_START_X) /
-          (window.innerWidth -
-            (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2) -
-            TIMELINE_TRACK_START_X)) *
-        TOTAL_DURATION;
-      // 更新 gsap 時間軸
-      gsapTimeline.value.seek(currentTime);
-      // console.log('currentTime:', currentTime);
-    }
-  };
-
   return {
     // state
     timelineStageRef,
-    timelineTransformers,
-    timelinePointer,
     // action
     initTimelineKonva,
     destroyTimelineKonva,
     addTimelineTrack,
-    addTimelineBar,
     deleteTimelineTrack
   };
 };

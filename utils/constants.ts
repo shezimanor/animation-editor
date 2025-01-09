@@ -6,3 +6,5 @@ export const TIMELINE_CONTAINER_PADDING_X = 16; // 時間軸容器左右內邊�
 export const TIMELINE_TRACK_HEIGHT = 24; // 時間軸軌道高度
 export const TIMELINE_THUMBNAIL_MARGIN_RIGHT = 8; // 時間軸縮圖右邊距
 export const TIMELINE_TRACK_START_X = TIMELINE_TRACK_HEIGHT + TIMELINE_THUMBNAIL_MARGIN_RIGHT; // 時間軸軌道起始 x 座標
+export const TIMELINE_BAR_COLOR = '#22d3ee'; // 時間軸動畫條顏色
+export const TIMELINE_BAR_ACTIVE_COLOR = '#60a5fa'; // 時間軸動畫條 active 顏色

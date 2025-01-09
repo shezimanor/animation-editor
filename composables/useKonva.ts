@@ -10,12 +10,13 @@ const {
   mainNodeList,
   mainNodeLength,
   mainNodeMap,
+  timelineTransformers,
   createGsapTimeline,
   isOpen_createAnimationModal,
   isOpen_createFlashPointModal,
   currentNodeId
 } = useGlobal();
-const { addTimelineTrack, deleteTimelineTrack, timelineTransformers } = useTimeline();
+const { addTimelineTrack, deleteTimelineTrack } = useTimeline();
 
 interface AdModuleConfig {
   width: number;

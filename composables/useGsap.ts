@@ -14,6 +14,7 @@ const {
   adModuleX,
   adModuleY,
   mainNodeMap,
+  addTimelineBar,
   lockPointer,
   unlockPointer,
   gsapTimeline,
@@ -59,7 +60,6 @@ export const useGsap = () => {
   };
 
   const createAnimation = (targetNode: Node, label: string) => {
-    const { addTimelineBar } = useTimeline();
     // console.log(gsapTimeline);
     if (!gsapTimeline.value) return 'No timeline found';
     const nodeId = targetNode.id();
