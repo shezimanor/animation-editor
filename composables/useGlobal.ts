@@ -191,6 +191,8 @@ export const useGlobal = () => {
       currentActiveAnimationId.value = barItem.id();
       // 讓 pointer 移到動畫條的起點
       movePointer(barItem.x());
+      // 選取到主畫布的素材
+      selectTargetNodeFromMain(id);
     });
     // 設定 currentActiveAnimationId
     currentActiveAnimationId.value = barId;
