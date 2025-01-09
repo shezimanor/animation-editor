@@ -533,21 +533,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     updateNodeAndMainNodeAttributes(imgItem, imgNode);
   };
 
-  // ⚠️ addRect 可能用不到
-  const addRect = () => {
-    const rectItem = new Konva.Rect({
-      name: 'item',
-      x: newItemInitialX.value,
-      y: newItemInitialY.value,
-      width: 100,
-      height: 100,
-      fill: '#22c55e',
-      draggable: true
-    });
-    focusOnItem(rectItem);
-    updateInitialPosition();
-  };
-
   const focusOnItem = (item: Konva.Shape | Konva.Group | Konva.Image) => {
     mainLayer.value?.add(item);
     transformer.value?.nodes([item]);
@@ -580,7 +565,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     initKonva,
     destroyKonva,
     addImage,
-    addRect,
     logKonva,
     updateMainNodeState,
     getTargetNode,
