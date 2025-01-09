@@ -12,7 +12,7 @@ interface TweenVars {
 
 let gsapTimeline: GSAPTimeline | null = null;
 
-const { adModuleX, adModuleY, mainNodeMap } = useGlobal();
+const { adModuleX, adModuleY, mainNodeMap, updateMainLayer, updateTimelineLayer } = useGlobal();
 
 export const useGsap = () => {
   console.log('useGsap');
@@ -24,8 +24,7 @@ export const useGsap = () => {
   );
 
   const createGsapTimeline = () => {
-    const { updateLayer } = useKonva();
-    const { updateTimelineLayer, updatePointer } = useTimeline();
+    const { updatePointer } = useTimeline();
 
     gsapTimeline = gsap.timeline({
       repeat: -1,
@@ -33,7 +32,7 @@ export const useGsap = () => {
       duration: TOTAL_DURATION, // 預設時間 12 秒
       ease: 'none',
       onUpdate() {
-        updateLayer();
+        updateMainLayer();
         updatePointer(gsapTimeline);
         updateTimelineLayer();
       },

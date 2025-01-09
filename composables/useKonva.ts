@@ -11,7 +11,8 @@ const {
   mainNodeMap,
   isOpen_createAnimationModal,
   isOpen_createFlashPointModal,
-  currentNodeId
+  currentNodeId,
+  mainLayer
 } = useGlobal();
 const { createGsapTimeline } = useGsap();
 const { addTimelineTrack, deleteTimelineTrack, timelineTransformers } = useTimeline();
@@ -31,7 +32,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const mainStageBgRef = useState<HTMLDivElement | null>('mainStageBgRef', () => shallowRef(null));
   const stage = useState<Konva.Stage | null>('stage', () => shallowRef(null));
   const container = useState<HTMLDivElement | null>('container', () => shallowRef(null));
-  const layer = useState<Konva.Layer | null>('layer', () => shallowRef(null));
   const selectionRect = useState<Konva.Rect | null>('selectionRect', () => shallowRef(null));
   const adModuleRect = useState<Konva.Rect | null>('adModuleRect', () => shallowRef(null));
   // 需要偵測他的 nodes 數量，所以不能用 shallowRef
@@ -40,6 +40,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
 
   const newItemInitialX = ref(0);
   const newItemInitialY = ref(0);
+  // 選取框的座標變數
   const x1 = ref(0);
   const y1 = ref(0);
   const x2 = ref(0);
@@ -62,7 +63,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
 
     // 使用 resize 觀察者
     useResizeObserver(mainStageRef, (entries) => {
-      if (!stage.value || !layer.value) return;
+      if (!stage.value || !mainLayer.value) return;
       const entry = entries[0];
       // 響應式調整 Stage 寬高
       const { width, height } = entry.contentRect;
@@ -81,7 +82,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         y: adModuleY.value
       });
       // 調整 layer 所有 node 的位置
-      layer.value.getChildren().forEach((node) => {
+      mainLayer.value.getChildren().forEach((node) => {
         if (node.hasName('item')) {
           const nodeNewX = node.x() + (adModuleX.value - oldX);
           const nodeNewY = node.y() + (adModuleY.value - oldY);
@@ -138,8 +139,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const createLayer = () => {
-    layer.value = new Konva.Layer();
-    stage.value?.add(layer.value);
+    mainLayer.value = new Konva.Layer();
+    stage.value?.add(mainLayer.value);
   };
 
   const createTransformer = () => {
@@ -192,7 +193,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       });
     });
 
-    layer.value?.add(transformer.value);
+    mainLayer.value?.add(transformer.value);
   };
 
   const createAdModuleRect = () => {
@@ -210,7 +211,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       listening: false
     });
     // if (adModuleRect.value) console.log(adModuleRect.value.x(), adModuleRect.value.y());
-    layer.value?.add(adModuleRect.value);
+    mainLayer.value?.add(adModuleRect.value);
   };
 
   const createSelectionRect = () => {
@@ -221,7 +222,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       // disable events to not interrupt with events
       listening: false
     });
-    layer.value?.add(selectionRect.value);
+    mainLayer.value?.add(selectionRect.value);
   };
 
   const addStageEvents = (
@@ -435,7 +436,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const updateMainNodeState = () => {
-    const allNodes = layer.value?.getChildren((node) => node.hasName('item'));
+    const allNodes = mainLayer.value?.getChildren((node) => node.hasName('item'));
     if (!allNodes) return;
     allNodes.forEach((node) => {
       const targetMainNode = mainNodeMap.value[node.id()];
@@ -493,7 +494,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
 
   const getTargetNode = (id: UUIDTypes) => {
     // 是 Konva 的 Node，不是 mainNode
-    return layer.value?.findOne(`#${id}`);
+    return mainLayer.value?.findOne(`#${id}`);
   };
 
   const addImage = (imgObj: HTMLImageElement) => {
@@ -548,7 +549,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const focusOnItem = (item: Konva.Shape | Konva.Group | Konva.Image) => {
-    layer.value?.add(item);
+    mainLayer.value?.add(item);
     transformer.value?.nodes([item]);
     // 把變形器移到最上面
     transformer.value?.moveToTop();
@@ -568,16 +569,11 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     newItemInitialY.value += 100;
   };
 
-  const updateLayer = () => {
-    layer.value?.draw();
-  };
-
   return {
     // state
     mainStageRef,
     mainStageBgRef,
     stage,
-    layer,
     transformer,
     SOURCE_IMG_LIMIT,
     // action
@@ -586,7 +582,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     addImage,
     addRect,
     logKonva,
-    updateLayer,
     updateMainNodeState,
     getTargetNode,
     selectTargetNode

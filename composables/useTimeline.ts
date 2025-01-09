@@ -5,7 +5,7 @@ import type { NodeConfig } from 'konva/lib/Node';
 import type { ImageConfig } from 'konva/lib/shapes/Image';
 import type { GroupConfig } from 'konva/lib/Group';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
-const { currentActiveAnimationId } = useGlobal();
+const { timelineLayer, currentActiveAnimationId } = useGlobal();
 
 export const useTimeline = () => {
   console.log('useTimeline');
@@ -28,7 +28,6 @@ export const useTimeline = () => {
   const timelineContainer = useState<HTMLDivElement | null>('timelineContainer', () =>
     shallowRef(null)
   );
-  const timelineLayer = useState<Konva.Layer | null>('timelineLayer', () => shallowRef(null));
   const timelinePointer = useState<Konva.Rect | null>('timelinePointer', () => shallowRef(null));
   const timelineTransformers = useState<Konva.Transformer[]>('timelineTransformers', () => []);
   const newItemInitialY = ref(0);
@@ -416,10 +415,6 @@ export const useTimeline = () => {
     }
   };
 
-  const updateTimelineLayer = () => {
-    timelineLayer.value?.draw();
-  };
-
   const lockPointer = () => {
     timelinePointer.value?.draggable(false);
   };
@@ -439,7 +434,6 @@ export const useTimeline = () => {
     addTimelineBar,
     deleteTimelineTrack,
     updatePointer,
-    updateTimelineLayer,
     lockPointer,
     unlockPointer
   };
