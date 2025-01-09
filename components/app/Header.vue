@@ -2,7 +2,11 @@
 import type { AdModuleConfig } from '~/pages/index.vue';
 import UserDropdown from './UserDropdown.vue';
 const adModule = useCookie<AdModuleConfig>('adModuleInfo');
-const isHidedGridDot = useState('isHidedGridDot', () => false);
+const { isClipMode, addLayerClip, removeLayerClip } = useKonva({
+  width: adModule.value.width,
+  height: adModule.value.height
+});
+// const isHidedGridDot = useState('isHidedGridDot', () => false);
 const sizeIndex = computed(() => {
   if (!adModule.value) return 1;
   const size = `${adModule.value.width}x${adModule.value.height}`;
@@ -40,6 +44,15 @@ const changeModule = () => {
   adModule.value.height = selectedModule.value.height;
   navigateTo('/');
 };
+
+// 切換裁切模式
+watch(isClipMode, (newValue) => {
+  if (newValue) {
+    addLayerClip();
+  } else {
+    removeLayerClip();
+  }
+});
 </script>
 
 <template>
@@ -71,7 +84,8 @@ const changeModule = () => {
           }}</UBadge>
         </template>
       </USelectMenu>
-      <UCheckbox v-model="isHidedGridDot" name="isHidedGridDot" label="隱藏網格點" />
+      <UCheckbox v-model="isClipMode" name="isClipMode" label="隱藏空白區域" />
+      <!-- <UCheckbox v-model="isHidedGridDot" name="isHidedGridDot" label="隱藏網格點" /> -->
       <UserDropdown />
     </div>
   </header>

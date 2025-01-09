@@ -37,7 +37,10 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const mainStageRef = useState<HTMLDivElement | null>('mainStageRef', () => shallowRef(null));
   const mainStageBgRef = useState<HTMLDivElement | null>('mainStageBgRef', () => shallowRef(null));
   const stage = useState<Konva.Stage | null>('stage', () => shallowRef(null));
+  const isClipMode = useState('isClipMode', () => false);
   const adModuleRect = useState<Konva.Rect | null>('adModuleRect', () => shallowRef(null));
+
+  const test = adModuleConfig;
 
   const selecting = ref(false);
 
@@ -434,6 +437,24 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     }
   };
 
+  const addLayerClip = () => {
+    mainLayer.value?.clip({
+      x: adModuleX.value,
+      y: adModuleY.value,
+      width: adModuleRect.value?.width() || 320,
+      height: adModuleRect.value?.height() || 320
+    });
+  };
+
+  const removeLayerClip = () => {
+    mainLayer.value?.clip({
+      x: 0,
+      y: 0,
+      width: stage.value?.width() || window.innerWidth - ASIDE_WIDTH,
+      height: stage.value?.height() || window.innerHeight - (FOOTER_HEIGHT + HEADER_HEIGHT)
+    });
+  };
+
   const updateMainNodePosition = (selectedNodes: Node[]) => {
     selectedNodes.forEach((node) => {
       const targetMainNode = mainNodeMap.value[node.id()];
@@ -546,12 +567,15 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     mainStageRef,
     mainStageBgRef,
     stage,
+    isClipMode,
     SOURCE_IMG_LIMIT,
     // action
     initKonva,
     destroyKonva,
     addImage,
     logKonva,
-    updateMainNodeState
+    updateMainNodeState,
+    addLayerClip,
+    removeLayerClip
   };
 };
