@@ -4,7 +4,7 @@ import type { UUIDTypes } from 'uuid';
 const UNNAMED_LABEL = '未命名標籤';
 const { isOpen_createAnimationModal, currentNodeId, currentActiveAnimationId } = useGlobal();
 const { transformer, logKonva, getTargetNode } = useKonva();
-const { createAnimation, logTl } = useGsap();
+const { createAnimation, logTimeline } = useGsap();
 
 const animationLabel = ref(UNNAMED_LABEL);
 
@@ -40,7 +40,7 @@ const logSomething = () => {
   if (!currentNodeId.value || !currentActiveAnimationId.value) return;
   const targetNode = getTargetNode(currentNodeId.value);
   if (!targetNode) return;
-  logTl(targetNode, currentActiveAnimationId.value);
+  logTimeline(targetNode, currentActiveAnimationId.value);
 };
 </script>
 

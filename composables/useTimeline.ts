@@ -5,8 +5,13 @@ import type { NodeConfig } from 'konva/lib/Node';
 import type { ImageConfig } from 'konva/lib/shapes/Image';
 import type { GroupConfig } from 'konva/lib/Group';
 import { v4 as uuid, type UUIDTypes } from 'uuid';
-const { timelineLayer, timelinePointer, isDraggingTimelinePointer, currentActiveAnimationId } =
-  useGlobal();
+const {
+  timelineLayer,
+  timelinePointer,
+  isDraggingTimelinePointer,
+  gsapTimeline,
+  currentActiveAnimationId
+} = useGlobal();
 
 export const useTimeline = () => {
   console.log('useTimeline');
@@ -383,9 +388,7 @@ export const useTimeline = () => {
   };
 
   const updateGsapTimelineByPointerPosition = (x: number) => {
-    const { getGsapTimeline } = useGsap();
-    const gsapTimeline = getGsapTimeline();
-    if (gsapTimeline) {
+    if (gsapTimeline.value) {
       const currentTime =
         ((x - TIMELINE_TRACK_START_X) /
           (window.innerWidth -
@@ -393,7 +396,7 @@ export const useTimeline = () => {
             TIMELINE_TRACK_START_X)) *
         TOTAL_DURATION;
       // 更新 gsap 時間軸
-      gsapTimeline.seek(currentTime);
+      gsapTimeline.value.seek(currentTime);
       // console.log('currentTime:', currentTime);
     }
   };

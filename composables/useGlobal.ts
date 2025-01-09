@@ -66,6 +66,9 @@ export const useGlobal = () => {
     timelinePointer.value?.draggable(true);
   };
 
+  // gsap
+  const gsapTimeline = useState<GSAPTimeline | null>('gsapTimeline', () => shallowRef(null));
+
   const isOpen_createAnimationModal = useState('isOpen_createAnimationModal', () => false);
   const isOpen_createFlashPointModal = useState('isOpen_createFlashPointModal', () => false);
 
@@ -99,6 +102,9 @@ export const useGlobal = () => {
     updatePointer, // method
     lockPointer, // method
     unlockPointer, // method
+
+    // gsap
+    gsapTimeline, // state
 
     // 其他
     isOpen_createAnimationModal,
