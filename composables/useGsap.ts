@@ -63,10 +63,10 @@ export const useGsap = () => {
     // console.log(gsapTimeline);
     if (!gsapTimeline.value) return 'No timeline found';
     const nodeId = targetNode.id();
-    const duration = gsap.utils.random(1, 10, 0.5);
+    const duration = 1;
     const start = 0;
     // 先建立時間為 1 秒的空動畫, TODO: start 需要考慮其他因素, duration 也會有相關限制
-    const tween = addEmptyTween2(targetNode, duration, start);
+    const tween = addEmptyTween(targetNode, duration, start);
     // 加入對應的時間軸動畫條(動畫條 ID 會回傳)
     const barId = addTimelineBar(nodeId, duration, start);
     if (!barId || !tween) return 'Animation failed';
@@ -163,12 +163,6 @@ export const useGsap = () => {
       }
     );
     gsapTimeline.value?.add(tween, start);
-    // 設置一個結尾點，讓 timescale 維持 1（每次有新動畫就要更新）
-    gsapTimeline.value?.set(
-      targetNode,
-      { ...toVars, x: newX, y: newY, rotation: newRotation, opacity: newOpacity },
-      12
-    );
     return tween;
   };
 

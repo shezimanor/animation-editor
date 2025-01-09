@@ -370,6 +370,9 @@ export const useGlobal = () => {
         paused.value = true;
       }
     });
+    // 設置一個結尾點，讓 timescale 維持 1（每次有新動畫就要更新）
+    // 自定義 gsap 時間軸的結尾
+    gsapTimeline.value?.set({ x: 0 }, { x: 0 }, 12);
     initializedGsap.value = true;
   };
   const updateGsapTimelineByPointerPosition = (x: number) => {
