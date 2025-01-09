@@ -535,17 +535,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     updateNodeAndMainNodeAttributes(imgItem, imgNode);
   };
 
-  const focusOnItem = (item: Konva.Shape | Konva.Group | Konva.Image) => {
-    mainLayer.value?.add(item);
-    mainTransformer.value?.nodes([item]);
-    // 把變形器移到最上面
-    mainTransformer.value?.moveToTop();
-    // 把選取框移到最上面
-    mainSelectionRect.value?.moveToTop();
-    // focus on container(可以使用鍵盤事件)
-    mainContainer.value?.focus();
-  };
-
   const updateInitialPosition = () => {
     newItemInitialX.value += 100;
     newItemInitialY.value += 100;
