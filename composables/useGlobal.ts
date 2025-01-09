@@ -41,14 +41,38 @@ export const useGlobal = () => {
     mainLayer.value?.draw();
   };
 
+  // 主畫布物件
+  const mainContainer = useState<HTMLDivElement | null>('mainContainer', () => shallowRef(null));
+  const mainSelectionRect = useState<Konva.Rect | null>('mainSelectionRect', () =>
+    shallowRef(null)
+  );
+  const mainTransformer = useState<Konva.Transformer | null>('mainTransformer', () => null); // 需要偵測他的 nodes 數量，所以不能用 shallowRef
+  const getTargetNodeFromMain = (id: string | UUIDTypes) => {
+    return mainLayer.value?.findOne(`#${id}`);
+  };
+  const selectTargetNodeFromMain = (id: string | UUIDTypes) => {
+    const targetNode = getTargetNodeFromMain(id) as Konva.Image;
+    if (targetNode) focusOnItem(targetNode);
+  };
+  const focusOnItem = (item: Konva.Shape | Konva.Group | Konva.Image) => {
+    mainLayer.value?.add(item);
+    mainTransformer.value?.nodes([item]);
+    // 把變形器移到最上面
+    mainTransformer.value?.moveToTop();
+    // 把選取框移到最上面
+    mainSelectionRect.value?.moveToTop();
+    // focus on mainContainer(可以使用鍵盤事件)
+    mainContainer.value?.focus();
+  };
+
   // 時間軸畫布 layer
   const timelineLayer = useState<Konva.Layer | null>('timelineLayer', () => shallowRef(null));
   const timelineTransformers = useState<Konva.Transformer[]>('timelineTransformers', () => []);
-  const updateTimelineLayer = () => {
-    timelineLayer.value?.draw();
-  };
   const getTargetNodeFromTimeline = (id: string) => {
     return timelineLayer.value?.findOne(`#${id}`);
+  };
+  const updateTimelineLayer = () => {
+    timelineLayer.value?.draw();
   };
   const addRect = (rectConfig: Partial<NodeConfig>) => {
     return new Konva.Rect(rectConfig);
@@ -258,10 +282,18 @@ export const useGlobal = () => {
     mainLayer, // state
     updateMainLayer, // method
 
+    // 主畫布物件
+    mainContainer,
+    mainSelectionRect,
+    mainTransformer,
+    getTargetNodeFromMain, // method
+    selectTargetNodeFromMain, // method
+    focusOnItem,
+
     // 時間軸畫布 layer
     timelineLayer, // state
-    updateTimelineLayer, // method
     getTargetNodeFromTimeline, // method
+    updateTimelineLayer, // method
 
     // 時間軸物件
     timelineTransformers, // state

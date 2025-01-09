@@ -10,6 +10,10 @@ const {
   mainNodeList,
   mainNodeLength,
   mainNodeMap,
+  mainContainer,
+  mainSelectionRect,
+  mainTransformer,
+  focusOnItem,
   timelineTransformers,
   createGsapTimeline,
   isOpen_createAnimationModal,
@@ -32,11 +36,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const mainStageRef = useState<HTMLDivElement | null>('mainStageRef', () => shallowRef(null));
   const mainStageBgRef = useState<HTMLDivElement | null>('mainStageBgRef', () => shallowRef(null));
   const stage = useState<Konva.Stage | null>('stage', () => shallowRef(null));
-  const container = useState<HTMLDivElement | null>('container', () => shallowRef(null));
-  const selectionRect = useState<Konva.Rect | null>('selectionRect', () => shallowRef(null));
   const adModuleRect = useState<Konva.Rect | null>('adModuleRect', () => shallowRef(null));
-  // 需要偵測他的 nodes 數量，所以不能用 shallowRef
-  const transformer = useState<Konva.Transformer | null>('transformer', () => null);
+
   const selecting = ref(false);
 
   const newItemInitialX = ref(0);
@@ -103,11 +104,16 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     // 註冊 Stage 事件
     if (
       stage.value !== null &&
-      transformer.value !== null &&
-      selectionRect.value !== null &&
-      container.value !== null
+      mainTransformer.value !== null &&
+      mainSelectionRect.value !== null &&
+      mainContainer.value !== null
     )
-      addStageEvents(stage.value, transformer.value, selectionRect.value, container.value);
+      addStageEvents(
+        stage.value,
+        mainTransformer.value,
+        mainSelectionRect.value,
+        mainContainer.value
+      );
   };
 
   // 用來觀察 Konva 的函數
@@ -126,14 +132,14 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         height: window.innerHeight - (FOOTER_HEIGHT + HEADER_HEIGHT),
         draggable: false
       });
-      container.value = stage.value.container();
-      container.value.tabIndex = 2;
-      container.value.style.outline = 'none';
-      container.value.style.position = 'relative';
+      mainContainer.value = stage.value.container();
+      mainContainer.value.tabIndex = 2;
+      mainContainer.value.style.outline = 'none';
+      mainContainer.value.style.position = 'relative';
       // Stage 初始位置
       newItemInitialX.value = stage.value.width() / 2;
       newItemInitialY.value = stage.value.height() / 2;
-      container.value.focus();
+      mainContainer.value.focus();
     } else {
       throw new Error('mainStageRef Not Found');
     }
@@ -145,7 +151,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const createTransformer = () => {
-    transformer.value = new Konva.Transformer({
+    mainTransformer.value = new Konva.Transformer({
       // 外框線顏色
       borderStroke: '#6366f1',
       anchorStyleFunc: (anchor) => {
@@ -168,8 +174,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     });
 
     // 事件監聽
-    transformer.value.on('transform', (e) => {
-      const selectedNodes = transformer.value?.nodes();
+    mainTransformer.value.on('transform', (e) => {
+      const selectedNodes = mainTransformer.value?.nodes();
       if (!selectedNodes) return;
       selectedNodes.forEach((node) => {
         const targetMainNode = mainNodeMap.value[node.id()];
@@ -178,8 +184,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         }
       });
     });
-    transformer.value.on('dragmove', (e) => {
-      const selectedNodes = transformer.value?.nodes();
+    mainTransformer.value.on('dragmove', (e) => {
+      const selectedNodes = mainTransformer.value?.nodes();
       if (!selectedNodes) return;
       selectedNodes.forEach((node) => {
         const x = node.x();
@@ -194,7 +200,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       });
     });
 
-    mainLayer.value?.add(transformer.value);
+    mainLayer.value?.add(mainTransformer.value);
   };
 
   const createAdModuleRect = () => {
@@ -216,14 +222,14 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const createSelectionRect = () => {
-    selectionRect.value = new Konva.Rect({
+    mainSelectionRect.value = new Konva.Rect({
       fill: 'rgba(83, 122, 234, 0.5)',
       stroke: 'rgba(83, 122, 234, 0.9)',
       visible: false,
       // disable events to not interrupt with events
       listening: false
     });
-    mainLayer.value?.add(selectionRect.value);
+    mainLayer.value?.add(mainSelectionRect.value);
   };
 
   const addStageEvents = (
@@ -378,11 +384,11 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const clearTransformer = () => {
-    transformer.value?.nodes([]);
+    mainTransformer.value?.nodes([]);
   };
 
   const keyboardEventHandler = (e: KeyboardEvent) => {
-    const selectedNodes = transformer.value?.nodes();
+    const selectedNodes = mainTransformer.value?.nodes();
     if (!selectedNodes || selectedNodes.length === 0) return;
 
     switch (e.key) {
@@ -493,11 +499,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     if (targetIndex > -1) mainNodeList.value.splice(targetIndex, 1);
   };
 
-  const getTargetNode = (id: UUIDTypes) => {
-    // 是 Konva 的 Node，不是 mainNode
-    return mainLayer.value?.findOne(`#${id}`);
-  };
-
   const addImage = (imgObj: HTMLImageElement) => {
     if (mainNodeLength.value >= SOURCE_IMG_LIMIT) return;
     const id = uuid();
@@ -536,18 +537,13 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
 
   const focusOnItem = (item: Konva.Shape | Konva.Group | Konva.Image) => {
     mainLayer.value?.add(item);
-    transformer.value?.nodes([item]);
+    mainTransformer.value?.nodes([item]);
     // 把變形器移到最上面
-    transformer.value?.moveToTop();
+    mainTransformer.value?.moveToTop();
     // 把選取框移到最上面
-    selectionRect.value?.moveToTop();
+    mainSelectionRect.value?.moveToTop();
     // focus on container(可以使用鍵盤事件)
-    container.value?.focus();
-  };
-
-  const selectTargetNode = (id: string) => {
-    const targetNode = getTargetNode(id) as Konva.Image;
-    if (targetNode) focusOnItem(targetNode);
+    mainContainer.value?.focus();
   };
 
   const updateInitialPosition = () => {
@@ -560,15 +556,12 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     mainStageRef,
     mainStageBgRef,
     stage,
-    transformer,
     SOURCE_IMG_LIMIT,
     // action
     initKonva,
     destroyKonva,
     addImage,
     logKonva,
-    updateMainNodeState,
-    getTargetNode,
-    selectTargetNode
+    updateMainNodeState
   };
 };

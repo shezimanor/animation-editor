@@ -2,8 +2,14 @@
 import type { UUIDTypes } from 'uuid';
 
 const UNNAMED_LABEL = '未命名標籤';
-const { isOpen_createAnimationModal, currentNodeId, currentActiveAnimationId } = useGlobal();
-const { transformer, logKonva, getTargetNode } = useKonva();
+const {
+  mainTransformer,
+  getTargetNodeFromMain,
+  isOpen_createAnimationModal,
+  currentNodeId,
+  currentActiveAnimationId
+} = useGlobal();
+const { logKonva } = useKonva();
 const { createAnimation, logTimeline } = useGsap();
 
 const animationLabel = ref(UNNAMED_LABEL);
@@ -25,7 +31,7 @@ const keydownToCreateAnimationTemplate = (event: KeyboardEvent) => {
 
 const createAnimationTemplate = () => {
   if (animationLabel.value.trim().length <= 0 || !currentNodeId.value) return;
-  const targetNode = getTargetNode(currentNodeId.value);
+  const targetNode = getTargetNodeFromMain(currentNodeId.value);
   if (!targetNode) return;
   createAnimation(targetNode, animationLabel.value);
   closeModal();
@@ -38,7 +44,7 @@ const handleOpenModal = (id: UUIDTypes) => {
 
 const logSomething = () => {
   if (!currentNodeId.value || !currentActiveAnimationId.value) return;
-  const targetNode = getTargetNode(currentNodeId.value);
+  const targetNode = getTargetNodeFromMain(currentNodeId.value);
   if (!targetNode) return;
   logTimeline(targetNode, currentActiveAnimationId.value);
 };
@@ -51,9 +57,12 @@ const logSomething = () => {
       <UButton size="xs" @click="logKonva">logKonva</UButton>
       <UButton size="xs" @click="logSomething">log</UButton>
     </header>
-    <div v-if="transformer && transformer?.nodes().length > 0" class="flex flex-col gap-y-2">
+    <div
+      v-if="mainTransformer && mainTransformer?.nodes().length > 0"
+      class="flex flex-col gap-y-2"
+    >
       <AppPanel
-        v-for="node in transformer.nodes()"
+        v-for="node in mainTransformer.nodes()"
         :key="node.id"
         :node="node"
         @open-modal="handleOpenModal"

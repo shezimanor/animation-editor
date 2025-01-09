@@ -4,8 +4,9 @@ import Konva from 'konva';
 import type { NodeConfig } from 'konva/lib/Node';
 import type { ImageConfig } from 'konva/lib/shapes/Image';
 import type { GroupConfig } from 'konva/lib/Group';
-import { v4 as uuid, type UUIDTypes } from 'uuid';
+import { type UUIDTypes } from 'uuid';
 const {
+  selectTargetNodeFromMain,
   timelineLayer,
   getTargetNodeFromTimeline,
   timelineTransformers,
@@ -116,8 +117,6 @@ export const useTimeline = () => {
   };
 
   const addTimelineTrack = (imgObj: HTMLImageElement, itemId: string) => {
-    const { selectTargetNode } = useKonva();
-
     // 只用來放置整個軌道的動畫條群組
     const groupItem = addGroup({
       id: `group_${itemId}`,
@@ -143,7 +142,7 @@ export const useTimeline = () => {
 
     imgItem.on('click', function () {
       // 點擊圖片可以選取到主畫布的素材
-      selectTargetNode(itemId);
+      selectTargetNodeFromMain(itemId);
     });
 
     imgItem.on('mouseenter', function () {
