@@ -1,5 +1,6 @@
 import { gsap } from 'gsap';
 import type { Node } from 'konva/lib/Node';
+import type { MyNode } from './useGlobal';
 interface TweenVars {
   x?: number;
   y?: number;
@@ -19,7 +20,9 @@ const {
   unlockPointer,
   gsapTimeline,
   initializedGsap,
-  paused
+  paused,
+  getDurationByWidth,
+  getTimeByX
 } = useGlobal();
 
 export const useGsap = () => {
@@ -82,7 +85,7 @@ export const useGsap = () => {
     const id = targetNode.id();
     const targetMainNode = mainNodeMap.value[id]; // 響應式 Node
     if (!targetMainNode) return;
-    const { x, y, width, height, opacity, rotation } = targetMainNode;
+    const { width, height, x, y, rotation, opacity } = targetMainNode;
     const tweenVars = {
       x: x + adModuleX.value,
       y: y + adModuleY.value,
@@ -104,6 +107,7 @@ export const useGsap = () => {
     fromVars: TweenVars,
     toVars: TweenVars
   ) => {
+    console.log(duration, start);
     if (!gsapTimeline || !targetNode) return null;
     const tween = gsap.fromTo(
       targetNode,
@@ -124,9 +128,95 @@ export const useGsap = () => {
   };
 
   // 更新動畫條的結尾狀態
-  // TODO:更新過程:更新過程:
+  // TODO:更新過程:
   const updateToVars = (targetNode: Node, barId: string, toVars: TweenVars) => {
     if (!gsapTimeline.value) return null;
+  };
+
+  const updateGsapTimelineByTween = (
+    tweenObj: gsap.core.Tween,
+    targetBarNode: Node,
+    targetMainNode: MyNode,
+    targetNode: Node,
+    updateName: 'fromVars' | 'toVars' | 'duration' | 'startTime'
+  ) => {
+    if (!gsapTimeline.value) return;
+    const {
+      width: fromWidth,
+      height: fromHeight,
+      x: fromX,
+      y: fromY,
+      rotation: fromRotation,
+      opacity: fromOpacity
+    } = tweenObj.vars as TweenVars;
+    const {
+      width: toWidth,
+      height: toHeight,
+      x: toX,
+      y: toY,
+      rotation: toRotation,
+      opacity: toOpacity
+    } = tweenObj.vars.startAt as TweenVars;
+    const {
+      width: newWidth,
+      height: newHeight,
+      x: newX,
+      y: newY,
+      rotation: newRotation,
+      opacity: newOpacity
+    } = targetMainNode;
+    let fromVars =
+      updateName === 'fromVars'
+        ? {
+            width: newWidth,
+            height: newHeight,
+            x: newX + adModuleX.value,
+            y: newY + adModuleY.value,
+            rotation: newRotation,
+            opacity: newOpacity,
+            ease: 'none'
+          }
+        : {
+            width: fromWidth,
+            height: fromHeight,
+            x: fromX,
+            y: fromY,
+            rotation: fromRotation,
+            opacity: fromOpacity,
+            ease: 'none'
+          };
+    let toVars =
+      updateName === 'toVars'
+        ? {
+            width: newWidth,
+            height: newHeight,
+            x: newX + adModuleX.value,
+            y: newY + adModuleY.value,
+            rotation: newRotation,
+            opacity: newOpacity,
+            ease: 'none'
+          }
+        : {
+            width: toWidth,
+            height: toHeight,
+            x: toX,
+            y: toY,
+            rotation: toRotation,
+            opacity: toOpacity,
+            ease: 'none'
+          };
+    // let duration = getDurationByWidth(targetBarNode.width());
+    // let start = getTimeByX(targetBarNode.x());
+    // 先把 tweenObj 移除
+    gsapTimeline.value.killTweensOf(targetNode);
+    // 重新建立新的 Tween
+    const tween = addTween(targetNode, 1, 0, fromVars, toVars);
+    const nodeId = targetNode.id();
+    const barId = targetBarNode.id();
+    // 儲存 Tween 到 gsapTimelineNodeMap 裡面
+    if (tween) gsapTimelineNodeMap.value[nodeId][barId] = tween;
+
+    return 'Animation updated';
   };
 
   // test functions
@@ -141,6 +231,7 @@ export const useGsap = () => {
     // state
     initializedGsap,
     paused,
+    gsapTimelineNodeMap,
     // action
     createAnimation,
     playGsapTimeline,
@@ -148,6 +239,7 @@ export const useGsap = () => {
     seekGsapTimeline,
     stopGsapTimeline,
     getTimelineDuration,
-    logTimeline
+    logTimeline,
+    updateGsapTimelineByTween
   };
 };

@@ -418,14 +418,14 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         selectedNodes.forEach((node) => node.x(node.x() + DELTA));
         updateMainNodePosition(selectedNodes);
         break;
-      case 'e': // 快捷鍵新增動畫
-        if (!e.metaKey || selectedNodes.length !== 1) break;
+      case 'w': // 快捷鍵新增動畫
+        if (selectedNodes.length !== 1) break;
         // 開啟新增動畫 Modal
         isOpen_createAnimationModal.value = true;
         currentNodeId.value = selectedNodes[0].id();
         break;
-      case 'w': // 快捷鍵新增節點
-        if (!e.metaKey || selectedNodes.length !== 1) break;
+      case 'e': // 快捷鍵新增節點
+        if (selectedNodes.length !== 1) break;
         // 開啟新增節點 Modal
         isOpen_createFlashPointModal.value = true;
         currentNodeId.value = selectedNodes[0].id();
@@ -489,7 +489,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const magicFormula = (value: number) => {
-    return Math.round(value * 100) / 100;
+    return Math.round(value * 1000) / 1000;
   };
 
   const updateNodeAndMainNodeAttributes = (node: Node, targetMainNode: MyNode) => {

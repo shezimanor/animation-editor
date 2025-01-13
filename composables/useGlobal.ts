@@ -393,14 +393,30 @@ export const useGlobal = () => {
     gsapTimeline.value?.set({ x: 0 }, { x: 0 }, 12);
     initializedGsap.value = true;
   };
-  const updateGsapTimelineByPointerPosition = (x: number) => {
-    if (gsapTimeline.value) {
-      const currentTime =
+  const getDurationByWidth = (width: number) => {
+    return (
+      Math.round(
+        (width / (window.innerWidth - (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2))) *
+          TOTAL_DURATION *
+          100
+      ) / 100
+    );
+  };
+  const getTimeByX = (x: number) => {
+    let time =
+      Math.round(
         ((x - TIMELINE_TRACK_START_X) /
           (window.innerWidth -
             (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2) -
             TIMELINE_TRACK_START_X)) *
-        TOTAL_DURATION;
+          TOTAL_DURATION *
+          100
+      ) / 100;
+    return time < 0 ? 0 : time;
+  };
+  const updateGsapTimelineByPointerPosition = (x: number) => {
+    if (gsapTimeline.value) {
+      const currentTime = getTimeByX(x);
       // 更新 gsap 時間軸
       gsapTimeline.value.seek(currentTime);
       // console.log('currentTime:', currentTime);
@@ -471,6 +487,8 @@ export const useGlobal = () => {
     initializedGsap, // state
     paused, // state
     createGsapTimeline, // method
+    getDurationByWidth, // method
+    getTimeByX, // method
     updateGsapTimelineByPointerPosition, // method
 
     // modal control

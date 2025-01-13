@@ -1,14 +1,9 @@
 <script lang="ts" setup>
 const UNNAMED_LABEL = '未命名標籤';
 console.log('-panel group-');
-const {
-  mainTransformer,
-  getTargetNodeFromMain,
-  isOpen_createAnimationModal,
-  currentNodeId,
-  currentActiveAnimationId
-} = useGlobal();
-const { createAnimation, logTimeline } = useGsap();
+const { mainTransformer, getTargetNodeFromMain, isOpen_createAnimationModal, currentNodeId } =
+  useGlobal();
+const { createAnimation } = useGsap();
 
 const animationLabel = ref(UNNAMED_LABEL);
 
@@ -40,12 +35,7 @@ const handleOpenModal = (id: string) => {
   currentNodeId.value = id;
 };
 
-const logSomething = () => {
-  if (!currentNodeId.value || !currentActiveAnimationId.value) return;
-  const targetNode = getTargetNodeFromMain(currentNodeId.value);
-  if (!targetNode) return;
-  logTimeline(targetNode, currentActiveAnimationId.value);
-};
+const logSomething = () => {};
 </script>
 
 <template>

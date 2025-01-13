@@ -2,9 +2,9 @@
 import type { Node } from 'konva/lib/Node';
 
 console.log('-panel-');
-const { metaSymbol } = useShortcuts();
-const { mainNodeMap } = useGlobal();
+const { mainNodeMap, currentActiveAnimationId, getTargetNodeFromTimeline } = useGlobal();
 const { updateKonvaNodeAttribute } = useKonva();
+const { gsapTimelineNodeMap, updateGsapTimelineByTween } = useGsap();
 
 const props = withDefaults(
   defineProps<{
@@ -24,9 +24,55 @@ const currentNode = computed(() => {
   return mainNodeMap.value[props.node.id()];
 });
 
+// 用來確認 active 的動畫是否屬於當前的素材節點
+const currentBarTweenObject = computed(() => {
+  if (!currentNode.value || !currentActiveAnimationId.value) return null;
+  const currentGsapTimelineNode = gsapTimelineNodeMap.value[currentNode.value.id];
+  const tweenObject = currentGsapTimelineNode
+    ? currentGsapTimelineNode[currentActiveAnimationId.value]
+    : null;
+  return tweenObject;
+});
+
+// current BarNode
+const currentBarNode = computed(() => {
+  if (!currentActiveAnimationId.value || !props.node) return null;
+  return (
+    getTargetNodeFromTimeline(`bar_${currentActiveAnimationId.value}_${props.node.id()}`) || null
+  );
+});
+
 const updateKonvaNode = (attrName: string, newValue: number) => {
   if (!currentNode.value || !props.node) return;
   updateKonvaNodeAttribute(props.node, attrName, newValue);
+};
+
+// 更新起始點
+const updateAnimationBarFromVars = () => {
+  console.log('updateAnimationBarFromVars');
+  if (!currentBarTweenObject.value || !currentBarNode.value || !currentNode.value || !props.node)
+    return;
+  updateGsapTimelineByTween(
+    currentBarTweenObject.value,
+    currentBarNode.value,
+    currentNode.value,
+    props.node,
+    'fromVars'
+  );
+};
+
+// 更新結尾點
+const updateAnimationBarToVars = () => {
+  console.log('updateAnimationBarToVars');
+  if (!currentBarTweenObject.value || !currentBarNode.value || !currentNode.value || !props.node)
+    return;
+  updateGsapTimelineByTween(
+    currentBarTweenObject.value,
+    currentBarNode.value,
+    currentNode.value,
+    props.node,
+    'toVars'
+  );
 };
 </script>
 
@@ -85,8 +131,9 @@ const updateKonvaNode = (attrName: string, newValue: number) => {
         />
       </div>
     </div>
-    <div class="mt-2 flex flex-col items-start gap-y-2 border-t border-neutral-200 pt-2">
-      <div class="flex w-full flex-row items-center justify-between">
+    <!-- 圖片素材操作 -->
+    <div class="mt-1 flex flex-col items-start gap-y-2 border-t border-neutral-200 pt-2">
+      <div class="flex w-full flex-row items-center justify-start gap-x-2">
         <UButton
           size="xs"
           color="gray"
@@ -94,21 +141,26 @@ const updateKonvaNode = (attrName: string, newValue: number) => {
           variant="solid"
           @click="emit('openModal', currentNode.id)"
         >
-          新增動畫
+          新增動畫<UKbd size="sm">W</UKbd>
         </UButton>
-        <div class="flex flex-row gap-x-1">
-          <UKbd size="sm">{{ metaSymbol }}</UKbd>
-          <UKbd size="sm">E</UKbd>
-        </div>
-      </div>
-      <div class="flex w-full flex-row items-center justify-between">
-        <UButton size="xs" icon="i-heroicons-plus-solid" color="gray" variant="solid">
+        <UButton size="xs" color="gray" icon="i-heroicons-plus-solid" variant="solid">
           新增節點
+          <UKbd size="sm">E</UKbd>
         </UButton>
-        <div class="flex flex-row gap-x-1">
-          <UKbd size="sm">{{ metaSymbol }}</UKbd>
-          <UKbd size="sm">W</UKbd>
-        </div>
+      </div>
+    </div>
+    <!-- 動畫條操作 -->
+    <div
+      v-if="currentBarTweenObject"
+      class="mt-1 flex flex-col items-start gap-y-2 border-t border-neutral-200 pt-2"
+    >
+      <div class="flex w-full flex-row items-center justify-start gap-x-2">
+        <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarFromVars"
+          >更新初始點<UKbd size="sm">S</UKbd></UButton
+        >
+        <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarToVars"
+          >更新結尾點<UKbd size="sm">D</UKbd></UButton
+        >
       </div>
     </div>
   </div>
