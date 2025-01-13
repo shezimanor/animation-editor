@@ -473,12 +473,31 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     });
   };
 
+  const updateKonvaNodeAttribute = (node: Node, attrName: string, value: number) => {
+    if (attrName === 'x' || attrName === 'y') {
+      switch (attrName) {
+        case 'x':
+          node.setAttr(attrName, magicFormula(value + adModuleX.value));
+          break;
+        default:
+          node.setAttr(attrName, magicFormula(value + adModuleY.value));
+          break;
+      }
+    } else {
+      node.setAttr(attrName, value);
+    }
+  };
+
+  const magicFormula = (value: number) => {
+    return Math.round(value * 100) / 100;
+  };
+
   const updateNodeAndMainNodeAttributes = (node: Node, targetMainNode: MyNode) => {
-    const scaleX = node.scaleX();
-    const scaleY = node.scaleY();
-    const rotation = node.rotation();
-    const width = node.width() * scaleX;
-    const height = node.height() * scaleY;
+    const scaleX = magicFormula(node.scaleX());
+    const scaleY = magicFormula(node.scaleY());
+    const rotation = magicFormula(node.rotation());
+    const width = magicFormula(node.width() * scaleX);
+    const height = magicFormula(node.height() * scaleY);
 
     node.setAttrs({
       width,
@@ -493,14 +512,14 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     });
 
     // position
-    targetMainNode.x = node.x() - adModuleX.value;
-    targetMainNode.y = node.y() - adModuleY.value;
+    targetMainNode.x = magicFormula(node.x() - adModuleX.value);
+    targetMainNode.y = magicFormula(node.y() - adModuleY.value);
     // transform
     targetMainNode.width = width;
     targetMainNode.height = height;
     targetMainNode.rotation = rotation;
     // opacity
-    targetMainNode.opacity = node.opacity();
+    targetMainNode.opacity = magicFormula(node.opacity());
   };
 
   const deleteItems = (selectedNodes: Node[]) => {
@@ -572,6 +591,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     destroyKonva,
     addImage,
     logKonva,
+    updateKonvaNodeAttribute,
     updateMainNodeState,
     addLayerClip,
     removeLayerClip

@@ -8,7 +8,6 @@ const {
   currentNodeId,
   currentActiveAnimationId
 } = useGlobal();
-const { logKonva } = useKonva();
 const { createAnimation, logTimeline } = useGsap();
 
 const animationLabel = ref(UNNAMED_LABEL);
@@ -54,7 +53,6 @@ const logSomething = () => {
     <header class="flex items-center justify-between">
       <h2>圖層資訊</h2>
       <div class="flex gap-x-1">
-        <UButton size="xs" @click="logKonva">logK</UButton>
         <UButton size="xs" @click="logSomething">log</UButton>
       </div>
     </header>

@@ -4,6 +4,8 @@ import type { Node } from 'konva/lib/Node';
 console.log('-panel-');
 const { metaSymbol } = useShortcuts();
 const { mainNodeMap } = useGlobal();
+const { updateKonvaNodeAttribute } = useKonva();
+
 const props = withDefaults(
   defineProps<{
     node: Node | null;
@@ -21,6 +23,11 @@ const currentNode = computed(() => {
   if (!props.node) return null;
   return mainNodeMap.value[props.node.id()];
 });
+
+const updateKonvaNode = (attrName: string, newValue: number) => {
+  if (!currentNode.value || !props.node) return;
+  updateKonvaNodeAttribute(props.node, attrName, newValue);
+};
 </script>
 
 <template>
@@ -42,31 +49,40 @@ const currentNode = computed(() => {
     <div class="grid grid-cols-2 gap-x-2">
       <div class="flex items-center justify-between">
         <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Width</UKbd>
-        <AppQuickInput v-model="currentNode.width" />
+        <AppQuickInput v-model="currentNode.width" @change="updateKonvaNode('width', $event)" />
       </div>
       <div class="flex items-center justify-between">
         <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Height</UKbd>
-        <AppQuickInput v-model="currentNode.height" />
+        <AppQuickInput v-model="currentNode.height" @change="updateKonvaNode('height', $event)" />
       </div>
     </div>
     <div class="grid grid-cols-2 gap-x-2">
       <div class="flex items-center justify-between">
         <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">X</UKbd>
-        <AppQuickInput v-model="currentNode.x" />
+        <AppQuickInput v-model="currentNode.x" @change="updateKonvaNode('x', $event)" />
       </div>
       <div class="flex items-center justify-between">
         <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Y</UKbd>
-        <AppQuickInput v-model="currentNode.y" />
+        <AppQuickInput v-model="currentNode.y" @change="updateKonvaNode('y', $event)" />
       </div>
     </div>
     <div class="grid grid-cols-2 gap-x-2">
       <div class="flex items-center justify-between">
         <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Rotation</UKbd>
-        <AppQuickInput v-model="currentNode.rotation" />
+        <AppQuickInput
+          v-model="currentNode.rotation"
+          @change="updateKonvaNode('rotation', $event)"
+        />
       </div>
       <div class="flex items-center justify-between">
         <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Opacity</UKbd>
-        <AppQuickInput v-model="currentNode.opacity" />
+        <AppQuickInput
+          v-model="currentNode.opacity"
+          :max="1"
+          :min="0"
+          :step="0.1"
+          @change="updateKonvaNode('opacity', $event)"
+        />
       </div>
     </div>
     <div class="mt-2 flex flex-col items-start gap-y-2 border-t border-neutral-200 pt-2">

@@ -15,6 +15,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: number): void;
+  (e: 'change', value: number): void;
 }>();
 
 let lastValidValue = props.modelValue;
@@ -32,6 +33,8 @@ const updateValue = (event: Event) => {
     }
     lastValidValue = newValue;
     emit('update:modelValue', newValue);
+    // 自定義的 change 事件，外部元件的方法(@change="method")可以用 $event 這個特殊參數取到 newValue
+    emit('change', newValue);
   }
 };
 
@@ -50,6 +53,8 @@ const validateValue = (event: Event) => {
     }
     lastValidValue = newValue;
     emit('update:modelValue', newValue);
+    // 自定義的 change 事件，外部元件的方法(@change="method")可以用 $event 這個特殊參數取到 newValue
+    emit('change', newValue);
   }
 };
 </script>
@@ -70,7 +75,7 @@ const validateValue = (event: Event) => {
 
 <style lang="scss" scoped>
 .quick-input {
-  @apply h-6 w-20 rounded border px-1 text-right font-sans text-xs text-neutral-500 outline-none focus:ring-1 focus:ring-neutral-300 dark:text-white;
+  @apply h-6 w-16 rounded border px-1 text-right font-sans text-xs text-neutral-500 outline-none focus:ring-1 focus:ring-neutral-300 dark:text-white;
   -moz-appearance: textfield;
   appearance: none;
 }
