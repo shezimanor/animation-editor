@@ -206,7 +206,9 @@ export const useGlobal = () => {
     // 加上變形器
     const transformerItem = addTransformer();
     transformerItem.nodes([barItem]);
-    // 將指針推到最上面
+    // 讓 pointer 移到動畫條的結尾點
+    movePointer(barItem.x() + barItem.width());
+    // 將 pointer 推到最上面
     timelinePointer.value?.moveToTop();
     // 回傳 barId
     return barId;
@@ -415,6 +417,10 @@ export const useGlobal = () => {
     'currentActiveFlashPointId',
     () => null
   );
+  // edit animation control
+  const isEditStartPoint = useState('isEditStartPoint', () => false);
+  const isEditEndPoint = useState('isEditEndPoint', () => false);
+
   return {
     // 廣告區域在主畫布的位置(x,y)
     adModuleX,
@@ -473,6 +479,8 @@ export const useGlobal = () => {
     // current id
     currentNodeId,
     currentActiveAnimationId,
-    currentActiveFlashPointId
+    currentActiveFlashPointId,
+    isEditStartPoint,
+    isEditEndPoint
   };
 };

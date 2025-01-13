@@ -35,8 +35,8 @@ const updateValue = (event: Event) => {
   }
 };
 
-// 輸入框失焦時，檢查是否為合法數字，不合法則回復上次合法數字
-const handleBlur = (event: Event) => {
+// 檢查是否為合法數字，不合法則回復上次合法數字
+const validateValue = (event: Event) => {
   const target = event.target as HTMLInputElement;
   let newValue = parseFloat(target.value);
   if (isNaN(newValue)) {
@@ -62,14 +62,15 @@ const handleBlur = (event: Event) => {
     :min="min"
     :step="step"
     @input="updateValue"
-    @blur="handleBlur"
+    @blur="validateValue"
+    @keyup.enter="validateValue"
     class="quick-input"
   />
 </template>
 
 <style lang="scss" scoped>
 .quick-input {
-  @apply h-6 w-14 rounded border px-1.5 text-right font-sans text-xs text-neutral-500 outline-none focus:ring-1 focus:ring-neutral-300 dark:text-white;
+  @apply h-6 w-20 rounded border px-1 text-right font-sans text-xs text-neutral-500 outline-none focus:ring-1 focus:ring-neutral-300 dark:text-white;
   -moz-appearance: textfield;
   appearance: none;
 }

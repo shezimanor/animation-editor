@@ -42,31 +42,31 @@ const currentNode = computed(() => {
     <div class="grid grid-cols-2 gap-x-2">
       <div class="flex items-center justify-between">
         <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Width</UKbd>
-        <span class="text-xs text-neutral-500">{{ Math.round(currentNode.width) }}</span>
+        <AppQuickInput v-model="currentNode.width" />
       </div>
       <div class="flex items-center justify-between">
         <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Height</UKbd>
-        <span class="text-xs text-neutral-500">{{ Math.round(currentNode.height) }}</span>
+        <AppQuickInput v-model="currentNode.height" />
       </div>
     </div>
     <div class="grid grid-cols-2 gap-x-2">
       <div class="flex items-center justify-between">
         <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">X</UKbd>
-        <span class="text-xs text-neutral-500">{{ Math.round(currentNode.x) }}</span>
+        <AppQuickInput v-model="currentNode.x" />
       </div>
       <div class="flex items-center justify-between">
         <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Y</UKbd>
-        <span class="text-xs text-neutral-500">{{ Math.round(currentNode.y) }}</span>
+        <AppQuickInput v-model="currentNode.y" />
       </div>
     </div>
     <div class="grid grid-cols-2 gap-x-2">
       <div class="flex items-center justify-between">
         <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Rotation</UKbd>
-        <span class="text-xs text-neutral-500">{{ Math.round(currentNode.rotation) }}</span>
+        <AppQuickInput v-model="currentNode.rotation" />
       </div>
       <div class="flex items-center justify-between">
         <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Opacity</UKbd>
-        <span class="text-xs text-neutral-500">{{ currentNode.opacity.toFixed(2) }}</span>
+        <AppQuickInput v-model="currentNode.opacity" />
       </div>
     </div>
     <div class="mt-2 flex flex-col items-start gap-y-2 border-t border-neutral-200 pt-2">

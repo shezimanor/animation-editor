@@ -40,8 +40,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const isClipMode = useState('isClipMode', () => false);
   const adModuleRect = useState<Konva.Rect | null>('adModuleRect', () => shallowRef(null));
 
-  const test = adModuleConfig;
-
   const selecting = ref(false);
 
   const mainItemInitialX = ref(0);

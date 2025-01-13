@@ -53,8 +53,10 @@ const logSomething = () => {
   <div class="panel-group-wrapper">
     <header class="flex items-center justify-between">
       <h2>圖層資訊</h2>
-      <UButton size="xs" @click="logKonva">logKonva</UButton>
-      <UButton size="xs" @click="logSomething">log</UButton>
+      <div class="flex gap-x-1">
+        <UButton size="xs" @click="logKonva">logK</UButton>
+        <UButton size="xs" @click="logSomething">log</UButton>
+      </div>
     </header>
     <div
       v-if="mainTransformer && mainTransformer?.nodes().length > 0"
@@ -153,6 +155,6 @@ const logSomething = () => {
 
 <style lang="scss" scoped>
 .panel-group-wrapper {
-  @apply fixed right-4 top-15 z-[12] flex w-60 flex-col gap-y-2 rounded-lg bg-white px-2 py-2 shadow-std dark:bg-neutral-900;
+  @apply fixed right-4 top-15 z-[12] flex w-80 flex-col gap-y-2 rounded-lg bg-white px-2 py-2 shadow-std dark:bg-neutral-900;
 }
 </style>
