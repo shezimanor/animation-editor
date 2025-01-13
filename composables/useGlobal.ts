@@ -191,6 +191,14 @@ export const useGlobal = () => {
       // 讓 pointer 移到動畫條的起始點
       movePointer(barItem.x());
     });
+    barItem.on('dblclick', function () {
+      // 雙擊動畫條
+      if (barId !== currentActiveAnimationId.value) {
+        activeBar(id, barId, barItem);
+      }
+      // 讓 pointer 移到動畫條的結尾點
+      movePointer(barItem.x() + barItem.width());
+    });
     // 設定 currentActiveAnimationId
     currentActiveAnimationId.value = barId;
     // 加入到 groupItem
