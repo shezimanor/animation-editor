@@ -1,12 +1,12 @@
 import Konva from 'konva';
 import { gsap } from 'gsap';
-import { v4 as uuid, type UUIDTypes } from 'uuid';
+import { v4 as uuid } from 'uuid';
 import type { NodeConfig } from 'konva/lib/Node';
 import type { ImageConfig } from 'konva/lib/shapes/Image';
 import type { GroupConfig } from 'konva/lib/Group';
 
 export interface MyNode {
-  id: UUIDTypes;
+  id: string;
   name: string;
   label: string;
   x: number;
@@ -49,10 +49,10 @@ export const useGlobal = () => {
     shallowRef(null)
   );
   const mainTransformer = useState<Konva.Transformer | null>('mainTransformer', () => null); // 需要偵測他的 nodes 數量，所以不能用 shallowRef
-  const getTargetNodeFromMain = (id: string | UUIDTypes) => {
+  const getTargetNodeFromMain = (id: string) => {
     return mainLayer.value?.findOne(`#${id}`);
   };
-  const selectTargetNodeFromMain = (id: string | UUIDTypes) => {
+  const selectTargetNodeFromMain = (id: string) => {
     const targetNode = getTargetNodeFromMain(id) as Konva.Image;
     if (targetNode) focusOnItem(targetNode);
   };
@@ -148,7 +148,7 @@ export const useGlobal = () => {
     timelineTransformers.value.push(newTransformer);
     return newTransformer;
   };
-  const addTimelineBar = (id: UUIDTypes, duration: number, start: number): string => {
+  const addTimelineBar = (id: string, duration: number, start: number): string => {
     const groupItem = getTargetNodeFromTimeline(`group_${id}`);
     if (!groupItem || !(groupItem instanceof Konva.Group)) return '';
     const barId = uuid();
@@ -184,15 +184,12 @@ export const useGlobal = () => {
     });
     // 事件監聽
     barItem.on('click', function () {
-      removeActiveBarHighLight();
-      barItem.fill(TIMELINE_BAR_ACTIVE_COLOR);
-      barItem.name('item_bar item_bar_active');
-      // 設定 currentActiveAnimationId
-      currentActiveAnimationId.value = barItem.id();
-      // 讓 pointer 移到動畫條的起點
+      // 單擊動畫條
+      if (barId !== currentActiveAnimationId.value) {
+        activeBar(id, barId, barItem);
+      }
+      // 讓 pointer 移到動畫條的起始點
       movePointer(barItem.x());
-      // 選取到主畫布的素材
-      selectTargetNodeFromMain(id);
     });
     // 設定 currentActiveAnimationId
     currentActiveAnimationId.value = barId;
@@ -206,13 +203,24 @@ export const useGlobal = () => {
     // 回傳 barId
     return barId;
   };
+  // 顯目當前動畫條
+  const activeBar = (sourceId: string, barId: string, barItem: Konva.Rect) => {
+    // highlight active bar
+    removeActiveBarHighLight();
+    barItem.fill(TIMELINE_BAR_ACTIVE_COLOR);
+    barItem.name('item_bar item_bar_active');
+    // 設定 currentActiveAnimationId
+    currentActiveAnimationId.value = barId;
+    // 選取到主畫布的素材
+    selectTargetNodeFromMain(sourceId);
+  };
   // 更新起始位置 (用 track 來找)
   const updateTimelineTrackInitialPosition = () => {
     const tracks = timelineLayer.value?.find('.item_track') ?? [];
     timelineItemInitialY.value = tracks.length * (TIMELINE_TRACK_HEIGHT + TIMELINE_TRACK_GAP_Y);
   };
   // 隱藏空的變形器
-  const hideEmptyTransformer = (id: UUIDTypes) => {
+  const hideEmptyTransformer = (id: string) => {
     // console.log('hideEmptyTransformer', timelineTransformers.value);
     for (let i = 0; i < timelineTransformers.value.length; i++) {
       const transformer = timelineTransformers.value[i];
@@ -294,7 +302,7 @@ export const useGlobal = () => {
     // 更新起始位置
     updateTimelineTrackInitialPosition();
   };
-  const deleteTimelineTrack = (id: UUIDTypes) => {
+  const deleteTimelineTrack = (id: string) => {
     // 隱藏空的變形器
     hideEmptyTransformer(id);
     const imgItem = getTargetNodeFromTimeline(`img_${id}`);
@@ -393,7 +401,7 @@ export const useGlobal = () => {
   const isOpen_createAnimationModal = useState('isOpen_createAnimationModal', () => false);
   const isOpen_createFlashPointModal = useState('isOpen_createFlashPointModal', () => false);
   // current id
-  const currentNodeId = useState<UUIDTypes | null>('currentNodeId', () => null);
+  const currentNodeId = useState<string | null>('currentNodeId', () => null);
   const currentActiveAnimationId = useState<string | null>('currentActiveAnimationId', () => null);
   const currentActiveFlashPointId = useState<string | null>(
     'currentActiveFlashPointId',

@@ -2,7 +2,7 @@
 import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
 import type { Node } from 'konva/lib/Node';
-import { v4 as uuid, type UUIDTypes } from 'uuid';
+import { v4 as uuid } from 'uuid';
 const {
   adModuleX,
   adModuleY,
@@ -516,7 +516,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     });
   };
 
-  const deleteMainNode = (id: UUIDTypes) => {
+  const deleteMainNode = (id: string) => {
     const targetIndex = mainNodeList.value.findIndex((item) => item.id === id);
     if (targetIndex > -1) mainNodeList.value.splice(targetIndex, 1);
   };

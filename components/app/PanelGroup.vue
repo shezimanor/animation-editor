@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import type { UUIDTypes } from 'uuid';
-
 const UNNAMED_LABEL = '未命名標籤';
 console.log('-panel group-');
 const {
@@ -38,7 +36,7 @@ const createAnimationTemplate = () => {
   closeModal();
 };
 
-const handleOpenModal = (id: UUIDTypes) => {
+const handleOpenModal = (id: string) => {
   isOpen_createAnimationModal.value = true;
   currentNodeId.value = id;
 };
@@ -53,7 +51,7 @@ const logSomething = () => {
 
 <template>
   <div class="panel-group-wrapper">
-    <header class="mb-2 flex items-center justify-between">
+    <header class="flex items-center justify-between">
       <h2>圖層資訊</h2>
       <UButton size="xs" @click="logKonva">logKonva</UButton>
       <UButton size="xs" @click="logSomething">log</UButton>
@@ -155,6 +153,6 @@ const logSomething = () => {
 
 <style lang="scss" scoped>
 .panel-group-wrapper {
-  @apply fixed right-4 top-15 z-[12] flex w-60 flex-col rounded-lg bg-white px-2 py-2 shadow-std dark:bg-neutral-900;
+  @apply fixed right-4 top-15 z-[12] flex w-60 flex-col gap-y-2 rounded-lg bg-white px-2 py-2 shadow-std dark:bg-neutral-900;
 }
 </style>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Node } from 'konva/lib/Node';
-import type { UUIDTypes } from 'uuid';
 
 console.log('-panel-');
 const { metaSymbol } = useShortcuts();
@@ -15,7 +14,7 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  (e: 'openModal', id: UUIDTypes): void;
+  (e: 'openModal', id: string): void;
 }>();
 
 const currentNode = computed(() => {
