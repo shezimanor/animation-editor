@@ -368,7 +368,7 @@ export const useGlobal = () => {
   };
 
   // gsap
-  const gsapTimeline = useState<GSAPTimeline | null>('gsapTimeline', () => shallowRef(null));
+  const gsapTimeline = useState<GSAPTimeline | null>('gsapTimeline', () => null);
   const initializedGsap = useState('initializedGsap', () => false);
   const paused = useState('paused', () => true);
   const createGsapTimeline = () => {
