@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid';
 import type { NodeConfig } from 'konva/lib/Node';
 import type { ImageConfig } from 'konva/lib/shapes/Image';
 import type { GroupConfig } from 'konva/lib/Group';
+console.log('exec useGlobal');
 
 export interface MyNode {
   id: string;
@@ -17,8 +18,9 @@ export interface MyNode {
   rotation: number;
 }
 
+const { gsapTimeline, initializedGsap, paused, gsapHiddenNode, gsapTimelineNodeMap } = useGlobal2();
+
 export const useGlobal = () => {
-  console.log('useGlobal');
   // 廣告區域在主畫布的位置(x,y)
   const adModuleX = useState('adModuleX', () => 0);
   const adModuleY = useState('adModuleY', () => 0);
@@ -368,15 +370,17 @@ export const useGlobal = () => {
   };
 
   // gsap
-  const gsapTimeline = useState<GSAPTimeline | null>('gsapTimeline', () => null);
-  const initializedGsap = useState('initializedGsap', () => false);
-  const paused = useState('paused', () => true);
+  const logGsapTimeline = () => {
+    console.log('gsapTimeline: ', gsapTimeline.value);
+    console.log('duration: ', gsapTimeline.value?.duration());
+  };
+
   const createGsapTimeline = () => {
     gsapTimeline.value = gsap.timeline({
       repeat: -1,
       paused: paused.value,
-      duration: TOTAL_DURATION, // 預設時間 12 秒
       onUpdate() {
+        console.log('onUpdate');
         updateMainLayer();
         updatePointer(gsapTimeline.value);
         updateTimelineLayer();
@@ -390,7 +394,7 @@ export const useGlobal = () => {
     });
     // 設置一個結尾點，讓 timescale 維持 1（每次有新動畫就要更新）
     // 自定義 gsap 時間軸的結尾
-    gsapTimeline.value?.set({ x: 0 }, { x: 0 }, 12);
+    gsapTimeline.value?.set(gsapHiddenNode, { x: 0 }, 12);
     initializedGsap.value = true;
   };
   const getDurationByWidth = (width: number) => {
@@ -486,6 +490,8 @@ export const useGlobal = () => {
     gsapTimeline, // state
     initializedGsap, // state
     paused, // state
+    gsapTimelineNodeMap, // state
+    logGsapTimeline, // method
     createGsapTimeline, // method
     getDurationByWidth, // method
     getTimeByX, // method

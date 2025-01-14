@@ -1,3 +1,4 @@
+console.log('exec useTimeline');
 // Konva: https://konvajs.org/api/Konva.html
 import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
@@ -12,7 +13,6 @@ const {
 } = useGlobal();
 
 export const useTimeline = () => {
-  console.log('useTimeline');
   // composable 專用常數
   const TIMELINE_CONTAINER_HEIGHT = 240;
   const TIMELINE_POINTER_WIDTH = 4;

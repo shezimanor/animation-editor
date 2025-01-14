@@ -1,8 +1,13 @@
 <script lang="ts" setup>
 const UNNAMED_LABEL = '未命名標籤';
 console.log('-panel group-');
-const { mainTransformer, getTargetNodeFromMain, isOpen_createAnimationModal, currentNodeId } =
-  useGlobal();
+const {
+  mainTransformer,
+  getTargetNodeFromMain,
+  logGsapTimeline,
+  isOpen_createAnimationModal,
+  currentNodeId
+} = useGlobal();
 const { createAnimation } = useGsap();
 
 const animationLabel = ref(UNNAMED_LABEL);
@@ -43,7 +48,7 @@ const logSomething = () => {};
     <header class="flex items-center justify-between">
       <h2>圖層資訊</h2>
       <div class="flex gap-x-1">
-        <UButton size="xs" @click="logSomething">log</UButton>
+        <UButton size="xs" @click="logGsapTimeline">log</UButton>
       </div>
     </header>
     <div

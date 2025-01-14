@@ -1,3 +1,4 @@
+console.log('exec useKonva');
 // Konva: https://konvajs.org/api/Konva.html
 import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
@@ -29,7 +30,6 @@ interface AdModuleConfig {
 }
 
 export const useKonva = (adModuleConfig?: AdModuleConfig) => {
-  console.log('useKonva');
   // composable 專用常數
   const SOURCE_IMG_LIMIT = 10;
   const DELTA = 1;

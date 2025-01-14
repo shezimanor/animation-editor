@@ -1,3 +1,5 @@
+console.log('exec useGsap');
+
 import { gsap } from 'gsap';
 import type { Node } from 'konva/lib/Node';
 import type { MyNode } from './useGlobal';
@@ -21,17 +23,12 @@ const {
   gsapTimeline,
   initializedGsap,
   paused,
+  gsapTimelineNodeMap,
   getDurationByWidth,
   getTimeByX
 } = useGlobal();
 
 export const useGsap = () => {
-  console.log('useGsap');
-  const gsapTimelineNodeMap = useState<Record<string, Record<string, gsap.core.Tween>>>(
-    'gsapTimelineNodeMap',
-    () => ({})
-  );
-
   const playGsapTimeline = () => {
     gsapTimeline.value?.play();
     paused.value = false;
@@ -63,6 +60,20 @@ export const useGsap = () => {
   };
 
   const createAnimation = (targetNode: Node, label: string) => {
+    console.log('new ca');
+    const startX = targetNode.x();
+    const tween = gsap.fromTo(
+      targetNode,
+      { x: startX },
+      {
+        duration: 1,
+        x: startX + 300
+      }
+    );
+    gsapTimeline.value?.add(tween, 0);
+  };
+
+  const createAnimation2 = (targetNode: Node, label: string) => {
     // console.log(gsapTimeline);
     if (!gsapTimeline.value) return 'No timeline found';
     const nodeId = targetNode.id();
@@ -114,7 +125,9 @@ export const useGsap = () => {
       { ...fromVars },
       {
         duration,
-        ...toVars
+        ...toVars,
+        x: (toVars.x || 0) + 300,
+        y: (toVars.y || 0) + 100
       }
     );
     gsapTimeline.value?.add(tween, start);
