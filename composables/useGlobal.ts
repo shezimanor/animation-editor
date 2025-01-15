@@ -18,7 +18,21 @@ export interface MyNode {
   rotation: number;
 }
 
-const { gsapTimeline, initializedGsap, paused, gsapHiddenNode, gsapTimelineNodeMap } = useGlobal2();
+const paused = ref(true);
+let gsapTimeline = gsap.timeline({
+  repeat: -1,
+  paused: paused.value,
+  onStart() {
+    paused.value = false;
+  },
+  onComplete() {
+    paused.value = true;
+  }
+});
+const gsapHiddenNode = { x: 0 }; // 用來製作 timeline 固定結尾點的物件
+const initializedGsap = ref(false);
+const currentTime = ref(0);
+const gsapTimelineNodeMap: Record<string, Record<string, GSAPTween>> = {};
 
 export const useGlobal = () => {
   // 廣告區域在主畫布的位置(x,y)
@@ -119,10 +133,7 @@ export const useGlobal = () => {
         if (newBox.x < TIMELINE_TRACK_START_X) {
           return oldBox;
         }
-        if (
-          newBox.x + newBox.width >
-          window.innerWidth - (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2)
-        ) {
+        if (newBox.x + newBox.width > window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION) {
           return oldBox;
         }
         return newBox;
@@ -155,7 +166,7 @@ export const useGlobal = () => {
     if (!groupItem || !(groupItem instanceof Konva.Group)) return '';
     const barId = uuid();
     const trackWidth =
-      window.innerWidth - (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2) - TIMELINE_TRACK_START_X;
+      window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION - TIMELINE_TRACK_START_X;
     // 移除其他 bar 的顯目顯示
     removeActiveBarHighLight();
     // 時間軸動畫條(直接醒目顯示)
@@ -171,8 +182,7 @@ export const useGlobal = () => {
       cornerRadius: 3,
       draggable: true,
       dragBoundFunc(pos) {
-        const timelineStageWidth =
-          window.innerWidth - (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2);
+        const timelineStageWidth = window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION;
         return {
           x:
             pos.x < TIMELINE_TRACK_START_X
@@ -190,16 +200,12 @@ export const useGlobal = () => {
       if (barId !== currentActiveAnimationId.value) {
         activeBar(id, barId, barItem);
       }
-      // 讓 pointer 移到動畫條的起始點
-      movePointer(barItem.x());
     });
     barItem.on('dblclick', function () {
       // 雙擊動畫條
       if (barId !== currentActiveAnimationId.value) {
         activeBar(id, barId, barItem);
       }
-      // 讓 pointer 移到動畫條的結尾點
-      movePointer(barItem.x() + barItem.width());
     });
     // 設定 currentActiveAnimationId
     currentActiveAnimationId.value = barId;
@@ -208,10 +214,6 @@ export const useGlobal = () => {
     // 加上變形器
     const transformerItem = addTransformer();
     transformerItem.nodes([barItem]);
-    // 讓 pointer 移到動畫條的結尾點
-    movePointer(barItem.x() + barItem.width());
-    // 將 pointer 推到最上面
-    timelinePointer.value?.moveToTop();
     // 回傳 barId
     return barId;
   };
@@ -296,10 +298,7 @@ export const useGlobal = () => {
       name: 'item_track',
       x: TIMELINE_TRACK_START_X,
       y: timelineItemInitialY.value,
-      width:
-        window.innerWidth -
-        (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2) -
-        TIMELINE_TRACK_START_X,
+      width: window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION - TIMELINE_TRACK_START_X,
       height: TIMELINE_TRACK_HEIGHT,
       fill: 'rgba(255, 255, 255, 0.6)',
       cornerRadius: 2,
@@ -309,8 +308,6 @@ export const useGlobal = () => {
     timelineLayer.value?.add(imgItem);
     timelineLayer.value?.add(trackItem);
     timelineLayer.value?.add(groupItem);
-    // 將指針推到最上面
-    timelinePointer.value?.moveToTop();
     // 更新起始位置
     updateTimelineTrackInitialPosition();
   };
@@ -342,93 +339,37 @@ export const useGlobal = () => {
     updateTimelineTrackInitialPosition();
   };
 
-  // 時間軸指針
-  const timelinePointer = useState<Konva.Rect | null>('timelinePointer', () => shallowRef(null));
-  const isDraggingTimelinePointer = useState('isDraggingTimelinePointer', () => false);
-  const updatePointer = (gsapTimeline: GSAPTimeline | null) => {
-    if (timelinePointer.value && gsapTimeline && !isDraggingTimelinePointer.value) {
-      const progress = gsapTimeline.progress();
-      const trackWidth =
-        window.innerWidth -
-        (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2) -
-        TIMELINE_TRACK_START_X;
-      timelinePointer.value.x(trackWidth * progress + TIMELINE_TRACK_START_X);
-      // console.log('progress:', progress);
-    }
-  };
-  const lockPointer = () => {
-    timelinePointer.value?.draggable(false);
-  };
-  const unlockPointer = () => {
-    timelinePointer.value?.draggable(true);
-  };
-  const movePointer = (x: number) => {
-    // 移動 pointer
-    timelinePointer.value?.x(x + TIMELINE_TRACK_START_X);
-    // 更新 gsap 時間軸
-    updateGsapTimelineByPointerPosition(x);
-  };
-
   // gsap
+  const updateCurrentTime = (time: number) => {
+    currentTime.value = time;
+  };
+  const seekGsapTimeline = (time: number) => {
+    gsapTimeline?.seek(time);
+  };
   const logGsapTimeline = () => {
-    console.log('gsapTimeline: ', gsapTimeline.value);
-    console.log('duration: ', gsapTimeline.value?.duration());
+    console.log('gsapTimeline: ', gsapTimeline);
+    console.log('duration: ', gsapTimeline?.duration());
   };
 
   const createGsapTimeline = () => {
-    gsapTimeline.value = gsap.timeline({
-      repeat: -1,
-      paused: paused.value,
-      onUpdate() {
-        console.log('onUpdate');
-        updateMainLayer();
-        updatePointer(gsapTimeline.value);
-        updateTimelineLayer();
-      },
-      onStart() {
-        paused.value = false;
-      },
-      onComplete() {
-        paused.value = true;
-      }
+    // 設定 onUpdate
+    gsapTimeline.eventCallback('onUpdate', () => {
+      console.log('onUpdate');
+      // 更新 currentTime
+      const time = gsapTimeline.time();
+      currentTime.value = time;
+      // 更新主畫布
+      updateMainLayer();
+      updateTimelineLayer();
     });
     // 設置一個結尾點，讓 timescale 維持 1（每次有新動畫就要更新）
     // 自定義 gsap 時間軸的結尾
-    gsapTimeline.value?.set(gsapHiddenNode, { x: 0 }, 12);
+    gsapTimeline?.set(gsapHiddenNode, { x: 0 }, 12);
     initializedGsap.value = true;
-  };
-  const getDurationByWidth = (width: number) => {
-    return (
-      Math.round(
-        (width / (window.innerWidth - (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2))) *
-          TOTAL_DURATION *
-          100
-      ) / 100
-    );
-  };
-  const getTimeByX = (x: number) => {
-    let time =
-      Math.round(
-        ((x - TIMELINE_TRACK_START_X) /
-          (window.innerWidth -
-            (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2) -
-            TIMELINE_TRACK_START_X)) *
-          TOTAL_DURATION *
-          100
-      ) / 100;
-    return time < 0 ? 0 : time;
-  };
-  const updateGsapTimelineByPointerPosition = (x: number) => {
-    if (gsapTimeline.value) {
-      const currentTime = getTimeByX(x);
-      // 更新 gsap 時間軸
-      gsapTimeline.value.seek(currentTime);
-      // console.log('currentTime:', currentTime);
-    }
   };
 
   // modal control
-  const isOpen_createAnimationModal = useState('isOpen_createAnimationModal', () => false);
+  const isOpen_createTweenModal = useState('isOpen_createTweenModal', () => false);
   const isOpen_createFlashPointModal = useState('isOpen_createFlashPointModal', () => false);
   // current id
   const currentNodeId = useState<string | null>('currentNodeId', () => null);
@@ -478,27 +419,19 @@ export const useGlobal = () => {
     addImage, // method
     addGroup, // method
 
-    // 時間軸指針
-    timelinePointer, // state
-    isDraggingTimelinePointer, // state
-    updatePointer, // method
-    lockPointer, // method
-    unlockPointer, // method
-    movePointer, // method
-
     // gsap
-    gsapTimeline, // state
+    gsapTimeline, // 原生物件
+    gsapTimelineNodeMap, // 原生物件
     initializedGsap, // state
     paused, // state
-    gsapTimelineNodeMap, // state
+    currentTime, // state
+    updateCurrentTime, // method
+    seekGsapTimeline,
     logGsapTimeline, // method
     createGsapTimeline, // method
-    getDurationByWidth, // method
-    getTimeByX, // method
-    updateGsapTimelineByPointerPosition, // method
 
     // modal control
-    isOpen_createAnimationModal,
+    isOpen_createTweenModal,
     isOpen_createFlashPointModal,
     // current id
     currentNodeId,

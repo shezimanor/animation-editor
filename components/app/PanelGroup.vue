@@ -5,10 +5,10 @@ const {
   mainTransformer,
   getTargetNodeFromMain,
   logGsapTimeline,
-  isOpen_createAnimationModal,
+  isOpen_createTweenModal,
   currentNodeId
 } = useGlobal();
-const { createAnimation } = useGsap();
+const { createTween, removeTween } = useGsap();
 
 const animationLabel = ref(UNNAMED_LABEL);
 
@@ -17,26 +17,26 @@ const resetAnimationLabel = () => {
 };
 
 const closeModal = () => {
-  isOpen_createAnimationModal.value = false;
+  isOpen_createTweenModal.value = false;
   resetAnimationLabel();
 };
 
 const keydownToCreateAnimationTemplate = (event: KeyboardEvent) => {
   // IME (Input Method Editor) 組成狀態: KeyboardEvent.isComposing 用來辨識中文輸入法是否已完成文字組成
   if (event.isComposing) return;
-  createAnimationTemplate();
+  createTweenTemplate();
 };
 
-const createAnimationTemplate = () => {
+const createTweenTemplate = () => {
   if (animationLabel.value.trim().length <= 0 || !currentNodeId.value) return;
   const targetNode = getTargetNodeFromMain(currentNodeId.value);
   if (!targetNode) return;
-  createAnimation(targetNode, animationLabel.value);
+  createTween(targetNode, animationLabel.value);
   closeModal();
 };
 
 const handleOpenModal = (id: string) => {
-  isOpen_createAnimationModal.value = true;
+  isOpen_createTweenModal.value = true;
   currentNodeId.value = id;
 };
 
@@ -65,7 +65,7 @@ const logSomething = () => {};
   </div>
   <!-- 新增動畫 Modal -->
   <UModal
-    v-model="isOpen_createAnimationModal"
+    v-model="isOpen_createTweenModal"
     :ui="{
       wrapper: 'z-[200]',
       container: 'items-center',
@@ -136,7 +136,7 @@ const logSomething = () => {};
           <UButton color="gray" size="xs" variant="ghost" @click="closeModal">取消</UButton>
           <UButton
             size="xs"
-            @click="createAnimationTemplate"
+            @click="createTweenTemplate"
             :disabled="animationLabel.trim().length <= 0 || !currentNodeId"
             >新增</UButton
           >

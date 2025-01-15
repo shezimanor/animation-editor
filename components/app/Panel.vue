@@ -4,7 +4,7 @@ import type { Node } from 'konva/lib/Node';
 console.log('-panel-');
 const { mainNodeMap, currentActiveAnimationId, getTargetNodeFromTimeline } = useGlobal();
 const { updateKonvaNodeAttribute } = useKonva();
-const { gsapTimelineNodeMap, updateGsapTimelineByTween } = useGsap();
+const { gsapTimelineNodeMap, updateGsapTimelineByTween, removeTween } = useGsap();
 
 const props = withDefaults(
   defineProps<{
@@ -27,7 +27,7 @@ const currentNode = computed(() => {
 // 用來確認 active 的動畫是否屬於當前的素材節點
 const currentBarTweenObject = computed(() => {
   if (!currentNode.value || !currentActiveAnimationId.value) return null;
-  const currentGsapTimelineNode = gsapTimelineNodeMap.value[currentNode.value.id];
+  const currentGsapTimelineNode = gsapTimelineNodeMap[currentNode.value.id];
   const tweenObject = currentGsapTimelineNode
     ? currentGsapTimelineNode[currentActiveAnimationId.value]
     : null;
@@ -160,6 +160,13 @@ const updateAnimationBarToVars = () => {
         >
         <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarToVars"
           >更新結尾點<UKbd size="sm">D</UKbd></UButton
+        >
+        <UButton
+          size="xs"
+          color="primary"
+          variant="solid"
+          @click="removeTween(currentBarTweenObject)"
+          >刪除tween<UKbd size="sm">D</UKbd></UButton
         >
       </div>
     </div>

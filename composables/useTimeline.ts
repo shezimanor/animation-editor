@@ -3,21 +3,10 @@ console.log('exec useTimeline');
 import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
 
-const {
-  timelineStage,
-  timelineLayer,
-  timelinePointer,
-  addRect,
-  isDraggingTimelinePointer,
-  updateGsapTimelineByPointerPosition
-} = useGlobal();
+const { paused, currentTime, updateCurrentTime, seekGsapTimeline, timelineStage, timelineLayer } =
+  useGlobal();
 
 export const useTimeline = () => {
-  // composable 專用常數
-  const TIMELINE_CONTAINER_HEIGHT = 240;
-  const TIMELINE_POINTER_WIDTH = 4;
-  const TIMELINE_POINTER_COLOR = 'rgba(129, 141, 248, 0.8)'; // '#818cf8'
-  // ---
   const timelineStageRef = useState<HTMLDivElement | null>('timelineStageRef', () =>
     shallowRef(null)
   );
@@ -31,7 +20,8 @@ export const useTimeline = () => {
     // create Layer
     createLayer();
     // create Pointer(時間軸的指針)
-    createPointer();
+    // const pointer = createPointer();
+    // timelineLayer.value?.add(pointer);
 
     // 使用 resize 觀察者
     useResizeObserver(timelineStageRef, (entries) => {
@@ -49,7 +39,7 @@ export const useTimeline = () => {
     if (timelineStageRef.value) {
       timelineStage.value = new Konva.Stage({
         container: timelineStageRef.value,
-        width: window.innerWidth - (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2),
+        width: window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION,
         height: TIMELINE_CONTAINER_HEIGHT,
         draggable: false
       });
@@ -68,52 +58,19 @@ export const useTimeline = () => {
     timelineStage.value?.add(timelineLayer.value);
   };
 
-  const createPointer = () => {
-    const pointer = addRect({
-      id: `pointer`,
-      name: 'item_pointer',
-      x: TIMELINE_TRACK_START_X,
-      y: 0,
-      width: TIMELINE_POINTER_WIDTH,
-      height: TIMELINE_CONTAINER_HEIGHT - TIMELINE_POINTER_WIDTH,
-      fill: TIMELINE_POINTER_COLOR,
-      cornerRadius: 2,
-      draggable: true,
-      dragBoundFunc(pos) {
-        const timelineStageWidth =
-          timelineStage.value?.width() ??
-          window.innerWidth - (ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2);
-        return {
-          x:
-            pos.x < TIMELINE_TRACK_START_X
-              ? TIMELINE_TRACK_START_X
-              : pos.x + TIMELINE_POINTER_WIDTH > timelineStageWidth
-                ? timelineStageWidth - TIMELINE_POINTER_WIDTH
-                : pos.x,
-          y: this.absolutePosition().y
-        };
-      }
-    });
-    // 事件監聽
-    pointer.on('dragmove', function () {
-      updateGsapTimelineByPointerPosition(this.x());
-    });
-    pointer.on('dragstart', function () {
-      isDraggingTimelinePointer.value = true;
-    });
-    pointer.on('dragend', function () {
-      isDraggingTimelinePointer.value = false;
-    });
-    timelineLayer.value?.add(pointer);
-    pointer.moveToTop();
-    timelinePointer.value = pointer;
+  const updateCurrentTimeByRangeInput = (time: number) => {
+    updateCurrentTime(time);
+    seekGsapTimeline(time);
   };
 
   return {
     // state
+    paused,
+    currentTime,
     timelineStageRef,
     // action
     initTimelineKonva,
-    destroyTimelineKonva
+    destroyTimelineKonva,
+    updateCurrentTimeByRangeInput
   };
 };

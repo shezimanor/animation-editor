@@ -1,5 +1,6 @@
 <!-- 編輯頁：所以工具列在這頁 -->
 <script setup lang="ts">
+import { Label } from 'konva/lib/shapes/Label';
 import testImg1 from '~/assets/images/demo/pokedex-0144-1.png';
 import testImg2 from '~/assets/images/demo/pokedex-0145-1.png';
 import testImg3 from '~/assets/images/demo/pokedex-0146-1.png';
@@ -29,36 +30,43 @@ const { mainStageRef, mainStageBgRef, initKonva, destroyKonva, addImage } = useK
   height: adModule.value.height
 });
 
-const { timelineStageRef, initTimelineKonva, destroyTimelineKonva } = useTimeline();
+const {
+  currentTime,
+  paused,
+  timelineStageRef,
+  initTimelineKonva,
+  destroyTimelineKonva,
+  updateCurrentTimeByRangeInput
+} = useTimeline();
 
 const isHidedGridDot = useState('isHidedGridDot', () => false);
 
 const ticks = ref([
-  '0',
-  "'",
-  "'",
-  '1.5',
-  "'",
-  "'",
-  '3',
-  "'",
-  "'",
-  '4.5',
-  "'",
-  "'",
-  '6',
-  "'",
-  "'",
-  '7.5',
-  "'",
-  "'",
-  '9',
-  "'",
-  "'",
-  '10.5',
-  "'",
-  "'",
-  '12'
+  { label: '|', value: 0 },
+  { label: "'", value: 0.5 },
+  { label: "'", value: 1 },
+  { label: '|', value: 1.5 },
+  { label: "'", value: 2 },
+  { label: "'", value: 2.5 },
+  { label: '|', value: 3 },
+  { label: "'", value: 3.5 },
+  { label: "'", value: 4 },
+  { label: '|', value: 4.5 },
+  { label: "'", value: 5 },
+  { label: "'", value: 5.5 },
+  { label: '|', value: 6 },
+  { label: "'", value: 6.5 },
+  { label: "'", value: 7 },
+  { label: '|', value: 7.5 },
+  { label: "'", value: 8 },
+  { label: "'", value: 8.5 },
+  { label: '|', value: 9 },
+  { label: "'", value: 9.5 },
+  { label: "'", value: 10 },
+  { label: '|', value: 10.5 },
+  { label: "'", value: 11 },
+  { label: "'", value: 11.5 },
+  { label: '|', value: 12 }
 ]);
 
 const handleDrop = async (e: DragEvent) => {
@@ -75,6 +83,11 @@ const handleDrop = async (e: DragEvent) => {
   } catch {
     throw new Error('Failed to load image data.');
   }
+};
+
+const handleTimelineChange = (value: string) => {
+  const time = parseFloat(value);
+  updateCurrentTimeByRangeInput(time);
 };
 
 const loadImages = async (imageUrls: string[]) => {
@@ -120,17 +133,49 @@ onUnmounted(() => {
         </div>
       </div>
       <!-- 時間軸畫布 -->
-      <div
-        class="flex w-full flex-shrink-0 flex-grow-0 flex-col gap-y-2 border-t-2 border-neutral-300 px-4"
-      >
+      <div class="relative flex w-full flex-col gap-y-2 border-t-2 border-neutral-300 px-4">
+        <UBadge color="white" variant="solid" class="absolute left-1 top-1">{{
+          currentTime.toFixed(2)
+        }}</UBadge>
         <!-- 時間軸標籤 -->
-        <ul
-          class="flex w-full flex-row justify-between pl-8 pt-1 text-sm tracking-wide text-neutral-500"
+        <datalist
+          id="tickMarks"
+          class="flex w-full flex-row justify-between pl-8 pt-1 text-sm font-bold text-neutral-500"
         >
-          <li v-for="(tick, index) in ticks" :key="index">
-            {{ tick }}
-          </li>
-        </ul>
+          <option
+            v-for="(tick, index) in ticks"
+            :key="index"
+            :value="tick.value"
+            :label="tick.label"
+          />
+        </datalist>
+        <div class="flex w-full pl-8">
+          <!-- TODO: 這邊也可以考慮反過來，控制拉桿讓 tl 暫停，而不是 tl 播放時不能控制拉桿 -->
+          <URange
+            :min="0"
+            :max="12"
+            :step="0.001"
+            :ui="{
+              base: 'disabled:cursor-not-allowed disabled:bg-opacity-100',
+              ring: 'focus-visible:ring-0 focus-visible:ring-offset-0',
+              progress: {
+                base: 'peer-disabled:bg-opacity-100'
+              },
+              thumb: {
+                base: '[&::-webkit-slider-thumb]:-top-[5px] [&::-moz-range-thumb]:-top-[5px]'
+              },
+              track: {
+                base: '[&::-webkit-slider-runnable-track]:group-disabled:bg-opacity-100 [&::-moz-range-track]:group-disabled:bg-opacity-100'
+              }
+            }"
+            :disabled="!paused"
+            color="purple"
+            size="sm"
+            list="tickMarks"
+            v-model="currentTime"
+            @input="handleTimelineChange($event.target.value)"
+          />
+        </div>
         <!-- 模擬時間軸條 -->
         <div class="h-60 w-full">
           <div ref="timelineStageRef"></div>

@@ -43,7 +43,7 @@ const addTween2 = (
       opacity: newOpacity
     }
   );
-  gsapTimeline.value?.add(tween, start);
+  gsapTimeline?.add(tween, start);
   return tween;
 };
 ```

@@ -19,7 +19,7 @@ const {
   addTimelineTrack,
   deleteTimelineTrack,
   createGsapTimeline,
-  isOpen_createAnimationModal,
+  isOpen_createTweenModal,
   isOpen_createFlashPointModal,
   currentNodeId
 } = useGlobal();
@@ -421,7 +421,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       case 'w': // 快捷鍵新增動畫
         if (selectedNodes.length !== 1) break;
         // 開啟新增動畫 Modal
-        isOpen_createAnimationModal.value = true;
+        isOpen_createTweenModal.value = true;
         currentNodeId.value = selectedNodes[0].id();
         break;
       case 'e': // 快捷鍵新增節點
@@ -486,10 +486,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     } else {
       node.setAttr(attrName, value);
     }
-  };
-
-  const magicFormula = (value: number) => {
-    return Math.round(value * 1000) / 1000;
   };
 
   const updateNodeAndMainNodeAttributes = (node: Node, targetMainNode: MyNode) => {
