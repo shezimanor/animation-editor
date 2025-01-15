@@ -571,8 +571,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const updateInitialPosition = () => {
-    mainItemInitialX.value += 100;
-    mainItemInitialY.value += 100;
+    mainItemInitialX.value += 10;
+    mainItemInitialY.value += 10;
   };
 
   return {
