@@ -66,6 +66,12 @@ const updateAnimationBarToVars = () => {
     'toVars'
   );
 };
+const lookTween = () => {
+  if (!currentBarNode.value || !currentNode.value || !props.node) return;
+  const currentTween = getTween(props.node.id(), currentBarNode.value.id());
+  if (!currentTween) return;
+  console.log(currentTween);
+};
 </script>
 
 <template>
@@ -153,6 +159,7 @@ const updateAnimationBarToVars = () => {
         <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarToVars"
           >更新結尾點<UKbd size="sm">D</UKbd></UButton
         >
+        <UButton size="xs" color="primary" variant="solid" @click="lookTween">LOG</UButton>
       </div>
     </div>
   </div>
