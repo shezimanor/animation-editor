@@ -2,9 +2,9 @@
 import type { Node } from 'konva/lib/Node';
 
 console.log('-panel-');
-const { mainNodeMap, currentActiveAnimationId, getTargetNodeFromTimeline } = useGlobal();
+const { mainNodeMap, currentActiveBarId, getTargetNodeFromTimeline } = useGlobal();
 const { updateKonvaNodeAttribute } = useKonva();
-const { gsapTimelineNodeMap, updateGsapTimelineByTween, removeTween } = useGsap();
+const { getTween, updateGsapTimelineByTween } = useGsap();
 
 const props = withDefaults(
   defineProps<{
@@ -25,21 +25,11 @@ const currentNode = computed(() => {
 });
 
 // 用來確認 active 的動畫是否屬於當前的素材節點
-const currentBarTweenObject = computed(() => {
-  if (!currentNode.value || !currentActiveAnimationId.value) return null;
-  const currentGsapTimelineNode = gsapTimelineNodeMap[currentNode.value.id];
-  const tweenObject = currentGsapTimelineNode
-    ? currentGsapTimelineNode[currentActiveAnimationId.value]
-    : null;
-  return tweenObject;
-});
 
 // current BarNode
 const currentBarNode = computed(() => {
-  if (!currentActiveAnimationId.value || !props.node) return null;
-  return (
-    getTargetNodeFromTimeline(`bar_${currentActiveAnimationId.value}_${props.node.id()}`) || null
-  );
+  if (!currentActiveBarId.value || !props.node) return null;
+  return getTargetNodeFromTimeline(`${currentActiveBarId.value}`) || null;
 });
 
 const updateKonvaNode = (attrName: string, newValue: number) => {
@@ -50,10 +40,11 @@ const updateKonvaNode = (attrName: string, newValue: number) => {
 // 更新起始點
 const updateAnimationBarFromVars = () => {
   console.log('updateAnimationBarFromVars');
-  if (!currentBarTweenObject.value || !currentBarNode.value || !currentNode.value || !props.node)
-    return;
+  if (!currentBarNode.value || !currentNode.value || !props.node) return;
+  const currentTween = getTween(props.node.id(), currentBarNode.value.id());
+  if (!currentTween) return;
   updateGsapTimelineByTween(
-    currentBarTweenObject.value,
+    currentTween,
     currentBarNode.value,
     currentNode.value,
     props.node,
@@ -64,10 +55,11 @@ const updateAnimationBarFromVars = () => {
 // 更新結尾點
 const updateAnimationBarToVars = () => {
   console.log('updateAnimationBarToVars');
-  if (!currentBarTweenObject.value || !currentBarNode.value || !currentNode.value || !props.node)
-    return;
+  if (!currentBarNode.value || !currentNode.value || !props.node) return;
+  const currentTween = getTween(props.node.id(), currentBarNode.value.id());
+  if (!currentTween) return;
   updateGsapTimelineByTween(
-    currentBarTweenObject.value,
+    currentTween,
     currentBarNode.value,
     currentNode.value,
     props.node,
@@ -151,7 +143,7 @@ const updateAnimationBarToVars = () => {
     </div>
     <!-- 動畫條操作 -->
     <div
-      v-if="currentBarTweenObject"
+      v-if="currentBarNode"
       class="mt-1 flex flex-col items-start gap-y-2 border-t border-neutral-200 pt-2"
     >
       <div class="flex w-full flex-row items-center justify-start gap-x-2">
@@ -160,13 +152,6 @@ const updateAnimationBarToVars = () => {
         >
         <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarToVars"
           >更新結尾點<UKbd size="sm">D</UKbd></UButton
-        >
-        <UButton
-          size="xs"
-          color="primary"
-          variant="solid"
-          @click="removeTween(currentBarTweenObject)"
-          >刪除tween<UKbd size="sm">D</UKbd></UButton
         >
       </div>
     </div>

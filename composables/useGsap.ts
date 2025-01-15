@@ -21,7 +21,7 @@ const {
   addTimelineBar,
   initializedGsap,
   paused,
-  gsapTimelineNodeMap
+  gsapTimelineNodeTweenMap
 } = useGlobal();
 
 export const useGsap = () => {
@@ -43,15 +43,16 @@ export const useGsap = () => {
 
   const removeTween = (tween: GSAPTween) => {
     console.log('removeTween');
-    //
-    // gsapTimeline?.killTweensOf(targetNode);
     gsapTimeline?.remove(tween);
-    // addEmptyTween(targetNode, 1, 0);
+  };
+
+  const getTween = (nodeId: string, barId: string) => {
+    console.log('getTween', gsapTimelineNodeTweenMap, nodeId, barId);
+    return gsapTimelineNodeTweenMap[nodeId][barId];
   };
 
   const createTween = (targetNode: Node, label: string) => {
-    // console.log(gsapTimeline);
-    if (!gsapTimeline) return 'No timeline found';
+    console.log('createTween');
     const nodeId = targetNode.id();
     const duration = 1;
     const start = 0;
@@ -60,9 +61,9 @@ export const useGsap = () => {
     // 加入對應的時間軸動畫條(動畫條 ID 會回傳)
     const barId = addTimelineBar(nodeId, duration, start);
     if (!barId || !tween) return 'Animation failed';
-    // 儲存 Tween 到 gsapTimelineNodeMap 裡面
-    if (!gsapTimelineNodeMap[nodeId]) gsapTimelineNodeMap[nodeId] = {};
-    gsapTimelineNodeMap[nodeId][barId] = tween;
+    // 儲存 Tween 到 gsapTimelineNodeTweenMap 裡面
+    if (!gsapTimelineNodeTweenMap[nodeId]) gsapTimelineNodeTweenMap[nodeId] = {};
+    gsapTimelineNodeTweenMap[nodeId][barId] = tween;
 
     return 'Animation created';
   };
@@ -79,10 +80,12 @@ export const useGsap = () => {
       width,
       height,
       opacity,
-      rotation,
-      ease: 'none'
+      rotation
     };
-    const tween = addTween(targetNode, duration, start, tweenVars, tweenVars);
+    const tween = addTween(targetNode, duration, start, tweenVars, {
+      ...tweenVars,
+      ease: 'none'
+    });
     return tween;
   };
 
@@ -101,9 +104,8 @@ export const useGsap = () => {
       { ...fromVars },
       {
         duration,
+        immediateRender: false,
         ...toVars
-        // x: (toVars.x || 0) + 300,
-        // y: (toVars.y || 0) + 100
       }
     );
     gsapTimeline?.add(tween, start);
@@ -123,7 +125,7 @@ export const useGsap = () => {
   };
 
   const updateGsapTimelineByTween = (
-    tweenObj: GSAPTween,
+    oldTween: GSAPTween,
     targetBarNode: Node,
     targetMainNode: MyNode,
     targetNode: Node,
@@ -137,7 +139,7 @@ export const useGsap = () => {
       y: fromY,
       rotation: fromRotation,
       opacity: fromOpacity
-    } = tweenObj.vars as TweenVars;
+    } = oldTween.vars as TweenVars;
     const {
       width: toWidth,
       height: toHeight,
@@ -145,7 +147,7 @@ export const useGsap = () => {
       y: toY,
       rotation: toRotation,
       opacity: toOpacity
-    } = tweenObj.vars.startAt as TweenVars;
+    } = oldTween.vars.startAt as TweenVars;
     const {
       width: newWidth,
       height: newHeight,
@@ -162,8 +164,7 @@ export const useGsap = () => {
             x: newX + adModuleX.value,
             y: newY + adModuleY.value,
             rotation: newRotation,
-            opacity: newOpacity,
-            ease: 'none'
+            opacity: newOpacity
           }
         : {
             width: fromWidth,
@@ -171,8 +172,7 @@ export const useGsap = () => {
             x: fromX,
             y: fromY,
             rotation: fromRotation,
-            opacity: fromOpacity,
-            ease: 'none'
+            opacity: fromOpacity
           };
     let toVars =
       updateName === 'toVars'
@@ -194,18 +194,18 @@ export const useGsap = () => {
             opacity: toOpacity,
             ease: 'none'
           };
+    console.log('fromVars:', fromVars);
     console.log('toVars:', toVars);
 
     const nodeId = targetNode.id();
     const barId = targetBarNode.id();
-    // 先把 tweenObj 移除
-    // gsapTimeline?.killTweensOf(targetNode);
-    gsapTimeline?.remove(tweenObj);
+    // 移除原本的 oldTween
+    removeTween(oldTween);
     // 重新建立新的 Tween
-    const tween = addTween(targetNode, 1, 0, fromVars, toVars);
+    const newTween = addTween(targetNode, 1, 0, fromVars, toVars);
 
-    // 儲存 Tween 到 gsapTimelineNodeMap 裡面
-    if (tween) gsapTimelineNodeMap[nodeId][barId] = tween;
+    // 儲存新的 Tween 到 gsapTimelineNodeTweenMap 裡面
+    if (newTween) gsapTimelineNodeTweenMap[nodeId][barId] = newTween;
 
     return 'Animation updated';
   };
@@ -213,7 +213,7 @@ export const useGsap = () => {
   const logTimeline = (targetNode: Node, barId: string) => {
     if (!gsapTimeline) return null;
     const nodeId = targetNode.id();
-    const tweenObj = gsapTimelineNodeMap[nodeId][barId];
+    const tweenObj = gsapTimelineNodeTweenMap[nodeId][barId];
     console.log('tweenObj:', (tweenObj.vars.x = 200));
   };
 
@@ -221,10 +221,11 @@ export const useGsap = () => {
     // state
     initializedGsap,
     paused,
-    gsapTimelineNodeMap,
+    gsapTimelineNodeTweenMap,
     // action
     createTween,
     removeTween,
+    getTween,
     playGsapTimeline,
     pauseGsapTimeline,
     getTimelineDuration,

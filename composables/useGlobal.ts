@@ -32,7 +32,7 @@ let gsapTimeline = gsap.timeline({
 const gsapHiddenNode = { x: 0 }; // 用來製作 timeline 固定結尾點的物件
 const initializedGsap = ref(false);
 const currentTime = ref(0);
-const gsapTimelineNodeMap: Record<string, Record<string, GSAPTween>> = {};
+const gsapTimelineNodeTweenMap: Record<string, Record<string, GSAPTween>> = {};
 
 export const useGlobal = () => {
   // 廣告區域在主畫布的位置(x,y)
@@ -164,14 +164,14 @@ export const useGlobal = () => {
   const addTimelineBar = (id: string, duration: number, start: number): string => {
     const groupItem = getTargetNodeFromTimeline(`group_${id}`);
     if (!groupItem || !(groupItem instanceof Konva.Group)) return '';
-    const barId = uuid();
+    const barId = `bar_${uuid()}_${id}`;
     const trackWidth =
       window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION - TIMELINE_TRACK_START_X;
     // 移除其他 bar 的顯目顯示
     removeActiveBarHighLight();
     // 時間軸動畫條(直接醒目顯示)
     const barItem = addRect({
-      id: `bar_${barId}_${id}`,
+      id: barId,
       name: `item_bar item_bar_active`,
       // 這裡的 x,y 位置是相對於 group 的位置
       x: trackWidth * (start / TOTAL_DURATION),
@@ -197,18 +197,18 @@ export const useGlobal = () => {
     // 事件監聽
     barItem.on('click', function () {
       // 單擊動畫條
-      if (barId !== currentActiveAnimationId.value) {
+      if (barId !== currentActiveBarId.value) {
         activeBar(id, barId, barItem);
       }
     });
     barItem.on('dblclick', function () {
       // 雙擊動畫條
-      if (barId !== currentActiveAnimationId.value) {
+      if (barId !== currentActiveBarId.value) {
         activeBar(id, barId, barItem);
       }
     });
-    // 設定 currentActiveAnimationId
-    currentActiveAnimationId.value = barId;
+    // 設定 currentActiveBarId
+    currentActiveBarId.value = barId;
     // 加入到 groupItem
     groupItem.add(barItem);
     // 加上變形器
@@ -223,8 +223,8 @@ export const useGlobal = () => {
     removeActiveBarHighLight();
     barItem.fill(TIMELINE_BAR_ACTIVE_COLOR);
     barItem.name('item_bar item_bar_active');
-    // 設定 currentActiveAnimationId
-    currentActiveAnimationId.value = barId;
+    // 設定 currentActiveBarId
+    currentActiveBarId.value = barId;
     // 選取到主畫布的素材
     selectTargetNodeFromMain(sourceId);
   };
@@ -373,7 +373,7 @@ export const useGlobal = () => {
   const isOpen_createFlashPointModal = useState('isOpen_createFlashPointModal', () => false);
   // current id
   const currentNodeId = useState<string | null>('currentNodeId', () => null);
-  const currentActiveAnimationId = useState<string | null>('currentActiveAnimationId', () => null);
+  const currentActiveBarId = useState<string | null>('currentActiveBarId', () => null);
   const currentActiveFlashPointId = useState<string | null>(
     'currentActiveFlashPointId',
     () => null
@@ -421,7 +421,7 @@ export const useGlobal = () => {
 
     // gsap
     gsapTimeline, // 原生物件
-    gsapTimelineNodeMap, // 原生物件
+    gsapTimelineNodeTweenMap, // 原生物件
     initializedGsap, // state
     paused, // state
     currentTime, // state
@@ -435,7 +435,7 @@ export const useGlobal = () => {
     isOpen_createFlashPointModal,
     // current id
     currentNodeId,
-    currentActiveAnimationId,
+    currentActiveBarId,
     currentActiveFlashPointId,
     isEditStartPoint,
     isEditEndPoint
