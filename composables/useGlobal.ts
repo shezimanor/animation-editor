@@ -144,12 +144,6 @@ export const useGlobal = () => {
         }
       }
     });
-    // 維持 scaleX = 1, 並將 width 設為原本的 scaleX * width
-    newTransformer.on('transform', function () {
-      const currentBar = newTransformer.nodes()[0] as Konva.Rect;
-      currentBar.width(currentBar.scaleX() * currentBar.width());
-      currentBar.scaleX(1);
-    });
     timelineLayer.value?.add(newTransformer);
     timelineTransformers.value.push(newTransformer);
     return newTransformer;

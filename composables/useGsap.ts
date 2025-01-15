@@ -67,16 +67,15 @@ export const useGsap = () => {
       width: trackWidth * (duration / TOTAL_DURATION),
       height: TIMELINE_TRACK_HEIGHT,
       fill: TIMELINE_BAR_ACTIVE_COLOR,
-      cornerRadius: 3,
+      cornerRadius: 0,
       draggable: true,
       dragBoundFunc(pos) {
-        const timelineStageWidth = window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION;
         return {
           x:
             pos.x < TIMELINE_TRACK_START_X
               ? TIMELINE_TRACK_START_X
-              : pos.x + this.width() > timelineStageWidth
-                ? timelineStageWidth - this.width()
+              : pos.x + this.width() > trackWidth
+                ? trackWidth - this.width()
                 : pos.x,
           y: this.absolutePosition().y
         };
@@ -102,12 +101,12 @@ export const useGsap = () => {
     barItem.on('dragend', function () {
       isDragging = false;
       console.log('barItem.x():', barItem.x());
-      // TODO:動畫的起始點發生變化
+      // 動畫的 start 發生變化
       const targetMainNode = mainNodeMap.value[id];
       const targetNode = getTargetNodeFromMain(id);
       const oldTween = getTween(id, barId);
       if (!targetMainNode || !targetNode || !oldTween) return;
-      updateGsapTimelineByTween(oldTween, barItem, targetMainNode, targetNode, 'startTime');
+      updateGsapTimelineByTween(oldTween, barItem, targetMainNode, targetNode, 'start');
     });
     barItem.on('dragmove', function () {
       if (!isDragging) return;
@@ -118,6 +117,22 @@ export const useGsap = () => {
     groupItem.add(barItem);
     // 加上變形器
     const transformerItem = addTransformer();
+    // 維持 scaleX = 1, 並將 width 設為原本的 scaleX * width
+    transformerItem.on('transform', function () {
+      const currentBar = transformerItem.nodes()[0] as Konva.Rect;
+      // currentBar.width(currentBar.scaleX() * currentBar.width());
+      // currentBar.scaleX(1);
+      console.log(currentBar.width(), currentBar.x());
+    });
+    // transformerItem.on('transformend', function () {
+    //   const currentBar = transformerItem.nodes()[0] as Konva.Rect;
+    //   // 動畫的 duration 發生變化
+    //   const targetMainNode = mainNodeMap.value[id];
+    //   const targetNode = getTargetNodeFromMain(id);
+    //   const oldTween = getTween(id, barId);
+    //   if (!targetMainNode || !targetNode || !oldTween) return;
+    //   updateGsapTimelineByTween(oldTween, currentBar, targetMainNode, targetNode, 'duration');
+    // });
     transformerItem.nodes([barItem]);
     // 回傳 barId
     return barId;
@@ -215,24 +230,12 @@ export const useGsap = () => {
     return tween;
   };
 
-  // 更新動畫條的起始狀態
-  // TODO:更新過程:
-  const updateFromVars = (targetNode: Node, barId: string, fromVars: TweenVars) => {
-    if (!gsapTimeline) return null;
-  };
-
-  // 更新動畫條的結尾狀態
-  // TODO:更新過程:
-  const updateToVars = (targetNode: Node, barId: string, toVars: TweenVars) => {
-    if (!gsapTimeline) return null;
-  };
-
   const updateGsapTimelineByTween = (
     oldTween: GSAPTween,
     targetBarNode: Node,
     targetMainNode: MyNode,
     targetNode: Node,
-    updateName: 'fromVars' | 'toVars' | 'duration' | 'startTime'
+    updateName: 'fromVars' | 'toVars' | 'duration' | 'start'
   ) => {
     if (!gsapTimeline) return;
     const {
