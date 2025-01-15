@@ -26,7 +26,7 @@ const {
 
 export const useGsap = () => {
   const playGsapTimeline = () => {
-    gsapTimeline?.play();
+    gsapTimeline?.play(0);
     paused.value = false;
   };
 
@@ -47,7 +47,7 @@ export const useGsap = () => {
   };
 
   const getTween = (nodeId: string, barId: string) => {
-    console.log('getTween', gsapTimelineNodeTweenMap, nodeId, barId);
+    console.log('getTween');
     return gsapTimelineNodeTweenMap[nodeId][barId];
   };
 
@@ -139,7 +139,7 @@ export const useGsap = () => {
       y: fromY,
       rotation: fromRotation,
       opacity: fromOpacity
-    } = oldTween.vars as TweenVars;
+    } = oldTween.vars.startAt as TweenVars;
     const {
       width: toWidth,
       height: toHeight,
@@ -147,7 +147,7 @@ export const useGsap = () => {
       y: toY,
       rotation: toRotation,
       opacity: toOpacity
-    } = oldTween.vars.startAt as TweenVars;
+    } = oldTween.vars as TweenVars;
     const {
       width: newWidth,
       height: newHeight,
@@ -194,8 +194,8 @@ export const useGsap = () => {
             opacity: toOpacity,
             ease: 'none'
           };
-    console.log('fromVars:', fromVars);
-    console.log('toVars:', toVars);
+    // console.log('fromVars:', fromVars);
+    // console.log('toVars:', toVars);
 
     const nodeId = targetNode.id();
     const barId = targetBarNode.id();
@@ -214,7 +214,6 @@ export const useGsap = () => {
     if (!gsapTimeline) return null;
     const nodeId = targetNode.id();
     const tweenObj = gsapTimelineNodeTweenMap[nodeId][barId];
-    console.log('tweenObj:', (tweenObj.vars.x = 200));
   };
 
   return {
