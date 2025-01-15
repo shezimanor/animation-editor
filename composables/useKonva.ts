@@ -589,6 +589,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     logKonva,
     updateKonvaNodeAttribute,
     updateMainNodeState,
+    updateNodeAndMainNodeAttributes,
     addLayerClip,
     removeLayerClip
   };

@@ -135,7 +135,7 @@ onUnmounted(() => {
       <!-- 時間軸畫布 -->
       <div class="relative flex w-full flex-col gap-y-2 border-t-2 border-neutral-300 px-4">
         <UBadge color="white" variant="solid" class="absolute left-1 top-1">{{
-          currentTime.toFixed(2)
+          currentTime
         }}</UBadge>
         <!-- 時間軸標籤 -->
         <datalist

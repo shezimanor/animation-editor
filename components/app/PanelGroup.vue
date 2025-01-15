@@ -1,14 +1,20 @@
 <script lang="ts" setup>
 const UNNAMED_LABEL = '未命名標籤';
 console.log('-panel group-');
+import type { Node } from 'konva/lib/Node';
+
+import { useDebounceFn } from '@vueuse/core';
 const {
+  currentTime,
   mainTransformer,
+  mainNodeMap,
   getTargetNodeFromMain,
   logGsapTimeline,
   isOpen_createTweenModal,
   currentNodeId
 } = useGlobal();
-const { createTween, removeTween } = useGsap();
+const { createTween } = useGsap();
+const { updateNodeAndMainNodeAttributes } = useKonva();
 
 const animationLabel = ref(UNNAMED_LABEL);
 
@@ -40,7 +46,25 @@ const handleOpenModal = (id: string) => {
   currentNodeId.value = id;
 };
 
-const logSomething = () => {};
+const debouncedUpdateMainNode = useDebounceFn((selectedNodes: Node[]) => {
+  selectedNodes.forEach((node) => {
+    const targetMainNode = mainNodeMap.value[node.id()];
+    if (targetMainNode) updateNodeAndMainNodeAttributes(node, targetMainNode);
+  });
+}, 170);
+
+// watcher `currentTime`
+watch(currentTime, (newValue) => {
+  const selectedNodes = mainTransformer.value?.nodes();
+  if (!selectedNodes) return;
+  selectedNodes.forEach((node) => {
+    const targetMainNode = mainNodeMap.value[node.id()];
+    if (targetMainNode) updateNodeAndMainNodeAttributes(node, targetMainNode);
+  });
+  // 延遲校正 mainNode 的屬性
+  debouncedUpdateMainNode(selectedNodes);
+  // console.log('currentTime', newVal);
+});
 </script>
 
 <template>
