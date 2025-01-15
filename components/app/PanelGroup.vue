@@ -54,16 +54,11 @@ const debouncedUpdateMainNode = useDebounceFn((selectedNodes: Node[]) => {
 }, 170);
 
 // watcher `currentTime`
-watch(currentTime, (newValue) => {
+watch(currentTime, () => {
   const selectedNodes = mainTransformer.value?.nodes();
   if (!selectedNodes) return;
-  selectedNodes.forEach((node) => {
-    const targetMainNode = mainNodeMap.value[node.id()];
-    if (targetMainNode) updateNodeAndMainNodeAttributes(node, targetMainNode);
-  });
   // 延遲校正 mainNode 的屬性
   debouncedUpdateMainNode(selectedNodes);
-  // console.log('currentTime', newVal);
 });
 </script>
 
