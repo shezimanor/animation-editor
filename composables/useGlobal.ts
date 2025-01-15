@@ -1,6 +1,5 @@
 import Konva from 'konva';
 import { gsap } from 'gsap';
-import { v4 as uuid } from 'uuid';
 import type { NodeConfig } from 'konva/lib/Node';
 import type { ImageConfig } from 'konva/lib/shapes/Image';
 import type { GroupConfig } from 'konva/lib/Group';
@@ -103,13 +102,7 @@ export const useGlobal = () => {
   const addGroup = (groupConfig: GroupConfig) => {
     return new Konva.Group(groupConfig);
   };
-  const removeActiveBarHighLight = () => {
-    const activeBar = timelineLayer.value?.findOne('.item_bar_active');
-    if (activeBar && activeBar instanceof Konva.Rect) {
-      activeBar.fill(TIMELINE_BAR_COLOR);
-      activeBar.name('item_bar');
-    }
-  };
+
   const addTransformer = () => {
     if (timelineTransformers.value.length > 0) {
       const currentTransformer = timelineTransformers.value.find(
@@ -160,73 +153,6 @@ export const useGlobal = () => {
     timelineLayer.value?.add(newTransformer);
     timelineTransformers.value.push(newTransformer);
     return newTransformer;
-  };
-  const addTimelineBar = (id: string, duration: number, start: number): string => {
-    const groupItem = getTargetNodeFromTimeline(`group_${id}`);
-    if (!groupItem || !(groupItem instanceof Konva.Group)) return '';
-    const barId = `bar_${uuid()}_${id}`;
-    const trackWidth =
-      window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION - TIMELINE_TRACK_START_X;
-    // 移除其他 bar 的顯目顯示
-    removeActiveBarHighLight();
-    // 時間軸動畫條(直接醒目顯示)
-    const barItem = addRect({
-      id: barId,
-      name: `item_bar item_bar_active`,
-      // 這裡的 x,y 位置是相對於 group 的位置
-      x: trackWidth * (start / TOTAL_DURATION),
-      y: 0,
-      width: trackWidth * (duration / TOTAL_DURATION),
-      height: TIMELINE_TRACK_HEIGHT,
-      fill: TIMELINE_BAR_ACTIVE_COLOR,
-      cornerRadius: 3,
-      draggable: true,
-      dragBoundFunc(pos) {
-        const timelineStageWidth = window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION;
-        return {
-          x:
-            pos.x < TIMELINE_TRACK_START_X
-              ? TIMELINE_TRACK_START_X
-              : pos.x + this.width() > timelineStageWidth
-                ? timelineStageWidth - this.width()
-                : pos.x,
-          y: this.absolutePosition().y
-        };
-      }
-    });
-    // 事件監聽
-    barItem.on('click', function () {
-      // 單擊動畫條
-      if (barId !== currentActiveBarId.value) {
-        activeBar(id, barId, barItem);
-      }
-    });
-    barItem.on('dblclick', function () {
-      // 雙擊動畫條
-      if (barId !== currentActiveBarId.value) {
-        activeBar(id, barId, barItem);
-      }
-    });
-    // 設定 currentActiveBarId
-    currentActiveBarId.value = barId;
-    // 加入到 groupItem
-    groupItem.add(barItem);
-    // 加上變形器
-    const transformerItem = addTransformer();
-    transformerItem.nodes([barItem]);
-    // 回傳 barId
-    return barId;
-  };
-  // 顯目當前動畫條
-  const activeBar = (sourceId: string, barId: string, barItem: Konva.Rect) => {
-    // highlight active bar
-    removeActiveBarHighLight();
-    barItem.fill(TIMELINE_BAR_ACTIVE_COLOR);
-    barItem.name('item_bar item_bar_active');
-    // 設定 currentActiveBarId
-    currentActiveBarId.value = barId;
-    // 選取到主畫布的素材
-    selectTargetNodeFromMain(sourceId);
   };
   // 更新起始位置 (用 track 來找)
   const updateTimelineTrackInitialPosition = () => {
@@ -412,12 +338,12 @@ export const useGlobal = () => {
 
     // 時間軸物件
     timelineTransformers, // state
-    addTimelineBar, // method
     addTimelineTrack, // method
     deleteTimelineTrack, // method
     addRect, // method
     addImage, // method
     addGroup, // method
+    addTransformer, // method
 
     // gsap
     gsapTimeline, // 原生物件

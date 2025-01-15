@@ -1,6 +1,8 @@
 console.log('exec useGsap');
 
 import { gsap } from 'gsap';
+import Konva from 'konva';
+import { v4 as uuid } from 'uuid';
 import type { Node } from 'konva/lib/Node';
 import type { MyNode } from './useGlobal';
 interface TweenVars {
@@ -18,10 +20,16 @@ const {
   adModuleX,
   adModuleY,
   mainNodeMap,
-  addTimelineBar,
+  getTargetNodeFromMain,
   initializedGsap,
   paused,
-  gsapTimelineNodeTweenMap
+  gsapTimelineNodeTweenMap,
+  currentActiveBarId,
+  timelineLayer,
+  getTargetNodeFromTimeline,
+  addRect,
+  addTransformer,
+  selectTargetNodeFromMain
 } = useGlobal();
 
 export const useGsap = () => {
@@ -39,6 +47,101 @@ export const useGsap = () => {
 
   const getTimelineDuration = () => {
     return gsapTimeline?.duration() || 0;
+  };
+
+  const addTimelineBar = (id: string, duration: number, start: number): string => {
+    const groupItem = getTargetNodeFromTimeline(`group_${id}`);
+    if (!groupItem || !(groupItem instanceof Konva.Group)) return '';
+    const barId = `bar_${uuid()}_${id}`;
+    const trackWidth =
+      window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION - TIMELINE_TRACK_START_X;
+    // 移除其他 bar 的顯目顯示
+    removeActiveBarHighLight();
+    // 時間軸動畫條(直接醒目顯示)
+    const barItem = addRect({
+      id: barId,
+      name: `item_bar item_bar_active`,
+      // 這裡的 x,y 位置是相對於 group 的位置
+      x: trackWidth * (start / TOTAL_DURATION),
+      y: 0,
+      width: trackWidth * (duration / TOTAL_DURATION),
+      height: TIMELINE_TRACK_HEIGHT,
+      fill: TIMELINE_BAR_ACTIVE_COLOR,
+      cornerRadius: 3,
+      draggable: true,
+      dragBoundFunc(pos) {
+        const timelineStageWidth = window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION;
+        return {
+          x:
+            pos.x < TIMELINE_TRACK_START_X
+              ? TIMELINE_TRACK_START_X
+              : pos.x + this.width() > timelineStageWidth
+                ? timelineStageWidth - this.width()
+                : pos.x,
+          y: this.absolutePosition().y
+        };
+      }
+    });
+    // 事件監聽
+    barItem.on('click', function () {
+      // 單擊動畫條
+      if (barId !== currentActiveBarId.value) {
+        activeBar(id, barId, barItem);
+      }
+    });
+    barItem.on('dblclick', function () {
+      // 雙擊動畫條
+      if (barId !== currentActiveBarId.value) {
+        activeBar(id, barId, barItem);
+      }
+    });
+    let isDragging = false;
+    barItem.on('dragstart', function () {
+      isDragging = true;
+    });
+    barItem.on('dragend', function () {
+      isDragging = false;
+      console.log('barItem.x():', barItem.x());
+      // TODO:動畫的起始點發生變化
+      const targetMainNode = mainNodeMap.value[id];
+      const targetNode = getTargetNodeFromMain(id);
+      const oldTween = getTween(id, barId);
+      if (!targetMainNode || !targetNode || !oldTween) return;
+      updateGsapTimelineByTween(oldTween, barItem, targetMainNode, targetNode, 'startTime');
+    });
+    barItem.on('dragmove', function () {
+      if (!isDragging) return;
+    });
+    // 設定 currentActiveBarId
+    currentActiveBarId.value = barId;
+    // 加入到 groupItem
+    groupItem.add(barItem);
+    // 加上變形器
+    const transformerItem = addTransformer();
+    transformerItem.nodes([barItem]);
+    // 回傳 barId
+    return barId;
+  };
+
+  // 顯目當前動畫條
+  const activeBar = (sourceId: string, barId: string, barItem: Konva.Rect) => {
+    // highlight active bar
+    removeActiveBarHighLight();
+    barItem.fill(TIMELINE_BAR_ACTIVE_COLOR);
+    barItem.name('item_bar item_bar_active');
+    // 設定 currentActiveBarId
+    currentActiveBarId.value = barId;
+    // 選取到主畫布的素材
+    selectTargetNodeFromMain(sourceId);
+  };
+
+  // 移除動畫條的顯目顯示
+  const removeActiveBarHighLight = () => {
+    const activeBar = timelineLayer.value?.findOne('.item_bar_active');
+    if (activeBar && activeBar instanceof Konva.Rect) {
+      activeBar.fill(TIMELINE_BAR_COLOR);
+      activeBar.name('item_bar');
+    }
   };
 
   const removeTween = (tween: GSAPTween) => {
@@ -194,6 +297,8 @@ export const useGsap = () => {
             opacity: toOpacity,
             ease: 'none'
           };
+    const duration = getDurationByBarWidth(targetBarNode.width());
+    const start = getTimeByBarX(targetBarNode.x());
     // console.log('fromVars:', fromVars);
     // console.log('toVars:', toVars);
 
@@ -202,7 +307,7 @@ export const useGsap = () => {
     // 移除原本的 oldTween
     removeTween(oldTween);
     // 重新建立新的 Tween
-    const newTween = addTween(targetNode, 1, 0, fromVars, toVars);
+    const newTween = addTween(targetNode, duration, start, fromVars, toVars);
 
     // 儲存新的 Tween 到 gsapTimelineNodeTweenMap 裡面
     if (newTween) gsapTimelineNodeTweenMap[nodeId][barId] = newTween;

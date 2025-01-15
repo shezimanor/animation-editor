@@ -68,6 +68,7 @@ export const usePointer = () => {
     seekGsapTimelineByPointerPosition(x);
   };
   const getTimeByX = (x: number) => {
+    // TODO:如果要用的話還需要檢查一下算法
     let time =
       Math.round(
         ((x - TIMELINE_TRACK_START_X) /
