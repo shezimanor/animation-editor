@@ -55,6 +55,8 @@ export const useGsap = () => {
     const barId = `bar_${uuid()}_${id}`;
     const trackWidth =
       window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION - TIMELINE_TRACK_START_X;
+    const barInitialX = trackWidth * (start / TOTAL_DURATION);
+    const barInitialWidth = trackWidth * (duration / TOTAL_DURATION);
     // 移除其他 bar 的顯目顯示
     removeActiveBarHighLight();
     // 時間軸動畫條(直接醒目顯示)
@@ -62,9 +64,9 @@ export const useGsap = () => {
       id: barId,
       name: `item_bar item_bar_active`,
       // 這裡的 x,y 位置是相對於 group 的位置
-      x: trackWidth * (start / TOTAL_DURATION),
+      x: barInitialX,
       y: 0,
-      width: trackWidth * (duration / TOTAL_DURATION),
+      width: barInitialWidth,
       height: TIMELINE_TRACK_HEIGHT,
       fill: TIMELINE_BAR_ACTIVE_COLOR,
       cornerRadius: 0,
@@ -110,6 +112,7 @@ export const useGsap = () => {
     });
     barItem.on('dragmove', function () {
       if (!isDragging) return;
+      // console.log(barItem.x());
     });
     // 設定 currentActiveBarId
     currentActiveBarId.value = barId;
@@ -117,22 +120,28 @@ export const useGsap = () => {
     groupItem.add(barItem);
     // 加上變形器
     const transformerItem = addTransformer();
+    // 快取 barItem 的 x 位置
+    let cacheX = barInitialX;
     // 維持 scaleX = 1, 並將 width 設為原本的 scaleX * width
+    transformerItem.on('transformstart', function () {
+      cacheX = barItem.x();
+    });
     transformerItem.on('transform', function () {
       const currentBar = transformerItem.nodes()[0] as Konva.Rect;
-      // currentBar.width(currentBar.scaleX() * currentBar.width());
-      // currentBar.scaleX(1);
-      console.log(currentBar.width(), currentBar.x());
+      currentBar.width(currentBar.scaleX() * currentBar.width());
+      currentBar.scaleX(1);
+      // 修正 x 會因為 scaleX 變動而改變的問題
+      if (currentBar.x() !== cacheX) currentBar.x(cacheX);
     });
-    // transformerItem.on('transformend', function () {
-    //   const currentBar = transformerItem.nodes()[0] as Konva.Rect;
-    //   // 動畫的 duration 發生變化
-    //   const targetMainNode = mainNodeMap.value[id];
-    //   const targetNode = getTargetNodeFromMain(id);
-    //   const oldTween = getTween(id, barId);
-    //   if (!targetMainNode || !targetNode || !oldTween) return;
-    //   updateGsapTimelineByTween(oldTween, currentBar, targetMainNode, targetNode, 'duration');
-    // });
+    transformerItem.on('transformend', function () {
+      const currentBar = transformerItem.nodes()[0] as Konva.Rect;
+      // 動畫的 duration 發生變化
+      const targetMainNode = mainNodeMap.value[id];
+      const targetNode = getTargetNodeFromMain(id);
+      const oldTween = getTween(id, barId);
+      if (!targetMainNode || !targetNode || !oldTween) return;
+      updateGsapTimelineByTween(oldTween, currentBar, targetMainNode, targetNode, 'duration');
+    });
     transformerItem.nodes([barItem]);
     // 回傳 barId
     return barId;
