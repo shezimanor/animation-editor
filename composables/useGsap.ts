@@ -26,7 +26,7 @@ const {
   gsapTimelineNodeTweenMap,
   currentActiveBarId,
   activateBar,
-  inactivateBars,
+  inactivateBar,
   getTargetNodeFromTimeline,
   addRect,
   addTransformer
@@ -58,7 +58,7 @@ export const useGsap = () => {
     const barInitialX = trackWidth * (start / TOTAL_DURATION);
     const barInitialWidth = trackWidth * (duration / TOTAL_DURATION);
     // 移除其他 bar 的顯目顯示
-    inactivateBars();
+    inactivateBar();
     // 時間軸動畫條(直接醒目顯示)
     const barItem = addRect({
       id: barId,

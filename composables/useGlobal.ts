@@ -261,7 +261,7 @@ export const useGlobal = () => {
   // 顯目當前動畫條
   const activateBar = (sourceId: string, barId: string, barItem: Konva.Rect) => {
     // highlight active bar
-    inactivateBars();
+    inactivateBar();
     barItem.fill(TIMELINE_BAR_ACTIVE_COLOR);
     barItem.name('item_bar item_bar_active');
     // 設定 currentActiveBarId
@@ -270,7 +270,7 @@ export const useGlobal = () => {
     selectTargetNodeFromMain(sourceId);
   };
   // 移除動畫條的顯目顯示
-  const inactivateBars = () => {
+  const inactivateBar = () => {
     const activeBar = timelineLayer.value?.findOne('.item_bar_active');
     if (activeBar && activeBar instanceof Konva.Rect) {
       activeBar.fill(TIMELINE_BAR_COLOR);
@@ -354,7 +354,7 @@ export const useGlobal = () => {
     addTimelineTrack, // method
     deleteTimelineTrack, // method
     activateBar, // method
-    inactivateBars, // method
+    inactivateBar, // method
     addRect, // method
     addImage, // method
     addGroup, // method
