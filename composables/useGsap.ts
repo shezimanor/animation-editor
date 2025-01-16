@@ -32,6 +32,8 @@ const {
   addTransformer
 } = useGlobal();
 
+const { toastSuccess } = useNotify();
+
 export const useGsap = () => {
   const playGsapTimeline = () => {
     gsapTimeline?.play(0);
@@ -171,7 +173,7 @@ export const useGsap = () => {
     if (!gsapTimelineNodeTweenMap[nodeId]) gsapTimelineNodeTweenMap[nodeId] = {};
     gsapTimelineNodeTweenMap[nodeId][barId] = tween;
 
-    return 'Animation created';
+    toastSuccess('動畫已建立');
   };
 
   // 建立一個 from,to 狀態相同的不變動畫

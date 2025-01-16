@@ -30,5 +30,10 @@ useHead({
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+    <UNotifications
+      :ui="{
+        width: 'w-72'
+      }"
+    />
   </div>
 </template>

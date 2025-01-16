@@ -67,7 +67,7 @@ watch(currentTime, () => {
     <header class="flex items-center justify-between">
       <h2>圖層資訊</h2>
       <div class="flex gap-x-1">
-        <UButton size="xs" @click="logGsapTimeline">log</UButton>
+        <UButton size="xs" @click="logGsapTimeline">Log</UButton>
       </div>
     </header>
     <div
