@@ -25,11 +25,11 @@ const {
   paused,
   gsapTimelineNodeTweenMap,
   currentActiveBarId,
-  timelineLayer,
+  activateBar,
+  inactivateBars,
   getTargetNodeFromTimeline,
   addRect,
-  addTransformer,
-  selectTargetNodeFromMain
+  addTransformer
 } = useGlobal();
 
 export const useGsap = () => {
@@ -58,7 +58,7 @@ export const useGsap = () => {
     const barInitialX = trackWidth * (start / TOTAL_DURATION);
     const barInitialWidth = trackWidth * (duration / TOTAL_DURATION);
     // 移除其他 bar 的顯目顯示
-    removeActiveBarHighLight();
+    inactivateBars();
     // 時間軸動畫條(直接醒目顯示)
     const barItem = addRect({
       id: barId,
@@ -87,13 +87,13 @@ export const useGsap = () => {
     barItem.on('click', function () {
       // 單擊動畫條
       if (barId !== currentActiveBarId.value) {
-        activeBar(id, barId, barItem);
+        activateBar(id, barId, barItem);
       }
     });
     barItem.on('dblclick', function () {
       // 雙擊動畫條
       if (barId !== currentActiveBarId.value) {
-        activeBar(id, barId, barItem);
+        activateBar(id, barId, barItem);
       }
     });
     let isDragging = false;
@@ -145,27 +145,6 @@ export const useGsap = () => {
     transformerItem.nodes([barItem]);
     // 回傳 barId
     return barId;
-  };
-
-  // 顯目當前動畫條
-  const activeBar = (sourceId: string, barId: string, barItem: Konva.Rect) => {
-    // highlight active bar
-    removeActiveBarHighLight();
-    barItem.fill(TIMELINE_BAR_ACTIVE_COLOR);
-    barItem.name('item_bar item_bar_active');
-    // 設定 currentActiveBarId
-    currentActiveBarId.value = barId;
-    // 選取到主畫布的素材
-    selectTargetNodeFromMain(sourceId);
-  };
-
-  // 移除動畫條的顯目顯示
-  const removeActiveBarHighLight = () => {
-    const activeBar = timelineLayer.value?.findOne('.item_bar_active');
-    if (activeBar && activeBar instanceof Konva.Rect) {
-      activeBar.fill(TIMELINE_BAR_COLOR);
-      activeBar.name('item_bar');
-    }
   };
 
   const removeTween = (tween: GSAPTween) => {

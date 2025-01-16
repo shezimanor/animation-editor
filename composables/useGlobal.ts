@@ -258,6 +258,25 @@ export const useGlobal = () => {
     // 更新起始位置
     updateTimelineTrackInitialPosition();
   };
+  // 顯目當前動畫條
+  const activateBar = (sourceId: string, barId: string, barItem: Konva.Rect) => {
+    // highlight active bar
+    inactivateBars();
+    barItem.fill(TIMELINE_BAR_ACTIVE_COLOR);
+    barItem.name('item_bar item_bar_active');
+    // 設定 currentActiveBarId
+    currentActiveBarId.value = barId;
+    // 選取到主畫布的素材
+    selectTargetNodeFromMain(sourceId);
+  };
+  // 移除動畫條的顯目顯示
+  const inactivateBars = () => {
+    const activeBar = timelineLayer.value?.findOne('.item_bar_active');
+    if (activeBar && activeBar instanceof Konva.Rect) {
+      activeBar.fill(TIMELINE_BAR_COLOR);
+      activeBar.name('item_bar');
+    }
+  };
 
   // gsap
   const updateCurrentTime = (time: number) => {
@@ -334,6 +353,8 @@ export const useGlobal = () => {
     timelineTransformers, // state
     addTimelineTrack, // method
     deleteTimelineTrack, // method
+    activateBar, // method
+    inactivateBars, // method
     addRect, // method
     addImage, // method
     addGroup, // method
