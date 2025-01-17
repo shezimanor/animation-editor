@@ -3,8 +3,16 @@ console.log('exec useTimeline');
 import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
 
-const { paused, currentTime, updateCurrentTime, seekGsapTimeline, timelineStage, timelineLayer } =
-  useGlobal();
+const {
+  paused,
+  currentTime,
+  updateCurrentTime,
+  seekGsapTimeline,
+  timelineStage,
+  timelineLayer,
+  activateBar,
+  inactivateBar
+} = useGlobal();
 
 export const useTimeline = () => {
   const timelineStageRef = useState<HTMLDivElement | null>('timelineStageRef', () =>
@@ -18,7 +26,14 @@ export const useTimeline = () => {
     // create Stage
     createStage();
     // create Layer
-    createLayer();
+    const layer = createLayer();
+    layer.on('click', function (event) {
+      console.log('timelineLayer Clicked:');
+      const targetElement = event.target;
+      if (targetElement instanceof Konva.Rect) {
+        console.log('targetElement:', targetElement.name());
+      }
+    });
     // create Pointer(時間軸的指針)
     // const pointer = createPointer();
     // timelineLayer.value?.add(pointer);
@@ -56,6 +71,7 @@ export const useTimeline = () => {
   const createLayer = () => {
     timelineLayer.value = new Konva.Layer();
     timelineStage.value?.add(timelineLayer.value);
+    return timelineLayer.value;
   };
 
   const updateCurrentTimeByRangeInput = (time: number) => {

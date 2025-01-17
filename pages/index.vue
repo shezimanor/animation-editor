@@ -1,9 +1,7 @@
 <!-- 編輯頁：所以工具列在這頁 -->
 <script setup lang="ts">
-import { Label } from 'konva/lib/shapes/Label';
 import testImg1 from '~/assets/images/demo/pokedex-0144-1.png';
 import testImg2 from '~/assets/images/demo/pokedex-0145-1.png';
-import testImg3 from '~/assets/images/demo/pokedex-0146-1.png';
 
 export interface AdModuleConfig {
   width: number;
@@ -106,8 +104,7 @@ onMounted(() => {
   initKonva();
   initTimelineKonva();
   // 自動建立測試圖層
-  loadImages([testImg2]);
-  // loadImages([testImg1, testImg2, testImg3]);
+  loadImages([testImg1, testImg2]);
 });
 onUnmounted(() => {
   destroyKonva();

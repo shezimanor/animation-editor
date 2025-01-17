@@ -19,9 +19,8 @@ const {
   addTimelineTrack,
   deleteTimelineTrack,
   createGsapTimeline,
-  isOpen_createTweenModal,
-  isOpen_createFlashPointModal,
-  currentNodeId
+  currentNodeId,
+  createTween
 } = useGlobal();
 
 interface AdModuleConfig {
@@ -150,6 +149,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const createLayer = () => {
     mainLayer.value = new Konva.Layer();
     stage.value?.add(mainLayer.value);
+    return mainLayer.value;
   };
 
   const createTransformer = () => {
@@ -420,14 +420,12 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         break;
       case 'w': // 快捷鍵新增動畫
         if (selectedNodes.length !== 1) break;
-        // 開啟新增動畫 Modal
-        isOpen_createTweenModal.value = true;
+        createTween(selectedNodes[0]);
         currentNodeId.value = selectedNodes[0].id();
         break;
       case 'e': // 快捷鍵新增節點
         if (selectedNodes.length !== 1) break;
-        // 開啟新增節點 Modal
-        isOpen_createFlashPointModal.value = true;
+        // TODO:
         currentNodeId.value = selectedNodes[0].id();
         break;
       default:

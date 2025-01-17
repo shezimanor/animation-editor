@@ -2,9 +2,16 @@
 import type { Node } from 'konva/lib/Node';
 
 console.log('-panel-');
-const { mainNodeMap, currentActiveBarId, getTargetNodeFromTimeline } = useGlobal();
+const {
+  mainNodeMap,
+  currentActiveBarId,
+  getTargetNodeFromTimeline,
+  getTween,
+  updateGsapTimelineByTween,
+  createTween,
+  createSetPoint
+} = useGlobal();
 const { updateKonvaNodeAttribute } = useKonva();
-const { getTween, updateGsapTimelineByTween } = useGsap();
 
 const props = withDefaults(
   defineProps<{
@@ -14,10 +21,6 @@ const props = withDefaults(
     node: null
   }
 );
-
-const emit = defineEmits<{
-  (e: 'openModal', id: string): void;
-}>();
 
 const currentNode = computed(() => {
   if (!props.node) return null;
@@ -130,18 +133,27 @@ const lookTween = () => {
       </div>
     </div>
     <!-- 圖片素材操作 -->
-    <div class="mt-1 flex flex-col items-start gap-y-2 border-t border-neutral-200 pt-2">
+    <div
+      v-if="node"
+      class="mt-1 flex flex-col items-start gap-y-2 border-t border-neutral-200 pt-2"
+    >
       <div class="flex w-full flex-row items-center justify-start gap-x-2">
         <UButton
           size="xs"
           color="gray"
           icon="i-heroicons-plus-solid"
           variant="solid"
-          @click="emit('openModal', currentNode.id)"
+          @click="createTween(node)"
         >
           新增動畫<UKbd size="sm">W</UKbd>
         </UButton>
-        <UButton size="xs" color="gray" icon="i-heroicons-plus-solid" variant="solid">
+        <UButton
+          size="xs"
+          color="gray"
+          icon="i-heroicons-plus-solid"
+          variant="solid"
+          @click="createSetPoint(node)"
+        >
           新增節點
           <UKbd size="sm">E</UKbd>
         </UButton>
