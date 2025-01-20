@@ -6,7 +6,9 @@ import { useDebounceFn } from '@vueuse/core';
 const { currentTime, mainTransformer, mainNodeMap, logGsapTimeline } = useGlobal();
 const { updateNodeAndMainNodeAttributes } = useKonva();
 
-const debouncedUpdateMainNode = useDebounceFn((selectedNodes: Node[]) => {
+const debouncedUpdateMainNode = useDebounceFn(() => {
+  const selectedNodes = mainTransformer.value?.nodes();
+  if (!selectedNodes) return;
   selectedNodes.forEach((node) => {
     const targetMainNode = mainNodeMap.value[node.id()];
     if (targetMainNode) updateNodeAndMainNodeAttributes(node, targetMainNode);
@@ -15,10 +17,8 @@ const debouncedUpdateMainNode = useDebounceFn((selectedNodes: Node[]) => {
 
 // watcher `currentTime`
 watch(currentTime, () => {
-  const selectedNodes = mainTransformer.value?.nodes();
-  if (!selectedNodes) return;
   // 延遲校正 mainNode 的屬性
-  debouncedUpdateMainNode(selectedNodes);
+  debouncedUpdateMainNode();
 });
 </script>
 
