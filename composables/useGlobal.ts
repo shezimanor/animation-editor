@@ -317,12 +317,16 @@ export const useGlobal = () => {
       // 單擊動畫條
       activateNode(id, barId, barItem);
       console.log('barItem click');
-      currentTime.value = getTimeByNodeX(barItem.x());
+      const time = getTimeByNodeX(barItem.x());
+      updateCurrentTime(time);
+      seekGsapTimeline(time);
     });
     barItem.on('dblclick', function () {
       // 雙擊動畫條
       console.log('barItem dblclick');
-      currentTime.value = getTimeByNodeX(barItem.x() + barItem.width());
+      const time = getTimeByNodeX(barItem.x() + barItem.width());
+      updateCurrentTime(time);
+      seekGsapTimeline(time);
     });
     let isDragging = false;
     barItem.on('dragstart', function () {
@@ -414,7 +418,9 @@ export const useGlobal = () => {
       // 單擊動畫條
       activateNode(id, circleId, circleItem);
       console.log('circleItem click');
-      currentTime.value = getTimeByNodeX(circleItem.x());
+      const time = getTimeByNodeX(circleItem.x());
+      updateCurrentTime(time);
+      seekGsapTimeline(time);
     });
     let isDragging = false;
     circleItem.on('dragstart', function () {
