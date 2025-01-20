@@ -10,7 +10,8 @@ const {
   seekGsapTimeline,
   timelineStage,
   timelineLayer,
-  gsapTimelineNodeTweenInfoMap
+  gsapTimelineNodeTweenInfoMap,
+  inactivateNode
 } = useGlobal();
 
 export const useTimeline = () => {
@@ -29,8 +30,16 @@ export const useTimeline = () => {
     layer.on('click', function (event) {
       console.log('timelineLayer Clicked:');
       const targetElement = event.target;
-      if (targetElement instanceof Konva.Rect) {
-        console.log('targetElement:', targetElement.name());
+      if (targetElement instanceof Konva.Rect || targetElement instanceof Konva.Circle) {
+        const targetId = targetElement.id();
+        console.log('targetId: ', targetId);
+        if (targetId.indexOf('bar') === -1 && targetId.indexOf('circle') === -1) {
+          console.log('ina');
+          inactivateNode();
+        }
+      } else {
+        console.log('ina');
+        inactivateNode();
       }
     });
     // create Pointer(時間軸的指針)

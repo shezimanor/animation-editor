@@ -317,10 +317,12 @@ export const useGlobal = () => {
       // 單擊動畫條
       activateNode(id, barId, barItem);
       console.log('barItem click');
+      currentTime.value = getTimeByNodeX(barItem.x());
     });
     barItem.on('dblclick', function () {
       // 雙擊動畫條
       console.log('barItem dblclick');
+      currentTime.value = getTimeByNodeX(barItem.x() + barItem.width());
     });
     let isDragging = false;
     barItem.on('dragstart', function () {
@@ -411,11 +413,8 @@ export const useGlobal = () => {
     circleItem.on('click', function () {
       // 單擊動畫條
       activateNode(id, circleId, circleItem);
-      console.log('barItem click');
-    });
-    circleItem.on('dblclick', function () {
-      // 雙擊動畫條
-      console.log('barItem dblclick');
+      console.log('circleItem click');
+      currentTime.value = getTimeByNodeX(circleItem.x());
     });
     let isDragging = false;
     circleItem.on('dragstart', function () {
@@ -424,7 +423,7 @@ export const useGlobal = () => {
     });
     circleItem.on('dragend', function () {
       isDragging = false;
-      console.log('barItem.x():', circleItem.x());
+      console.log('circleItem.x():', circleItem.x());
       // 動畫的 start 發生變化
       const targetMainNode = mainNodeMap.value[id];
       const targetNode = getTargetNodeFromMain(id);
@@ -449,9 +448,9 @@ export const useGlobal = () => {
     inactivateNode();
     nodeItem.fill(TIMELINE_NODE_ACTIVE_COLOR);
     if (nodeItem instanceof Konva.Rect) {
-      nodeItem.name('item_bar item_tween');
+      nodeItem.name('item_bar item_tween item_tween_active');
     } else if (nodeItem instanceof Konva.Circle) {
-      nodeItem.name('item_circle item_tween');
+      nodeItem.name('item_circle item_tween item_tween_active');
     }
     // 設定 currentActiveTimelineNodeId
     currentActiveTimelineNodeId.value = nodeItemId;
@@ -570,7 +569,16 @@ export const useGlobal = () => {
       gsapTimelineNodeTweenInfoMap[barId].start = start;
     }
 
-    return 'Animation updated';
+    switch (updateName) {
+      case 'fromVars':
+        toastSuccess('已更新初始點');
+        break;
+      case 'toVars':
+        toastSuccess('已更新結尾點');
+        break;
+      default:
+        break;
+    }
   };
   const updateGsapTimelineBySetPoint = (
     oldTween: GSAPTween,
@@ -632,7 +640,13 @@ export const useGlobal = () => {
       gsapTimelineNodeTweenInfoMap[circleId].start = start;
     }
 
-    return 'Animation updated';
+    switch (updateName) {
+      case 'vars':
+        toastSuccess('已更新節點');
+        break;
+      default:
+        break;
+    }
   };
   const createTween = (targetNode: Node) => {
     console.log('createTween');

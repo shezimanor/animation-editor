@@ -191,7 +191,7 @@ const lookTween = () => {
         <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarToVars"
           >更新結尾點<UKbd size="sm">D</UKbd></UButton
         >
-        <UButton size="xs" color="primary" variant="solid" @click="lookTween">LOG</UButton>
+        <!-- <UButton size="xs" color="primary" variant="solid" @click="lookTween">LOG</UButton> -->
       </div>
       <div
         v-if="timelineNodeType === 'circle'"
