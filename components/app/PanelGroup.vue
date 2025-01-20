@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 console.log('-panel group-');
-import type { Node } from 'konva/lib/Node';
-
 import { useDebounceFn } from '@vueuse/core';
 const { currentTime, mainTransformer, mainNodeMap, logGsapTimeline } = useGlobal();
 const { updateNodeAndMainNodeAttributes } = useKonva();
