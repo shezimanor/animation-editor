@@ -32,13 +32,10 @@ export const useTimeline = () => {
       const targetElement = event.target;
       if (targetElement instanceof Konva.Rect || targetElement instanceof Konva.Circle) {
         const targetId = targetElement.id();
-        console.log('targetId: ', targetId);
         if (targetId.indexOf('bar') === -1 && targetId.indexOf('circle') === -1) {
-          console.log('ina');
           inactivateNode();
         }
       } else {
-        console.log('ina');
         inactivateNode();
       }
     });
