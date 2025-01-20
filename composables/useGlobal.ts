@@ -301,12 +301,13 @@ export const useGlobal = () => {
       cornerRadius: 0,
       draggable: true,
       dragBoundFunc(pos) {
+        console.log('pos.x', pos.x);
         return {
           x:
             pos.x < TIMELINE_TRACK_START_X
               ? TIMELINE_TRACK_START_X
-              : pos.x + this.width() > trackWidth
-                ? trackWidth - this.width()
+              : pos.x + this.width() > trackWidth + TIMELINE_TRACK_START_X
+                ? trackWidth - this.width() + TIMELINE_TRACK_START_X
                 : pos.x,
           y: this.absolutePosition().y
         };
@@ -406,8 +407,8 @@ export const useGlobal = () => {
           x:
             pos.x < TIMELINE_TRACK_START_X
               ? TIMELINE_TRACK_START_X
-              : pos.x + this.width() > trackWidth
-                ? trackWidth - this.width()
+              : pos.x > trackWidth + TIMELINE_TRACK_START_X
+                ? trackWidth + TIMELINE_TRACK_START_X
                 : pos.x,
           y: this.absolutePosition().y
         };

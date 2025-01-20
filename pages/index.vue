@@ -134,44 +134,47 @@ onUnmounted(() => {
         <UBadge color="white" variant="solid" class="absolute left-1 top-1">{{
           currentTime
         }}</UBadge>
-        <!-- 時間軸標籤 -->
-        <datalist
-          id="tickMarks"
-          class="flex w-full flex-row justify-between pl-8 pt-1 text-sm font-bold text-neutral-500"
-        >
-          <option
-            v-for="(tick, index) in ticks"
-            :key="index"
-            :value="tick.value"
-            :label="tick.label"
-          />
-        </datalist>
-        <div class="flex w-full pl-8">
-          <!-- TODO: 這邊也可以考慮反過來，控制拉桿讓 tl 暫停，而不是 tl 播放時不能控制拉桿 -->
-          <URange
-            :min="0"
-            :max="12"
-            :step="0.001"
-            :ui="{
-              base: 'disabled:cursor-not-allowed disabled:bg-opacity-100',
-              ring: 'focus-visible:ring-0 focus-visible:ring-offset-0',
-              progress: {
-                base: 'peer-disabled:bg-opacity-100'
-              },
-              thumb: {
-                base: '[&::-webkit-slider-thumb]:-top-[5px] [&::-moz-range-thumb]:-top-[5px]'
-              },
-              track: {
-                base: '[&::-webkit-slider-runnable-track]:group-disabled:bg-opacity-100 [&::-moz-range-track]:group-disabled:bg-opacity-100'
-              }
-            }"
-            :disabled="!paused"
-            color="purple"
-            size="sm"
-            list="tickMarks"
-            v-model="currentTime"
-            @input="handleTimelineChange($event.target.value)"
-          />
+        <!-- TIMELINE_TICK_SPACE 需要和 pr-[2px] 同步做調整  -->
+        <div class="flex w-full flex-col gap-y-1 pr-[2px]">
+          <!-- 時間軸標籤 -->
+          <datalist
+            id="tickMarks"
+            class="flex w-full flex-row justify-between pl-8 pt-1 text-sm font-bold text-neutral-500"
+          >
+            <option
+              v-for="(tick, index) in ticks"
+              :key="index"
+              :value="tick.value"
+              :label="tick.label"
+            />
+          </datalist>
+          <div class="flex w-full pl-8">
+            <!-- TODO: 這邊也可以考慮反過來，控制拉桿讓 tl 暫停，而不是 tl 播放時不能控制拉桿 -->
+            <URange
+              :min="0"
+              :max="12"
+              :step="0.001"
+              :ui="{
+                base: 'disabled:cursor-not-allowed disabled:bg-opacity-100',
+                ring: 'focus-visible:ring-0 focus-visible:ring-offset-0',
+                progress: {
+                  base: 'peer-disabled:bg-opacity-100'
+                },
+                thumb: {
+                  base: '[&::-webkit-slider-thumb]:-top-[5px] [&::-moz-range-thumb]:-top-[5px]'
+                },
+                track: {
+                  base: '[&::-webkit-slider-runnable-track]:group-disabled:bg-opacity-100 [&::-moz-range-track]:group-disabled:bg-opacity-100'
+                }
+              }"
+              :disabled="!paused"
+              color="purple"
+              size="sm"
+              list="tickMarks"
+              v-model="currentTime"
+              @input="handleTimelineChange($event.target.value)"
+            />
+          </div>
         </div>
         <!-- 模擬時間軸條 -->
         <div class="h-60 w-full">
