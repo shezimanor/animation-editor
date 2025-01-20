@@ -10,8 +10,8 @@ const {
   seekGsapTimeline,
   timelineStage,
   timelineLayer,
-  activateBar,
-  inactivateBar
+  activateNode,
+  inactivateNode
 } = useGlobal();
 
 export const useTimeline = () => {

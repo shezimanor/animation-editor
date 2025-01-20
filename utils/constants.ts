@@ -10,7 +10,7 @@ export const TIMELINE_TRACK_WIDTH_SUBTRACTION =
   ASIDE_WIDTH + TIMELINE_CONTAINER_PADDING_X * 2 + TIMELINE_TICK_SPACE;
 export const TIMELINE_TRACK_START_X =
   TIMELINE_TRACK_HEIGHT + TIMELINE_THUMBNAIL_MARGIN_RIGHT + TIMELINE_TICK_SPACE; // 時間軸軌道起始 x 座標
-export const TIMELINE_BAR_COLOR = '#22d3ee'; // 時間軸動畫條顏色
-export const TIMELINE_BAR_ACTIVE_COLOR = '#60a5fa'; // 時間軸動畫條 active 顏色
+export const TIMELINE_NODE_COLOR = '#22d3ee'; // 時間軸動畫條(與節點)顏色
+export const TIMELINE_NODE_ACTIVE_COLOR = '#60a5fa'; // 時間軸動畫條(與節點) active 顏色
 export const TIMELINE_TRACK_GAP_Y = 4; // 時間軸軌道上下間距
 export const TIMELINE_CONTAINER_HEIGHT = 240; // 時間軸容器高度

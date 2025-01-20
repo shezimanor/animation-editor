@@ -273,6 +273,7 @@ export const useGlobal = () => {
     // 更新起始位置
     updateTimelineTrackInitialPosition();
   };
+  // 建立動畫條(動畫單元)
   const addTimelineBar = (id: string, duration: number, start: number): string => {
     const groupItem = getTargetNodeFromTimeline(`group_${id}`);
     if (!groupItem || !(groupItem instanceof Konva.Group)) return '';
@@ -281,9 +282,7 @@ export const useGlobal = () => {
       window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION - TIMELINE_TRACK_START_X;
     const barInitialX = trackWidth * (start / TOTAL_DURATION);
     const barInitialWidth = trackWidth * (duration / TOTAL_DURATION);
-    // 移除其他 bar 的顯目顯示
-    // inactivateBar();
-    // 時間軸動畫條(直接醒目顯示)
+    // 動畫條實體
     const barItem = addRect({
       id: barId,
       name: `item_tween item_tween_active`,
@@ -292,7 +291,7 @@ export const useGlobal = () => {
       y: 0,
       width: barInitialWidth,
       height: TIMELINE_TRACK_HEIGHT,
-      fill: TIMELINE_BAR_ACTIVE_COLOR,
+      fill: TIMELINE_NODE_ACTIVE_COLOR,
       cornerRadius: 0,
       draggable: true,
       dragBoundFunc(pos) {
@@ -310,6 +309,7 @@ export const useGlobal = () => {
     // 事件監聽
     barItem.on('click', function () {
       // 單擊動畫條
+      activateNode(id, barId, barItem);
       console.log('barItem click');
     });
     barItem.on('dblclick', function () {
@@ -318,6 +318,7 @@ export const useGlobal = () => {
     });
     let isDragging = false;
     barItem.on('dragstart', function () {
+      activateNode(id, barId, barItem);
       isDragging = true;
     });
     barItem.on('dragend', function () {
@@ -334,8 +335,8 @@ export const useGlobal = () => {
       if (!isDragging) return;
       // console.log(barItem.x());
     });
-    // 設定 currentActiveBarId
-    currentActiveBarId.value = barId;
+    // 設定 currentActiveTimelineNodeId
+    currentActiveTimelineNodeId.value = barId;
     // 加入到 groupItem
     groupItem.add(barItem);
     // 加上變形器
@@ -344,6 +345,7 @@ export const useGlobal = () => {
     let cacheX = barInitialX;
     // 維持 scaleX = 1, 並將 width 設為原本的 scaleX * width
     transformerItem.on('transformstart', function () {
+      activateNode(id, barId, barItem);
       cacheX = barItem.x();
     });
     transformerItem.on('transform', function () {
@@ -363,17 +365,20 @@ export const useGlobal = () => {
       updateGsapTimelineByTween(oldTween, currentBar, targetMainNode, targetNode, 'duration');
     });
     transformerItem.nodes([barItem]);
+    // highlight
+    activateNode(id, barId, barItem);
     // 回傳 barId
     return barId;
   };
-  const addTimelineCircle = (id: string, duration: number, start: number): string => {
+  // 建立節點(動畫單元)
+  const addTimelineCircle = (id: string, start: number): string => {
     const groupItem = getTargetNodeFromTimeline(`group_${id}`);
     if (!groupItem || !(groupItem instanceof Konva.Group)) return '';
     const circleId = `circle_${uuid()}_${id}`;
     const trackWidth =
       window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION - TIMELINE_TRACK_START_X;
     const circleInitialX = trackWidth * (start / TOTAL_DURATION);
-    // 時間軸動畫條(直接醒目顯示)
+    // 節點實體
     const circleItem = addCircle({
       id: circleId,
       name: `item_tween item_tween_active`,
@@ -381,7 +386,7 @@ export const useGlobal = () => {
       x: circleInitialX,
       y: TIMELINE_TRACK_HEIGHT / 2,
       radius: TIMELINE_TRACK_HEIGHT / 4,
-      fill: TIMELINE_BAR_ACTIVE_COLOR,
+      fill: TIMELINE_NODE_ACTIVE_COLOR,
       cornerRadius: 0,
       draggable: true,
       dragBoundFunc(pos) {
@@ -396,38 +401,70 @@ export const useGlobal = () => {
         };
       }
     });
+    // 事件監聽
+    circleItem.on('click', function () {
+      // 單擊動畫條
+      activateNode(id, circleId, circleItem);
+      console.log('barItem click');
+    });
+    circleItem.on('dblclick', function () {
+      // 雙擊動畫條
+      console.log('barItem dblclick');
+    });
+    let isDragging = false;
+    circleItem.on('dragstart', function () {
+      activateNode(id, circleId, circleItem);
+      isDragging = true;
+    });
+    circleItem.on('dragend', function () {
+      isDragging = false;
+      console.log('barItem.x():', circleItem.x());
+      // 動畫的 start 發生變化
+      const targetMainNode = mainNodeMap.value[id];
+      const targetNode = getTargetNodeFromMain(id);
+      const oldTween = getTween(id, circleId);
+      if (!targetMainNode || !targetNode || !oldTween) return;
+      updateGsapTimelineBySetPoint(oldTween, circleItem, targetMainNode, targetNode, 'start');
+    });
     // 加入到 groupItem
     groupItem.add(circleItem);
+    // highlight
+    activateNode(id, circleId, circleItem);
     // 回傳 circleId
     return circleId;
   };
-  // 顯目當前動畫條
-  const activateBar = (sourceId: string, barId: string, barItem: Konva.Rect) => {
+  // 顯目當前動畫單元
+  const activateNode = (
+    mainId: string,
+    nodeItemId: string,
+    nodeItem: Konva.Rect | Konva.Circle
+  ) => {
     // highlight active bar
-    inactivateBar();
-    barItem.fill(TIMELINE_BAR_ACTIVE_COLOR);
-    barItem.name('item_tween item_tween_active');
-    // 設定 currentActiveBarId
-    currentActiveBarId.value = barId;
+    inactivateNode();
+    nodeItem.fill(TIMELINE_NODE_ACTIVE_COLOR);
+    nodeItem.name('item_tween item_tween_active');
+    // 設定 currentActiveTimelineNodeId
+    currentActiveTimelineNodeId.value = nodeItemId;
     // 選取到主畫布的素材
-    selectTargetNodeFromMain(sourceId);
+    selectTargetNodeFromMain(mainId);
   };
-  // 移除動畫條的顯目顯示
-  const inactivateBar = () => {
-    const activeBar = timelineLayer.value?.findOne('.item_tween_active');
-    if (activeBar && activeBar instanceof Konva.Rect) {
-      activeBar.fill(TIMELINE_BAR_COLOR);
-      activeBar.name('item_tween');
+  // 移除動畫單元的顯目顯示
+  const inactivateNode = () => {
+    const activeNode = timelineLayer.value?.findOne('.item_tween_active');
+    if (activeNode && (activeNode instanceof Konva.Rect || activeNode instanceof Konva.Circle)) {
+      activeNode.fill(TIMELINE_NODE_COLOR);
+      activeNode.name('item_tween');
     }
-    // 設定 currentActiveBarId
-    currentActiveBarId.value = null;
+    // 設定 currentActiveTimelineNodeId
+    currentActiveTimelineNodeId.value = null;
   };
-  const getTween = (nodeId: string, barId: string) => {
+  const getTween = (nodeId: string, timelineNodeId: string) => {
     console.log('getTween');
-    return gsapTimelineNodeTweenMap[nodeId][barId];
+    return gsapTimelineNodeTweenMap[nodeId][timelineNodeId];
   };
   const removeTween = (tween: GSAPTween) => {
     console.log('removeTween');
+    // gsapTimeline.remove 可刪除 .fromTo() 和 .set()
     gsapTimeline?.remove(tween);
   };
   const updateGsapTimelineByTween = (
@@ -501,7 +538,7 @@ export const useGlobal = () => {
             ease: 'none'
           };
     const duration = getDurationByBarWidth(targetBarNode.width());
-    const start = getTimeByBarX(targetBarNode.x());
+    const start = getTimeByNodeX(targetBarNode.x());
     // console.log('fromVars:', fromVars);
     // console.log('toVars:', toVars);
 
@@ -514,6 +551,64 @@ export const useGlobal = () => {
 
     // 儲存新的 Tween 到 gsapTimelineNodeTweenMap 裡面
     if (newTween) gsapTimelineNodeTweenMap[nodeId][barId] = newTween;
+
+    return 'Animation updated';
+  };
+  const updateGsapTimelineBySetPoint = (
+    oldTween: GSAPTween,
+    targetCircleNode: Node,
+    targetMainNode: MyNode,
+    targetNode: Node,
+    updateName: 'vars' | 'start'
+  ) => {
+    if (!gsapTimeline) return;
+    const {
+      width: originalWidth,
+      height: originalHeight,
+      x: originalX,
+      y: originalY,
+      rotation: originalRotation,
+      opacity: originalOpacity
+    } = oldTween.vars as TweenVars;
+    const {
+      width: newWidth,
+      height: newHeight,
+      x: newX,
+      y: newY,
+      rotation: newRotation,
+      opacity: newOpacity
+    } = targetMainNode;
+    let tweenVars =
+      updateName === 'vars'
+        ? {
+            width: newWidth,
+            height: newHeight,
+            x: newX + adModuleX.value,
+            y: newY + adModuleY.value,
+            rotation: newRotation,
+            opacity: newOpacity
+          }
+        : {
+            width: originalWidth,
+            height: originalHeight,
+            x: originalX,
+            y: originalY,
+            rotation: originalRotation,
+            opacity: originalOpacity
+          };
+    const start = getTimeByNodeX(targetCircleNode.x());
+
+    console.log('tweenVars:', tweenVars);
+
+    const nodeId = targetNode.id();
+    const circleId = targetCircleNode.id();
+    // 移除原本的 oldTween
+    removeTween(oldTween);
+    // 重新建立新的 Tween
+    const newTween = addZeroDurationTween(targetNode, start, tweenVars);
+
+    // 儲存新的 Tween 到 gsapTimelineNodeTweenMap 裡面
+    if (newTween) gsapTimelineNodeTweenMap[nodeId][circleId] = newTween;
 
     return 'Animation updated';
   };
@@ -536,20 +631,19 @@ export const useGlobal = () => {
   const createSetPoint = (targetNode: Node) => {
     console.log('createTween');
     const nodeId = targetNode.id();
-    const duration = 1;
     const start = currentTime.value; // 使用當前時間
     // 先建立時間為 1 秒的空動畫, TODO: start 需要考慮其他因素, duration 也會有相關限制
     const tween = addSetPoint(targetNode, start);
     // 加入對應的時間軸動畫條(動畫條 ID 會回傳)
-    const barId = addTimelineCircle(nodeId, duration, start);
-    if (!barId || !tween) return toastError('節點建立失敗');
+    const pointId = addTimelineCircle(nodeId, start);
+    if (!pointId || !tween) return toastError('節點建立失敗');
     // 儲存 Tween 到 gsapTimelineNodeTweenMap 裡面
     if (!gsapTimelineNodeTweenMap[nodeId]) gsapTimelineNodeTweenMap[nodeId] = {};
-    gsapTimelineNodeTweenMap[nodeId][barId] = tween;
+    gsapTimelineNodeTweenMap[nodeId][pointId] = tween;
 
     toastSuccess('節點已建立');
   };
-  // 建立一個 from,to 狀態相同的不變動畫
+  // 建立一個 fromTo() 狀態相同的不變動畫
   const addInitialTween = (targetNode: Node, duration: number, start: number) => {
     const id = targetNode.id();
     const targetMainNode = mainNodeMap.value[id]; // 響應式 Node
@@ -586,7 +680,6 @@ export const useGlobal = () => {
     const tween = addZeroDurationTween(targetNode, start, tweenVars);
     return tween;
   };
-
   // 建立新的 Tween
   const addFromToTween = (
     targetNode: Node,
@@ -615,7 +708,6 @@ export const useGlobal = () => {
     gsapTimeline?.add(tween, start);
     return tween;
   };
-
   // gsap
   const updateCurrentTime = (time: number) => {
     currentTime.value = time;
@@ -627,8 +719,8 @@ export const useGlobal = () => {
     console.log('gsapTimeline: ', gsapTimeline);
     console.log('duration: ', gsapTimeline?.duration());
   };
-
   const createGsapTimeline = () => {
+    // 因為這個工具的 gsapTimeline 只有一個，所以程式執行時就會存在，這邊的 createGsapTimeline 只用來新增事件和設定結尾點
     // 設定 onUpdate
     gsapTimeline.eventCallback('onUpdate', () => {
       console.log('onUpdate');
@@ -647,14 +739,10 @@ export const useGlobal = () => {
 
   // current id
   const currentNodeId = useState<string | null>('currentNodeId', () => null);
-  const currentActiveBarId = useState<string | null>('currentActiveBarId', () => null);
-  const currentActiveFlashPointId = useState<string | null>(
-    'currentActiveFlashPointId',
+  const currentActiveTimelineNodeId = useState<string | null>(
+    'currentActiveTimelineNodeId',
     () => null
   );
-  // edit animation control
-  const isEditStartPoint = useState('isEditStartPoint', () => false);
-  const isEditEndPoint = useState('isEditEndPoint', () => false);
 
   return {
     // 廣告區域在主畫布的位置(x,y)
@@ -688,14 +776,14 @@ export const useGlobal = () => {
     timelineTransformers, // state
     addTimelineTrack, // method
     deleteTimelineTrack, // method
-    addTimelineBar, // method
-    activateBar, // method
-    inactivateBar, // method
+    activateNode, // method
+    inactivateNode, // method
     getTween, // method
     createTween, // method
+    createSetPoint, // method
     removeTween, // method
     updateGsapTimelineByTween, // method
-    createSetPoint, // method
+    updateGsapTimelineBySetPoint, // method
     addRect, // method
     addImage, // method
     addGroup, // method
@@ -714,9 +802,6 @@ export const useGlobal = () => {
 
     // current id
     currentNodeId,
-    currentActiveBarId,
-    currentActiveFlashPointId,
-    isEditStartPoint,
-    isEditEndPoint
+    currentActiveTimelineNodeId
   };
 };

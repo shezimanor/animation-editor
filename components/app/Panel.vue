@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { Node } from 'konva/lib/Node';
-
 console.log('-panel-');
 const {
   mainNodeMap,
-  currentActiveBarId,
+  currentActiveTimelineNodeId,
   getTargetNodeFromTimeline,
   getTween,
   updateGsapTimelineByTween,
+  updateGsapTimelineBySetPoint,
   createTween,
   createSetPoint
 } = useGlobal();
@@ -29,49 +29,66 @@ const currentNode = computed(() => {
 
 // 用來確認 active 的動畫是否屬於當前的素材節點
 
-// current BarNode
-const currentBarNode = computed(() => {
-  if (!currentActiveBarId.value || !props.node) return null;
-  return getTargetNodeFromTimeline(`${currentActiveBarId.value}`) || null;
+// current timelineNode
+const currentTimelineNode = computed(() => {
+  if (!currentActiveTimelineNodeId.value || !props.node) return null;
+  return getTargetNodeFromTimeline(`${currentActiveTimelineNodeId.value}`) || null;
 });
-
+const timelineNodeType = computed(() => {
+  if (!currentActiveTimelineNodeId.value) return '';
+  if (currentActiveTimelineNodeId.value.indexOf('bar_') === 0) return 'bar';
+  else if (currentActiveTimelineNodeId.value.indexOf('circle_') === 0) return 'circle';
+  return '';
+});
 const updateKonvaNode = (attrName: string, newValue: number) => {
   if (!currentNode.value || !props.node) return;
   updateKonvaNodeAttribute(props.node, attrName, newValue);
 };
-
 // 更新起始點
 const updateAnimationBarFromVars = () => {
   console.log('updateAnimationBarFromVars');
-  if (!currentBarNode.value || !currentNode.value || !props.node) return;
-  const currentTween = getTween(props.node.id(), currentBarNode.value.id());
+  if (!currentTimelineNode.value || !currentNode.value || !props.node) return;
+  const currentTween = getTween(props.node.id(), currentTimelineNode.value.id());
   if (!currentTween) return;
   updateGsapTimelineByTween(
     currentTween,
-    currentBarNode.value,
+    currentTimelineNode.value,
     currentNode.value,
     props.node,
     'fromVars'
   );
 };
-
 // 更新結尾點
 const updateAnimationBarToVars = () => {
   console.log('updateAnimationBarToVars');
-  if (!currentBarNode.value || !currentNode.value || !props.node) return;
-  const currentTween = getTween(props.node.id(), currentBarNode.value.id());
+  if (!currentTimelineNode.value || !currentNode.value || !props.node) return;
+  const currentTween = getTween(props.node.id(), currentTimelineNode.value.id());
   if (!currentTween) return;
   updateGsapTimelineByTween(
     currentTween,
-    currentBarNode.value,
+    currentTimelineNode.value,
     currentNode.value,
     props.node,
     'toVars'
   );
 };
+// 更新節點
+const updateAnimationPointVars = () => {
+  console.log('updateAnimationPointVars');
+  if (!currentTimelineNode.value || !currentNode.value || !props.node) return;
+  const currentTween = getTween(props.node.id(), currentTimelineNode.value.id());
+  if (!currentTween) return;
+  updateGsapTimelineBySetPoint(
+    currentTween,
+    currentTimelineNode.value,
+    currentNode.value,
+    props.node,
+    'vars'
+  );
+};
 const lookTween = () => {
-  if (!currentBarNode.value || !currentNode.value || !props.node) return;
-  const currentTween = getTween(props.node.id(), currentBarNode.value.id());
+  if (!currentTimelineNode.value || !currentNode.value || !props.node) return;
+  const currentTween = getTween(props.node.id(), currentTimelineNode.value.id());
   if (!currentTween) return;
   console.log(currentTween);
 };
@@ -161,10 +178,13 @@ const lookTween = () => {
     </div>
     <!-- 動畫條操作 -->
     <div
-      v-if="currentBarNode"
+      v-if="currentTimelineNode"
       class="mt-1 flex flex-col items-start gap-y-2 border-t border-neutral-200 pt-2"
     >
-      <div class="flex w-full flex-row items-center justify-start gap-x-2">
+      <div
+        v-if="timelineNodeType === 'bar'"
+        class="flex w-full flex-row items-center justify-start gap-x-2"
+      >
         <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarFromVars"
           >更新初始點<UKbd size="sm">S</UKbd></UButton
         >
@@ -172,6 +192,14 @@ const lookTween = () => {
           >更新結尾點<UKbd size="sm">D</UKbd></UButton
         >
         <UButton size="xs" color="primary" variant="solid" @click="lookTween">LOG</UButton>
+      </div>
+      <div
+        v-if="timelineNodeType === 'circle'"
+        class="flex w-full flex-row items-center justify-start gap-x-2"
+      >
+        <UButton size="xs" color="primary" variant="solid" @click="updateAnimationPointVars"
+          >更新節點<UKbd size="sm">S</UKbd></UButton
+        >
       </div>
     </div>
   </div>
