@@ -100,6 +100,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
           }
         }
       });
+      // 調整 layer 的 clip
+      if (isClipMode.value) addLayerClip();
     });
 
     // 註冊 Stage 事件

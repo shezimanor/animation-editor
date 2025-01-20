@@ -26,6 +26,10 @@ interface TweenVars {
   rotation?: number;
   ease?: string;
 }
+interface SimpleTween {
+  duration?: number;
+  start: number;
+}
 
 const paused = ref(true);
 let gsapTimeline = gsap.timeline({
@@ -42,6 +46,8 @@ const gsapHiddenNode = { x: 0 }; // 用來製作 timeline 固定結尾點的物�
 const initializedGsap = ref(false);
 const currentTime = ref(0);
 const gsapTimelineNodeTweenMap: Record<string, Record<string, GSAPTween>> = {};
+// 是拿來用 barId 和 circleId 來取得精確的 start & duration(沒有像上面的 map 綁 targetNodeId)
+const gsapTimelineNodeTweenInfoMap: Record<string, SimpleTween> = {};
 
 const { toastSuccess, toastError } = useNotify();
 
@@ -285,7 +291,7 @@ export const useGlobal = () => {
     // 動畫條實體
     const barItem = addRect({
       id: barId,
-      name: `item_tween item_tween_active`,
+      name: `item_bar item_tween item_tween_active`,
       // 這裡的 x,y 位置是相對於 group 的位置
       x: barInitialX,
       y: 0,
@@ -381,7 +387,7 @@ export const useGlobal = () => {
     // 節點實體
     const circleItem = addCircle({
       id: circleId,
-      name: `item_tween item_tween_active`,
+      name: `item_circle item_tween item_tween_active`,
       // 這裡的 x,y 位置是相對於 group 的位置
       x: circleInitialX,
       y: TIMELINE_TRACK_HEIGHT / 2,
@@ -442,7 +448,11 @@ export const useGlobal = () => {
     // highlight active bar
     inactivateNode();
     nodeItem.fill(TIMELINE_NODE_ACTIVE_COLOR);
-    nodeItem.name('item_tween item_tween_active');
+    if (nodeItem instanceof Konva.Rect) {
+      nodeItem.name('item_bar item_tween');
+    } else if (nodeItem instanceof Konva.Circle) {
+      nodeItem.name('item_circle item_tween');
+    }
     // 設定 currentActiveTimelineNodeId
     currentActiveTimelineNodeId.value = nodeItemId;
     // 選取到主畫布的素材
@@ -451,9 +461,12 @@ export const useGlobal = () => {
   // 移除動畫單元的顯目顯示
   const inactivateNode = () => {
     const activeNode = timelineLayer.value?.findOne('.item_tween_active');
-    if (activeNode && (activeNode instanceof Konva.Rect || activeNode instanceof Konva.Circle)) {
+    if (activeNode && activeNode instanceof Konva.Rect) {
       activeNode.fill(TIMELINE_NODE_COLOR);
-      activeNode.name('item_tween');
+      activeNode.name('item_bar item_tween');
+    } else if (activeNode && activeNode instanceof Konva.Circle) {
+      activeNode.fill(TIMELINE_NODE_COLOR);
+      activeNode.name('item_circle item_tween');
     }
     // 設定 currentActiveTimelineNodeId
     currentActiveTimelineNodeId.value = null;
@@ -549,8 +562,13 @@ export const useGlobal = () => {
     // 重新建立新的 Tween
     const newTween = addFromToTween(targetNode, duration, start, fromVars, toVars);
 
-    // 儲存新的 Tween 到 gsapTimelineNodeTweenMap 裡面
-    if (newTween) gsapTimelineNodeTweenMap[nodeId][barId] = newTween;
+    if (newTween) {
+      // 儲存新的 Tween 到 gsapTimelineNodeTweenMap 裡面
+      gsapTimelineNodeTweenMap[nodeId][barId] = newTween;
+      // 儲存新的 Tween 資訊到 gsapTimelineNodeTweenInfoMap 裡面
+      gsapTimelineNodeTweenInfoMap[barId].duration = duration;
+      gsapTimelineNodeTweenInfoMap[barId].start = start;
+    }
 
     return 'Animation updated';
   };
@@ -607,8 +625,12 @@ export const useGlobal = () => {
     // 重新建立新的 Tween
     const newTween = addZeroDurationTween(targetNode, start, tweenVars);
 
-    // 儲存新的 Tween 到 gsapTimelineNodeTweenMap 裡面
-    if (newTween) gsapTimelineNodeTweenMap[nodeId][circleId] = newTween;
+    if (newTween) {
+      // 儲存新的 Tween 到 gsapTimelineNodeTweenMap 裡面
+      gsapTimelineNodeTweenMap[nodeId][circleId] = newTween;
+      // 儲存新的 Tween 資訊到 gsapTimelineNodeTweenInfoMap 裡面
+      gsapTimelineNodeTweenInfoMap[circleId].start = start;
+    }
 
     return 'Animation updated';
   };
@@ -625,6 +647,11 @@ export const useGlobal = () => {
     // 儲存 Tween 到 gsapTimelineNodeTweenMap 裡面
     if (!gsapTimelineNodeTweenMap[nodeId]) gsapTimelineNodeTweenMap[nodeId] = {};
     gsapTimelineNodeTweenMap[nodeId][barId] = tween;
+    // 儲存 Tween 資訊到 gsapTimelineNodeTweenInfoMap 裡面
+    gsapTimelineNodeTweenInfoMap[barId] = {
+      duration,
+      start
+    };
 
     toastSuccess('動畫已建立');
   };
@@ -640,6 +667,10 @@ export const useGlobal = () => {
     // 儲存 Tween 到 gsapTimelineNodeTweenMap 裡面
     if (!gsapTimelineNodeTweenMap[nodeId]) gsapTimelineNodeTweenMap[nodeId] = {};
     gsapTimelineNodeTweenMap[nodeId][pointId] = tween;
+    // 儲存 Tween 資訊到 gsapTimelineNodeTweenInfoMap 裡面
+    gsapTimelineNodeTweenInfoMap[pointId] = {
+      start
+    };
 
     toastSuccess('節點已建立');
   };
@@ -792,6 +823,7 @@ export const useGlobal = () => {
     // gsap
     gsapTimeline, // 原生物件
     gsapTimelineNodeTweenMap, // 原生物件
+    gsapTimelineNodeTweenInfoMap, // 原生物件
     initializedGsap, // state
     paused, // state
     currentTime, // state
