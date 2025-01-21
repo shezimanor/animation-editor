@@ -785,7 +785,7 @@ export const useGlobal = () => {
     });
     // 設置一個結尾點，讓 timescale 維持 1（每次有新動畫就要更新）
     // 自定義 gsap 時間軸的結尾
-    gsapTimeline?.set(gsapHiddenNode, { x: 0 }, 12);
+    gsapTimeline?.set(gsapHiddenNode, { x: 0 }, TOTAL_DURATION);
     initializedGsap.value = true;
   };
 

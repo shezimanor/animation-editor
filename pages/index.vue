@@ -52,20 +52,18 @@ const ticks = ref([
   { label: '|', value: 4.5 },
   { label: "'", value: 5 },
   { label: "'", value: 5.5 },
-  { label: '|', value: 6 },
-  { label: "'", value: 6.5 },
-  { label: "'", value: 7 },
-  { label: '|', value: 7.5 },
-  { label: "'", value: 8 },
-  { label: "'", value: 8.5 },
-  { label: '|', value: 9 },
-  { label: "'", value: 9.5 },
-  { label: "'", value: 10 },
-  { label: '|', value: 10.5 },
-  { label: "'", value: 11 },
-  { label: "'", value: 11.5 },
-  { label: '|', value: 12 }
+  { label: '|', value: 6 }
 ]);
+
+// styles
+const timelineWrapperStyle = computed(
+  () =>
+    `padding-right: ${TIMELINE_CONTAINER_PADDING_RIGHT}px; padding-left: ${TIMELINE_CONTAINER_PADDING_LEFT}px`
+);
+const timelineTickContainerStyle = computed(() => `padding-right: ${TIMELINE_TICK_SPACE - 5}px`);
+const timelineRangeContainerStyle = computed(
+  () => `padding-left: ${TIMELINE_THUMBNAIL_PLACEHOLDER}px`
+);
 
 const handleDrop = async (e: DragEvent) => {
   e.stopPropagation();
@@ -130,29 +128,27 @@ onUnmounted(() => {
         </div>
       </div>
       <!-- 時間軸畫布 -->
-      <div class="relative flex w-full flex-col gap-y-2 border-t-2 border-neutral-300 px-4">
+      <div
+        class="relative flex w-full flex-col gap-y-2 border-t-2 border-neutral-300"
+        :style="timelineWrapperStyle"
+      >
         <UBadge color="white" variant="solid" class="absolute left-1 top-1">{{
           currentTime
         }}</UBadge>
-        <!-- TIMELINE_TICK_SPACE 需要和 pr-[2px] 同步做調整  -->
-        <div class="flex w-full flex-col gap-y-1 pr-[2px]">
+        <div class="flex w-full flex-col gap-y-1" :style="timelineTickContainerStyle">
           <!-- 時間軸標籤 -->
           <datalist
             id="tickMarks"
-            class="flex w-full flex-row justify-between pl-8 pt-1 text-sm font-bold text-neutral-500"
+            class="flex w-full cursor-default flex-row justify-between pl-8 pt-1 text-sm font-bold text-neutral-500"
           >
-            <option
-              v-for="(tick, index) in ticks"
-              :key="index"
-              :value="tick.value"
-              :label="tick.label"
-            />
+            <UTooltip v-for="(tick, index) in ticks" :key="index" :text="`${tick.value}秒`">
+              <option :value="tick.value" :label="tick.label" />
+            </UTooltip>
           </datalist>
-          <div class="flex w-full pl-8">
-            <!-- TODO: 這邊也可以考慮反過來，控制拉桿讓 tl 暫停，而不是 tl 播放時不能控制拉桿 -->
+          <div class="flex w-full" :style="timelineRangeContainerStyle">
             <URange
               :min="0"
-              :max="12"
+              :max="TOTAL_DURATION"
               :step="0.001"
               :ui="{
                 base: 'disabled:cursor-not-allowed disabled:bg-opacity-100',
