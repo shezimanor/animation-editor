@@ -213,14 +213,14 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const createAdModuleRect = () => {
-    adModuleX.value = stage.value?.getAttr('width') / 2 - (adModuleConfig?.width || 320) / 2;
+    adModuleX.value = stage.value?.getAttr('width') / 2 - (adModuleConfig?.width || 640) / 2;
     adModuleY.value = stage.value?.getAttr('height') / 2 - (adModuleConfig?.height || 320) / 2;
 
     adModuleRect.value = new Konva.Rect({
       fill: 'rgba(220, 220, 220, 0.35)',
       // disable events to not interrupt with events
-      width: adModuleConfig?.width || 320,
-      height: adModuleConfig?.height || 480,
+      width: adModuleConfig?.width || 640,
+      height: adModuleConfig?.height || 320,
       // center
       x: adModuleX.value,
       y: adModuleY.value,
@@ -444,7 +444,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     mainLayer.value?.clip({
       x: adModuleX.value,
       y: adModuleY.value,
-      width: adModuleRect.value?.width() || 320,
+      width: adModuleRect.value?.width() || 640,
       height: adModuleRect.value?.height() || 320
     });
   };

@@ -12,16 +12,7 @@ export interface AdModuleConfig {
   title: string;
 }
 
-const adModule = useCookie<AdModuleConfig>('adModuleInfo', {
-  default: () => ({
-    width: 640,
-    height: 320,
-    mmid: 'test-mmid',
-    cmid: 'test-cmid',
-    token: 'test-token',
-    title: '模組標題'
-  })
-});
+const adModule = useCookie<AdModuleConfig>('adModuleInfo', AD_MODULE_COOKIE_CONFIG);
 console.log('-index-');
 const { mainStageRef, mainStageBgRef, initKonva, destroyKonva, addImage } = useKonva({
   width: adModule.value.width,
@@ -64,6 +55,7 @@ const timelineTickContainerStyle = computed(() => `padding-right: ${TIMELINE_TIC
 const timelineRangeContainerStyle = computed(
   () => `padding-left: ${TIMELINE_THUMBNAIL_PLACEHOLDER}px`
 );
+const timelineContainerStyle = computed(() => `height: ${TIMELINE_CONTAINER_HEIGHT}px`);
 
 const handleDrop = async (e: DragEvent) => {
   e.stopPropagation();
@@ -173,7 +165,7 @@ onUnmounted(() => {
           </div>
         </div>
         <!-- 模擬時間軸條 -->
-        <div class="h-60 w-full">
+        <div class="w-full" :style="timelineContainerStyle">
           <div ref="timelineStageRef"></div>
         </div>
       </div>

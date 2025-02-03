@@ -1,7 +1,7 @@
 export const TOTAL_DURATION = 6; // 預設總時長(秒)
 export const ASIDE_WIDTH = 0; // 左側欄寬度(目前沒有左側欄)
 export const HEADER_HEIGHT = 56; // 頁首高度
-export const FOOTER_HEIGHT = 274; // 頁尾高度
+export const FOOTER_HEIGHT = 214; // 頁尾高度
 export const TIMELINE_TICK_SPACE = 7; // 時間軸指針頭的半徑預留空間
 export const TIMELINE_TRACK_HEIGHT = 24; // 時間軸軌道高度(也是縮圖的寬度)
 export const TIMELINE_THUMBNAIL_MARGIN_RIGHT = 8; // 時間軸縮圖右邊距
@@ -18,4 +18,14 @@ export const TIMELINE_TRACK_START_X = TIMELINE_THUMBNAIL_PLACEHOLDER + TIMELINE_
 export const TIMELINE_NODE_COLOR = '#38bdf8'; // 時間軸動畫條(與節點)顏色
 export const TIMELINE_NODE_ACTIVE_COLOR = '#60a5fa'; // 時間軸動畫條(與節點) active 顏色
 export const TIMELINE_TRACK_GAP_Y = 4; // 時間軸軌道上下間距
-export const TIMELINE_CONTAINER_HEIGHT = 240; // 時間軸容器高度
+export const TIMELINE_CONTAINER_HEIGHT = FOOTER_HEIGHT - 34; // 時間軸容器高度
+export const AD_MODULE_COOKIE_CONFIG = {
+  default: () => ({
+    width: 640,
+    height: 320,
+    mmid: 'test-mmid',
+    cmid: 'test-cmid',
+    token: 'test-token',
+    title: '標題'
+  })
+};

@@ -1,49 +1,10 @@
 <script setup lang="ts">
 import type { AdModuleConfig } from '~/pages/index.vue';
-import UserDropdown from './UserDropdown.vue';
-const adModule = useCookie<AdModuleConfig>('adModuleInfo');
+const adModule = useCookie<AdModuleConfig>('adModuleInfo', AD_MODULE_COOKIE_CONFIG);
 const { isClipMode, addLayerClip, removeLayerClip } = useKonva({
   width: adModule.value.width,
   height: adModule.value.height
 });
-// const isHidedGridDot = useState('isHidedGridDot', () => false);
-const sizeIndex = computed(() => {
-  if (!adModule.value) return 1;
-  const size = `${adModule.value.width}x${adModule.value.height}`;
-  switch (size) {
-    case '640x320':
-      return 1;
-    case '640x1386':
-      return 2;
-    case '320x480':
-    default:
-      return 0;
-  }
-});
-const options = ref([
-  {
-    id: 1,
-    width: 320,
-    height: 480
-  },
-  {
-    id: 2,
-    width: 640,
-    height: 320
-  },
-  {
-    id: 3,
-    width: 640,
-    height: 1386
-  }
-]);
-const selectedModule = ref(options.value[sizeIndex.value]);
-
-const changeModule = () => {
-  adModule.value.width = selectedModule.value.width;
-  adModule.value.height = selectedModule.value.height;
-  navigateTo('/');
-};
 
 // 切換裁切模式
 watch(isClipMode, (newValue) => {
@@ -57,7 +18,7 @@ watch(isClipMode, (newValue) => {
 
 <template>
   <header
-    class="fixed left-0 top-0 z-[100] flex h-14 w-full flex-row items-center justify-between pl-4 pr-2 shadow"
+    class="fixed left-0 top-0 z-[100] flex h-14 w-full flex-row items-center justify-between px-4 shadow"
   >
     <div class="flex flex-row items-center gap-x-2 text-neutral-700">
       <NuxtLink
@@ -66,27 +27,13 @@ watch(isClipMode, (newValue) => {
       >
         <Icon name="gravity-ui:timeline" size="1.25em" class="hover:opacity-75" /> 捲軸動畫編輯器
       </NuxtLink>
-      <AppGhostButton>下載</AppGhostButton>
     </div>
     <AppTimelineController
       class="absolute bottom-0 left-0 right-0 top-0 m-auto h-10 w-10 rounded-md bg-white py-0 shadow-std"
     />
     <div class="flex flex-row items-center gap-x-2">
-      <USelectMenu v-model="selectedModule" :options="options" class="w-32" @change="changeModule">
-        <template #leading>
-          <UBadge color="primary" variant="soft">{{
-            selectedModule.width + ' x ' + selectedModule.height
-          }}</UBadge>
-        </template>
-        <template #option="{ option: adModule }">
-          <UBadge :color="selectedModule.id === adModule.id ? 'primary' : 'gray'" variant="soft">{{
-            adModule.width + ' x ' + adModule.height
-          }}</UBadge>
-        </template>
-      </USelectMenu>
+      <UBadge color="primary" variant="soft">{{ adModule.width + ' x ' + adModule.height }}</UBadge>
       <UCheckbox v-model="isClipMode" name="isClipMode" label="隱藏空白區域" />
-      <!-- <UCheckbox v-model="isHidedGridDot" name="isHidedGridDot" label="隱藏網格點" /> -->
-      <UserDropdown />
     </div>
   </header>
 </template>
