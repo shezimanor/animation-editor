@@ -124,6 +124,11 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     console.log('timelineTransformers:', timelineTransformers.value);
   };
 
+  const logKonvaJSON = () => {
+    console.log(stage.value?.toJSON());
+    console.log(mainNodeList.value);
+  };
+
   // TODO: 清除 Konva
   const destroyKonva = () => {};
 
@@ -565,6 +570,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const addMainNode = (imgItem: Konva.Image, imgNode: MyNode) => {
+    console.log(imgItem);
     mainNodeList.value.push(imgNode);
     // 更新數據
     updateNodeAndMainNodeAttributes(imgItem, imgNode);
@@ -587,6 +593,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     destroyKonva,
     addImage,
     logKonva,
+    logKonvaJSON,
     updateKonvaNodeAttribute,
     updateMainNodeState,
     updateNodeAndMainNodeAttributes,

@@ -2,7 +2,7 @@
 console.log('-panel group-');
 import { useDebounceFn } from '@vueuse/core';
 const { currentTime, mainTransformer, mainNodeMap, logGsapTimeline } = useGlobal();
-const { updateNodeAndMainNodeAttributes } = useKonva();
+const { updateNodeAndMainNodeAttributes, logKonvaJSON } = useKonva();
 
 const debouncedUpdateMainNode = useDebounceFn(() => {
   const selectedNodes = mainTransformer.value?.nodes();
@@ -25,6 +25,8 @@ watch(currentTime, () => {
     <header class="flex items-center justify-between">
       <h2>圖層資訊</h2>
       <div class="flex gap-x-1">
+        <UButton size="xs" @click="logKonvaJSON">json</UButton>
+
         <UButton size="xs" @click="logGsapTimeline">Log</UButton>
       </div>
     </header>
