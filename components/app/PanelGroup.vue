@@ -44,6 +44,6 @@ watch(currentTime, () => {
 
 <style lang="scss" scoped>
 .panel-group-wrapper {
-  @apply fixed right-4 top-15 z-[12] flex w-80 flex-col gap-y-2 rounded-lg bg-white px-2 py-2 shadow-std dark:bg-neutral-900;
+  @apply w-84 fixed right-4 top-15 z-[12] flex flex-col gap-y-2 rounded-lg bg-white px-2 py-2 shadow-std dark:bg-neutral-900;
 }
 </style>

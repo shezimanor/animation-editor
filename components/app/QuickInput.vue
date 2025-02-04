@@ -84,4 +84,7 @@ const validateValue = (event: Event) => {
   -webkit-appearance: none;
   margin: 0;
 }
+.quick-input[readonly] {
+  @apply bg-neutral-200 text-neutral-400 dark:bg-neutral-900 dark:text-neutral-300;
+}
 </style>
