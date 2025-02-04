@@ -5,13 +5,16 @@ const { currentTime, mainTransformer, mainNodeMap, logGsapTimeline } = useGlobal
 const { updateNodeAndMainNodeAttributes, logKonvaJSON } = useKonva();
 
 const debouncedUpdateMainNode = useDebounceFn(() => {
+  updateMainNode();
+}, 17);
+const updateMainNode = () => {
   const selectedNodes = mainTransformer.value?.nodes();
   if (!selectedNodes) return;
   selectedNodes.forEach((node) => {
     const targetMainNode = mainNodeMap.value[node.id()];
     if (targetMainNode) updateNodeAndMainNodeAttributes(node, targetMainNode);
   });
-}, 170);
+};
 
 // watcher `currentTime`
 watch(currentTime, () => {
