@@ -728,10 +728,13 @@ export const useGlobal = () => {
     // 刪除 Tween 資訊 from gsapTimelineNodeTweenInfoMap
     if (gsapTimelineNodeTweenInfoMap.hasOwnProperty(timelineNodeId))
       delete gsapTimelineNodeTweenInfoMap[timelineNodeId];
+    // 刪除時間軸動畫條、節點
+    timelineNode.destroy();
     return true;
   };
   const deleteTween = (targetNode: Node, timelineNode: Node) => {
     const result = deleteTweenAndSetPoint(targetNode, timelineNode);
+    // TODO: 這邊要刪除transformer
     if (result) toastSuccess('動畫已刪除');
     else toastError('動畫刪除失敗');
   };
