@@ -20,7 +20,8 @@ const {
   deleteTimelineTrack,
   createGsapTimeline,
   currentNodeId,
-  createTween
+  createTween,
+  createSetPoint
 } = useGlobal();
 
 interface AdModuleConfig {
@@ -403,7 +404,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     switch (e.key) {
       case 'Delete':
       case 'Backspace':
-        deleteItems(selectedNodes);
+        // deleteItems(selectedNodes);
         clearTransformer();
         break;
       case 'Escape':
@@ -432,7 +433,17 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         break;
       case 'e': // 快捷鍵新增節點
         if (selectedNodes.length !== 1) break;
-        // TODO:
+        createSetPoint(selectedNodes[0]);
+        currentNodeId.value = selectedNodes[0].id();
+        break;
+      case 's': // 快捷鍵更新起始點
+        if (selectedNodes.length !== 1) break;
+        createTween(selectedNodes[0]);
+        currentNodeId.value = selectedNodes[0].id();
+        break;
+      case 'd': // 快捷鍵更新結尾點
+        if (selectedNodes.length !== 1) break;
+        createSetPoint(selectedNodes[0]);
         currentNodeId.value = selectedNodes[0].id();
         break;
       default:
@@ -497,27 +508,13 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     const scaleX = magicFormula(node.scaleX());
     const scaleY = magicFormula(node.scaleY());
     const rotation = magicFormula(node.rotation());
-    const width = magicFormula(node.width() * scaleX);
-    const height = magicFormula(node.height() * scaleY);
-
-    node.setAttrs({
-      width,
-      height,
-      scaleX: 1,
-      scaleY: 1,
-      rotation,
-      offset: {
-        x: width / 2,
-        y: height / 2
-      }
-    });
 
     // position
     targetMainNode.x = magicFormula(node.x() - adModuleX.value);
     targetMainNode.y = magicFormula(node.y() - adModuleY.value);
     // transform
-    targetMainNode.width = width;
-    targetMainNode.height = height;
+    targetMainNode.scaleX = scaleX;
+    targetMainNode.scaleY = scaleY;
     targetMainNode.rotation = rotation;
     // opacity
     targetMainNode.opacity = magicFormula(node.opacity());
@@ -550,6 +547,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       y: mainItemInitialY.value,
       width: imgObj.naturalWidth,
       height: imgObj.naturalHeight,
+      scaleX: 1,
+      scaleY: 1,
       rotation: 0,
       opacity: 1,
       offset: {

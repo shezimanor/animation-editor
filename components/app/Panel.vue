@@ -3,8 +3,8 @@ import type { Node } from 'konva/lib/Node';
 console.log('-panel-');
 const {
   mainNodeMap,
-  currentActiveTimelineNodeId,
-  getTargetNodeFromTimeline,
+  currentTimelineNode,
+  timelineNodeType,
   getTween,
   updateGsapTimelineByTween,
   updateGsapTimelineBySetPoint,
@@ -27,19 +27,6 @@ const currentNode = computed(() => {
   return mainNodeMap.value[props.node.id()];
 });
 
-// 用來確認 active 的動畫是否屬於當前的素材節點
-
-// current timelineNode
-const currentTimelineNode = computed(() => {
-  if (!currentActiveTimelineNodeId.value || !props.node) return null;
-  return getTargetNodeFromTimeline(`${currentActiveTimelineNodeId.value}`) || null;
-});
-const timelineNodeType = computed(() => {
-  if (!currentActiveTimelineNodeId.value) return '';
-  if (currentActiveTimelineNodeId.value.indexOf('bar_') === 0) return 'bar';
-  else if (currentActiveTimelineNodeId.value.indexOf('circle_') === 0) return 'circle';
-  return '';
-});
 const updateKonvaNode = (attrName: string, newValue: number) => {
   if (!currentNode.value || !props.node) return;
   updateKonvaNodeAttribute(props.node, attrName, newValue);
@@ -113,11 +100,29 @@ const lookTween = () => {
     <div class="grid grid-cols-2 gap-x-2">
       <div class="flex items-center justify-between">
         <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Width</UKbd>
-        <AppQuickInput v-model="currentNode.width" @change="updateKonvaNode('width', $event)" />
+        <AppQuickInput
+          v-model="currentNode.width"
+          @change="updateKonvaNode('width', $event)"
+          :readonly="true"
+        />
       </div>
       <div class="flex items-center justify-between">
         <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Height</UKbd>
-        <AppQuickInput v-model="currentNode.height" @change="updateKonvaNode('height', $event)" />
+        <AppQuickInput
+          v-model="currentNode.height"
+          @change="updateKonvaNode('height', $event)"
+          :readonly="true"
+        />
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-x-2">
+      <div class="flex items-center justify-between">
+        <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">scaleX</UKbd>
+        <AppQuickInput v-model="currentNode.scaleX" @change="updateKonvaNode('scaleX', $event)" />
+      </div>
+      <div class="flex items-center justify-between">
+        <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">scaleY</UKbd>
+        <AppQuickInput v-model="currentNode.scaleY" @change="updateKonvaNode('scaleY', $event)" />
       </div>
     </div>
     <div class="grid grid-cols-2 gap-x-2">
@@ -162,7 +167,7 @@ const lookTween = () => {
           variant="solid"
           @click="createTween(node)"
         >
-          新增動畫<UKbd size="sm">W</UKbd>
+          新增動畫<UKbd size="xs">W</UKbd>
         </UButton>
         <UButton
           size="xs"
@@ -172,7 +177,7 @@ const lookTween = () => {
           @click="createSetPoint(node)"
         >
           新增節點
-          <UKbd size="sm">E</UKbd>
+          <UKbd size="xs">E</UKbd>
         </UButton>
       </div>
     </div>
@@ -186,11 +191,12 @@ const lookTween = () => {
         class="flex w-full flex-row items-center justify-start gap-x-2"
       >
         <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarFromVars"
-          >更新初始點<UKbd size="sm">S</UKbd></UButton
+          >更新起點<UKbd size="xs">S</UKbd></UButton
         >
         <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarToVars"
-          >更新結尾點<UKbd size="sm">D</UKbd></UButton
+          >更新終點<UKbd size="xs">D</UKbd></UButton
         >
+
         <!-- <UButton size="xs" color="primary" variant="solid" @click="lookTween">LOG</UButton> -->
       </div>
       <div
@@ -198,7 +204,7 @@ const lookTween = () => {
         class="flex w-full flex-row items-center justify-start gap-x-2"
       >
         <UButton size="xs" color="primary" variant="solid" @click="updateAnimationPointVars"
-          >更新節點<UKbd size="sm">S</UKbd></UButton
+          >更新節點<UKbd size="xs">S</UKbd></UButton
         >
       </div>
     </div>

@@ -12,6 +12,8 @@ export interface MyNode {
   label: string;
   x: number;
   y: number;
+  scaleX: number;
+  scaleY: number;
   width: number;
   height: number;
   opacity: number;
@@ -22,6 +24,8 @@ interface TweenVars {
   y?: number;
   width?: number;
   height?: number;
+  scaleX?: number;
+  scaleY?: number;
   opacity?: number;
   rotation?: number;
   ease?: string;
@@ -497,6 +501,8 @@ export const useGlobal = () => {
     const {
       width: fromWidth,
       height: fromHeight,
+      scaleX: fromScaleX,
+      scaleY: fromScaleY,
       x: fromX,
       y: fromY,
       rotation: fromRotation,
@@ -505,6 +511,8 @@ export const useGlobal = () => {
     const {
       width: toWidth,
       height: toHeight,
+      scaleX: toScaleX,
+      scaleY: toScaleY,
       x: toX,
       y: toY,
       rotation: toRotation,
@@ -513,6 +521,8 @@ export const useGlobal = () => {
     const {
       width: newWidth,
       height: newHeight,
+      scaleX: newScaleX,
+      scaleY: newScaleY,
       x: newX,
       y: newY,
       rotation: newRotation,
@@ -523,6 +533,8 @@ export const useGlobal = () => {
         ? {
             width: newWidth,
             height: newHeight,
+            scaleX: newScaleX,
+            scaleY: newScaleY,
             x: newX + adModuleX.value,
             y: newY + adModuleY.value,
             rotation: newRotation,
@@ -531,6 +543,8 @@ export const useGlobal = () => {
         : {
             width: fromWidth,
             height: fromHeight,
+            scaleX: fromScaleX,
+            scaleY: fromScaleY,
             x: fromX,
             y: fromY,
             rotation: fromRotation,
@@ -541,6 +555,8 @@ export const useGlobal = () => {
         ? {
             width: newWidth,
             height: newHeight,
+            scaleX: newScaleX,
+            scaleY: newScaleY,
             x: newX + adModuleX.value,
             y: newY + adModuleY.value,
             rotation: newRotation,
@@ -550,6 +566,8 @@ export const useGlobal = () => {
         : {
             width: toWidth,
             height: toHeight,
+            scaleX: toScaleX,
+            scaleY: toScaleY,
             x: toX,
             y: toY,
             rotation: toRotation,
@@ -673,6 +691,7 @@ export const useGlobal = () => {
       duration,
       start
     };
+    console.log('tween:', tween);
 
     toastSuccess('動畫已建立');
   };
@@ -700,12 +719,14 @@ export const useGlobal = () => {
     const id = targetNode.id();
     const targetMainNode = mainNodeMap.value[id]; // 響應式 Node
     if (!targetMainNode) return;
-    const { width, height, x, y, rotation, opacity } = targetMainNode;
+    const { width, height, scaleX, scaleY, x, y, rotation, opacity } = targetMainNode;
     const tweenVars = {
       x: x + adModuleX.value,
       y: y + adModuleY.value,
       width,
       height,
+      scaleX,
+      scaleY,
       opacity,
       rotation
     };
@@ -720,12 +741,14 @@ export const useGlobal = () => {
     const id = targetNode.id();
     const targetMainNode = mainNodeMap.value[id]; // 響應式 Node
     if (!targetMainNode) return;
-    const { width, height, x, y, rotation, opacity } = targetMainNode;
+    const { width, height, scaleX, scaleY, x, y, rotation, opacity } = targetMainNode;
     const tweenVars = {
       x: x + adModuleX.value,
       y: y + adModuleY.value,
       width,
       height,
+      scaleX,
+      scaleY,
       opacity,
       rotation
     };
@@ -795,6 +818,18 @@ export const useGlobal = () => {
     'currentActiveTimelineNodeId',
     () => null
   );
+  // 用來確認 active 的動畫是否屬於當前的素材節點
+  // current timelineNode
+  const currentTimelineNode = computed(() => {
+    if (!currentActiveTimelineNodeId.value) return null;
+    return getTargetNodeFromTimeline(`${currentActiveTimelineNodeId.value}`) || null;
+  });
+  const timelineNodeType = computed(() => {
+    if (!currentActiveTimelineNodeId.value) return '';
+    if (currentActiveTimelineNodeId.value.indexOf('bar_') === 0) return 'bar';
+    else if (currentActiveTimelineNodeId.value.indexOf('circle_') === 0) return 'circle';
+    return '';
+  });
 
   return {
     // 廣告區域在主畫布的位置(x,y)
@@ -821,7 +856,6 @@ export const useGlobal = () => {
     // 時間軸畫布 stage, layer
     timelineStage, // state
     timelineLayer, // state
-    getTargetNodeFromTimeline, // method
     updateTimelineLayer, // method
 
     // 時間軸物件
@@ -855,6 +889,8 @@ export const useGlobal = () => {
 
     // current id
     currentNodeId,
-    currentActiveTimelineNodeId
+    currentActiveTimelineNodeId,
+    currentTimelineNode,
+    timelineNodeType
   };
 };
