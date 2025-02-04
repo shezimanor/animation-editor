@@ -481,15 +481,7 @@ export const useGlobal = () => {
     // 設定 currentActiveTimelineNodeId
     currentActiveTimelineNodeId.value = null;
   };
-  const getTween = (nodeId: string, timelineNodeId: string) => {
-    console.log('getTween');
-    return gsapTimelineNodeTweenMap[nodeId][timelineNodeId];
-  };
-  const removeTween = (tween: GSAPTween) => {
-    console.log('removeTween');
-    // gsapTimeline.remove 可刪除 .fromTo() 和 .set()
-    gsapTimeline?.remove(tween);
-  };
+
   const updateGsapTimelineByTween = (
     oldTween: GSAPTween,
     targetBarNode: Node,
@@ -582,7 +574,7 @@ export const useGlobal = () => {
     const nodeId = targetNode.id();
     const barId = targetBarNode.id();
     // 移除原本的 oldTween
-    removeTween(oldTween);
+    removeGSAPTween(oldTween);
     // 重新建立新的 Tween
     const newTween = addFromToTween(targetNode, duration, start, fromVars, toVars);
 
@@ -654,7 +646,7 @@ export const useGlobal = () => {
     const nodeId = targetNode.id();
     const circleId = targetCircleNode.id();
     // 移除原本的 oldTween
-    removeTween(oldTween);
+    removeGSAPTween(oldTween);
     // 重新建立新的 Tween
     const newTween = addZeroDurationTween(targetNode, start, tweenVars);
 
@@ -672,6 +664,15 @@ export const useGlobal = () => {
       default:
         break;
     }
+  };
+  const getTween = (nodeId: string, timelineNodeId: string) => {
+    console.log('getTween');
+    return gsapTimelineNodeTweenMap[nodeId][timelineNodeId];
+  };
+  const removeGSAPTween = (tween: GSAPTween) => {
+    console.log('removeGSAPTween');
+    // gsapTimeline.remove 可刪除 .fromTo() 和 .set()
+    gsapTimeline?.remove(tween);
   };
   const createTween = (targetNode: Node) => {
     console.log('createTween');
@@ -691,8 +692,7 @@ export const useGlobal = () => {
       duration,
       start
     };
-    console.log('tween:', tween);
-
+    console.log('建立動畫:', tween);
     toastSuccess('動畫已建立');
   };
   const createSetPoint = (targetNode: Node) => {
@@ -711,8 +711,35 @@ export const useGlobal = () => {
     gsapTimelineNodeTweenInfoMap[pointId] = {
       start
     };
-
+    console.log('建立節點:', tween);
     toastSuccess('節點已建立');
+  };
+  // deleteTween & deleteSetPoint 刪除邏輯相同，共用函數
+  const deleteTweenAndSetPoint = (targetNode: Node, timelineNode: Node) => {
+    const nodeId = targetNode.id();
+    const timelineNodeId = timelineNode.id();
+    const tween = getTween(nodeId, timelineNodeId);
+    const gsapTimelineNodeTweenMapTargetMap = gsapTimelineNodeTweenMap[nodeId];
+    // 刪除 GSAP 動畫
+    removeGSAPTween(tween);
+    // 刪除 Tween from gsapTimelineNodeTweenMap
+    if (gsapTimelineNodeTweenMapTargetMap.hasOwnProperty(timelineNodeId))
+      delete gsapTimelineNodeTweenMapTargetMap[timelineNodeId];
+    // 刪除 Tween 資訊 from gsapTimelineNodeTweenInfoMap
+    if (gsapTimelineNodeTweenInfoMap.hasOwnProperty(timelineNodeId))
+      delete gsapTimelineNodeTweenInfoMap[timelineNodeId];
+    return true;
+  };
+  const deleteTween = (targetNode: Node, timelineNode: Node) => {
+    const result = deleteTweenAndSetPoint(targetNode, timelineNode);
+    if (result) toastSuccess('動畫已刪除');
+    else toastError('動畫刪除失敗');
+  };
+
+  const deleteSetPoint = (targetNode: Node, timelineNode: Node) => {
+    const result = deleteTweenAndSetPoint(targetNode, timelineNode);
+    if (result) toastSuccess('節點已刪除');
+    else toastError('節點刪除失敗');
   };
   // 建立一個 fromTo() 狀態相同的不變動畫
   const addInitialTween = (targetNode: Node, duration: number, start: number) => {
@@ -867,7 +894,9 @@ export const useGlobal = () => {
     getTween, // method
     createTween, // method
     createSetPoint, // method
-    removeTween, // method
+    removeGSAPTween, // method (just call gsap method)
+    deleteTween, // method (more complex method)
+    deleteSetPoint, // method
     updateGsapTimelineByTween, // method
     updateGsapTimelineBySetPoint, // method
     addRect, // method

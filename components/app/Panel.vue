@@ -9,7 +9,9 @@ const {
   updateGsapTimelineByTween,
   updateGsapTimelineBySetPoint,
   createTween,
-  createSetPoint
+  createSetPoint,
+  deleteTween,
+  deleteSetPoint
 } = useGlobal();
 const { updateKonvaNodeAttribute } = useKonva();
 
@@ -31,7 +33,7 @@ const updateKonvaNode = (attrName: string, newValue: number) => {
   if (!currentNode.value || !props.node) return;
   updateKonvaNodeAttribute(props.node, attrName, newValue);
 };
-// 更新起始點
+// 更新起點
 const updateAnimationBarFromVars = () => {
   console.log('updateAnimationBarFromVars');
   if (!currentTimelineNode.value || !currentNode.value || !props.node) return;
@@ -45,7 +47,7 @@ const updateAnimationBarFromVars = () => {
     'fromVars'
   );
 };
-// 更新結尾點
+// 更新終點
 const updateAnimationBarToVars = () => {
   console.log('updateAnimationBarToVars');
   if (!currentTimelineNode.value || !currentNode.value || !props.node) return;
@@ -183,7 +185,7 @@ const lookTween = () => {
     </div>
     <!-- 動畫條操作 -->
     <div
-      v-if="currentTimelineNode"
+      v-if="currentTimelineNode && node"
       class="mt-1 flex flex-col items-start gap-y-2 border-t border-neutral-200 pt-2"
     >
       <div
@@ -196,8 +198,16 @@ const lookTween = () => {
         <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarToVars"
           >更新終點<UKbd size="xs">D</UKbd></UButton
         >
-
-        <!-- <UButton size="xs" color="primary" variant="solid" @click="lookTween">LOG</UButton> -->
+        <UButton
+          size="xs"
+          color="rose"
+          variant="solid"
+          @click="deleteTween(node, currentTimelineNode)"
+          >刪除動畫<UKbd size="xs">⌫</UKbd></UButton
+        >
+        <UButton v-if="false" size="xs" color="gray" variant="solid" @click="lookTween"
+          >動畫紀錄</UButton
+        >
       </div>
       <div
         v-if="timelineNodeType === 'circle'"
@@ -205,6 +215,13 @@ const lookTween = () => {
       >
         <UButton size="xs" color="primary" variant="solid" @click="updateAnimationPointVars"
           >更新節點<UKbd size="xs">S</UKbd></UButton
+        >
+        <UButton
+          size="xs"
+          color="rose"
+          variant="solid"
+          @click="deleteSetPoint(node, currentTimelineNode)"
+          >刪除節點<UKbd size="xs">⌫</UKbd></UButton
         >
       </div>
     </div>

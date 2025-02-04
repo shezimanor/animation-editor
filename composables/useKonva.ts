@@ -436,14 +436,14 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         createSetPoint(selectedNodes[0]);
         currentNodeId.value = selectedNodes[0].id();
         break;
-      case 's': // 快捷鍵更新起始點
+      case 's': // 快捷鍵更新起點
         if (selectedNodes.length !== 1) break;
-        createTween(selectedNodes[0]);
+        // TODO:
         currentNodeId.value = selectedNodes[0].id();
         break;
-      case 'd': // 快捷鍵更新結尾點
+      case 'd': // 快捷鍵更新終點
         if (selectedNodes.length !== 1) break;
-        createSetPoint(selectedNodes[0]);
+        // TODO:
         currentNodeId.value = selectedNodes[0].id();
         break;
       default:
