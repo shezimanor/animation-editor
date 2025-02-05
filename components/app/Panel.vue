@@ -4,6 +4,7 @@ import type { Node } from 'konva/lib/Node';
 const {
   mainNodeMap,
   currentTimelineNode,
+  currentActiveTimelineNodeId,
   timelineNodeType,
   getTween,
   updateGsapTimelineByTween,
@@ -27,6 +28,12 @@ const props = withDefaults(
 const currentNode = computed(() => {
   if (!props.node) return null;
   return mainNodeMap.value[props.node.id()];
+});
+
+const exactNodeAndTween = computed(() => {
+  return (
+    currentNode.value && currentActiveTimelineNodeId.value?.indexOf(currentNode.value.id) !== -1
+  );
 });
 
 const updateKonvaNode = (attrName: string, newValue: number) => {
@@ -79,7 +86,7 @@ const lookTween = () => {
   if (!currentTimelineNode.value || !currentNode.value || !props.node) return;
   const currentTween = getTween(props.node.id(), currentTimelineNode.value.id());
   if (!currentTween) return;
-  console.log(currentTween);
+  console.log(currentTween, currentNode.value);
 };
 </script>
 
@@ -185,7 +192,7 @@ const lookTween = () => {
     </div>
     <!-- 動畫條操作 -->
     <div
-      v-if="currentTimelineNode && node"
+      v-if="exactNodeAndTween && currentTimelineNode && node"
       class="mt-1 flex flex-col items-start gap-y-2 border-t border-neutral-200 pt-2"
     >
       <div
