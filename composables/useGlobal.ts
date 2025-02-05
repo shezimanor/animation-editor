@@ -52,6 +52,8 @@ const currentTime = ref(0);
 const gsapTimelineNodeTweenMap: Record<string, Record<string, GSAPTween>> = {};
 // 是拿來用 barId 和 circleId 來取得精確的 start & duration(沒有像上面的 map 綁 targetNodeId)
 const gsapTimelineNodeTweenInfoMap: Record<string, SimpleTween> = {};
+// 拿來用 barId 來取得 timelineBar 當下的 Transformer
+const timelineBarInTransformerMap: Record<string, Konva.Transformer> = {};
 
 const { toastSuccess, toastError } = useNotify();
 
@@ -284,9 +286,9 @@ export const useGlobal = () => {
     updateTimelineTrackInitialPosition();
   };
   // 建立動畫條(動畫單元)
-  const addTimelineBar = (id: string, duration: number, start: number): string => {
+  const addTimelineBar = (id: string, duration: number, start: number) => {
     const groupItem = getTargetNodeFromTimeline(`group_${id}`);
-    if (!groupItem || !(groupItem instanceof Konva.Group)) return '';
+    if (!groupItem || !(groupItem instanceof Konva.Group)) return { barId: '', transformer: null };
     const barId = `bar_${uuid()}_${id}`;
     const trackWidth =
       window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION - TIMELINE_TRACK_START_X;
@@ -305,7 +307,7 @@ export const useGlobal = () => {
       cornerRadius: 0,
       draggable: true,
       dragBoundFunc(pos) {
-        console.log('pos.x', pos.x);
+        // console.log('pos.x', pos.x);
         return {
           x:
             pos.x < TIMELINE_TRACK_START_X
@@ -340,7 +342,7 @@ export const useGlobal = () => {
     });
     barItem.on('dragend', function () {
       isDragging = false;
-      console.log('barItem.x():', barItem.x());
+      // console.log('barItem.x():', barItem.x());
       // 動畫的 start 發生變化
       const targetMainNode = mainNodeMap.value[id];
       const targetNode = getTargetNodeFromMain(id);
@@ -384,8 +386,8 @@ export const useGlobal = () => {
     transformerItem.nodes([barItem]);
     // highlight
     activateNode(id, barId, barItem);
-    // 回傳 barId
-    return barId;
+    // 回傳 barId, transformer
+    return { barId, transformer: transformerItem };
   };
   // 建立節點(動畫單元)
   const addTimelineCircle = (id: string, start: number): string => {
@@ -677,13 +679,13 @@ export const useGlobal = () => {
   const createTween = (targetNode: Node) => {
     console.log('createTween');
     const nodeId = targetNode.id();
-    const duration = 1;
-    const start = currentTime.value; // 使用當前時間
-    // 先建立時間為 1 秒的空動畫, TODO: start 需要考慮其他因素, duration 也會有相關限制
+    const duration = 1; // TODO: 可能會因為其他已存在的動畫影響位置
+    const start = currentTime.value; //  使用時間軸當前指向的時間（暫時先無視其他動畫）TODO: 需要考慮該時間是否已有其他動畫
+    // 先建立時間為 1 秒的空動畫
     const tween = addInitialTween(targetNode, duration, start);
     // 加入對應的時間軸動畫條(動畫條 ID 會回傳)
-    const barId = addTimelineBar(nodeId, duration, start);
-    if (!barId || !tween) return toastError('動畫建立失敗');
+    const { barId, transformer } = addTimelineBar(nodeId, duration, start);
+    if (!barId || !transformer || !tween) return toastError('動畫建立失敗');
     // 儲存 Tween 到 gsapTimelineNodeTweenMap 裡面
     if (!gsapTimelineNodeTweenMap[nodeId]) gsapTimelineNodeTweenMap[nodeId] = {};
     gsapTimelineNodeTweenMap[nodeId][barId] = tween;
@@ -692,7 +694,9 @@ export const useGlobal = () => {
       duration,
       start
     };
-    console.log('建立動畫:', tween);
+    // 儲存 TransformerId 到 timelineBarInTransformerMap 裡面
+    timelineBarInTransformerMap[barId] = transformer;
+    // console.log('建立動畫:', tween);
     toastSuccess('動畫已建立');
   };
   const createSetPoint = (targetNode: Node) => {
@@ -711,11 +715,11 @@ export const useGlobal = () => {
     gsapTimelineNodeTweenInfoMap[pointId] = {
       start
     };
-    console.log('建立節點:', tween);
+    // console.log('建立節點:', tween);
     toastSuccess('節點已建立');
   };
   // deleteTween & deleteSetPoint 刪除邏輯相同，共用函數
-  const deleteTweenAndSetPoint = (targetNode: Node, timelineNode: Node) => {
+  const deleteTweenAndSetPoint = (targetNode: Node, timelineNode: Node, isBar: Boolean) => {
     const nodeId = targetNode.id();
     const timelineNodeId = timelineNode.id();
     const tween = getTween(nodeId, timelineNodeId);
@@ -728,19 +732,30 @@ export const useGlobal = () => {
     // 刪除 Tween 資訊 from gsapTimelineNodeTweenInfoMap
     if (gsapTimelineNodeTweenInfoMap.hasOwnProperty(timelineNodeId))
       delete gsapTimelineNodeTweenInfoMap[timelineNodeId];
+    // 刪除 TransformerId from timelineBarInTransformerMap
+    if (isBar && timelineBarInTransformerMap.hasOwnProperty(timelineNodeId)) {
+      // 關閉 Transformer 與 Bar 的關聯
+      const currentTransformer = timelineBarInTransformerMap[timelineNodeId];
+      if (currentTransformer) {
+        currentTransformer.nodes([]);
+        currentTransformer.visible(false);
+      }
+      delete timelineBarInTransformerMap[timelineNodeId];
+    }
     // 刪除時間軸動畫條、節點
     timelineNode.destroy();
+    // 設定 currentActiveTimelineNodeId
+    currentActiveTimelineNodeId.value = null;
     return true;
   };
   const deleteTween = (targetNode: Node, timelineNode: Node) => {
-    const result = deleteTweenAndSetPoint(targetNode, timelineNode);
-    // TODO: 這邊要刪除transformer
+    const result = deleteTweenAndSetPoint(targetNode, timelineNode, true);
     if (result) toastSuccess('動畫已刪除');
     else toastError('動畫刪除失敗');
   };
 
   const deleteSetPoint = (targetNode: Node, timelineNode: Node) => {
-    const result = deleteTweenAndSetPoint(targetNode, timelineNode);
+    const result = deleteTweenAndSetPoint(targetNode, timelineNode, false);
     if (result) toastSuccess('節點已刪除');
     else toastError('節點刪除失敗');
   };
