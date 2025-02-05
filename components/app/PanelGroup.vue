@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-console.log('-panel group-');
+// console.log('-panel group-');
 import { useDebounceFn } from '@vueuse/core';
 const { currentTime, mainTransformer, mainNodeMap, logGsapTimeline } = useGlobal();
 const { updateNodeAndMainNodeAttributes, logKonvaJSON } = useKonva();
@@ -44,6 +44,6 @@ watch(currentTime, () => {
 
 <style lang="scss" scoped>
 .panel-group-wrapper {
-  @apply w-84 fixed right-4 top-15 z-[12] flex flex-col gap-y-2 rounded-lg bg-white px-2 py-2 shadow-std dark:bg-neutral-900;
+  @apply fixed right-4 top-15 z-[12] flex w-84 flex-col gap-y-2 rounded-lg bg-white px-2 py-2 shadow-std dark:bg-neutral-900;
 }
 </style>

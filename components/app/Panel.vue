@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Node } from 'konva/lib/Node';
-console.log('-panel-');
+// console.log('-panel-');
 const {
   mainNodeMap,
   currentTimelineNode,

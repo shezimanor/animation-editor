@@ -1,5 +1,5 @@
 <script setup lang="ts">
-console.log('-timeline controller-');
+// console.log('-timeline controller-');
 const { initializedGsap, playGsapTimeline, pauseGsapTimeline, paused } = useGsap();
 const { updateMainNodeState } = useKonva();
 </script>

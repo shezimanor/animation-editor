@@ -13,7 +13,7 @@ export interface AdModuleConfig {
 }
 
 const adModule = useCookie<AdModuleConfig>('adModuleInfo', AD_MODULE_COOKIE_CONFIG);
-console.log('-index-');
+// console.log('-index-');
 const { mainStageRef, mainStageBgRef, initKonva, destroyKonva, addImage } = useKonva({
   width: adModule.value.width,
   height: adModule.value.height
