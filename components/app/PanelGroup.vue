@@ -33,10 +33,7 @@ watch(currentTime, () => {
         <UButton size="xs" @click="logGsapTimeline">Log</UButton>
       </div>
     </header>
-    <div
-      v-if="mainTransformer && mainTransformer?.nodes().length > 0"
-      class="flex flex-col gap-y-2"
-    >
+    <div v-if="mainTransformer && mainTransformer.nodes().length > 0" class="flex flex-col">
       <AppPanel v-for="node in mainTransformer.nodes()" :key="node.id" :node="node" />
     </div>
   </div>
@@ -44,6 +41,6 @@ watch(currentTime, () => {
 
 <style lang="scss" scoped>
 .panel-group-wrapper {
-  @apply fixed right-4 top-15 z-[12] flex w-84 flex-col gap-y-2 rounded-lg bg-white px-2 py-2 shadow-std dark:bg-neutral-900;
+  @apply fixed right-4 top-15 z-[12] flex w-84 flex-col rounded-lg bg-white px-2 py-2 shadow-std dark:bg-neutral-900;
 }
 </style>
