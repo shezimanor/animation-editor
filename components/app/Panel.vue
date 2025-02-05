@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Node } from 'konva/lib/Node';
+import { AppBeforeDeleteModal } from '#components';
 // console.log('-panel-');
+const modal = useModal();
 const {
   mainNodeMap,
   currentTimelineNode,
@@ -14,7 +16,7 @@ const {
   deleteTween,
   deleteSetPoint
 } = useGlobal();
-const { updateKonvaNodeAttribute } = useKonva();
+const { updateKonvaNodeAttribute, deleteMainItem } = useKonva();
 
 const props = withDefaults(
   defineProps<{
@@ -82,16 +84,28 @@ const updateAnimationPointVars = () => {
     'vars'
   );
 };
+// 查看動畫紀錄
 const lookTween = () => {
   if (!currentTimelineNode.value || !currentNode.value || !props.node) return;
   const currentTween = getTween(props.node.id(), currentTimelineNode.value.id());
   if (!currentTween) return;
   console.log(currentTween, currentNode.value);
 };
+// 刪除圖層
+const openModal = (node: Node) => {
+  modal.open(AppBeforeDeleteModal, {
+    title: '刪除圖層',
+    content: '確定要刪除此圖層嗎？刪除後所屬的動畫也會一併刪除，且無法復原。',
+    onDelete: () => {
+      deleteMainItem(node);
+      modal.close();
+    }
+  });
+};
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-1 rounded p-2 shadow" v-if="currentNode">
+  <div class="mt-2 flex flex-col gap-y-1 rounded border p-2" v-if="currentNode && node">
     <div class="mb-1 flex items-center justify-between">
       <!-- <h3 class="text-sm font-semibold"></h3> -->
       <UInput v-model="currentNode.label" size="xs" />
@@ -103,6 +117,7 @@ const lookTween = () => {
           size="sm"
           color="red"
           variant="link"
+          @click="openModal(node)"
         />
       </UTooltip>
     </div>

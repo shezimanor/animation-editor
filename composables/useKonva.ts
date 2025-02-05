@@ -29,6 +29,8 @@ interface AdModuleConfig {
   height: number;
 }
 
+const { toastSuccess } = useNotify();
+
 export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   // composable 專用常數
   const SOURCE_IMG_LIMIT = 10;
@@ -396,6 +398,13 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const clearTransformer = () => {
     mainTransformer.value?.nodes([]);
   };
+  const removeNodeFromTransformer = (node: Node) => {
+    const selectedNodes = mainTransformer.value?.nodes();
+    if (selectedNodes) {
+      const newNodes = selectedNodes.filter((item) => item.id() !== node.id());
+      mainTransformer.value?.nodes(newNodes);
+    }
+  };
 
   const keyboardEventHandler = (e: KeyboardEvent) => {
     const selectedNodes = mainTransformer.value?.nodes();
@@ -531,6 +540,19 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     });
   };
 
+  const deleteMainItem = (selectedNode: Node) => {
+    // 同時移除 mainNodeList
+    deleteMainNode(selectedNode.id());
+    // 同時刪除 TimelineItem
+    deleteTimelineTrack(selectedNode.id());
+    // 刪除 Node(Img)
+    selectedNode.destroy();
+    // 更新選取框
+    removeNodeFromTransformer(selectedNode);
+    // ui 通知
+    toastSuccess('已刪除圖層');
+  };
+
   const deleteMainNode = (id: string) => {
     const targetIndex = mainNodeList.value.findIndex((item) => item.id === id);
     if (targetIndex > -1) mainNodeList.value.splice(targetIndex, 1);
@@ -591,6 +613,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     initKonva,
     destroyKonva,
     addImage,
+    deleteMainItem,
     logKonva,
     logKonvaJSON,
     updateKonvaNodeAttribute,

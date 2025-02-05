@@ -35,5 +35,6 @@ useHead({
         width: 'w-72'
       }"
     />
+    <UModals />
   </div>
 </template>
