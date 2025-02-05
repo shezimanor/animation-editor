@@ -27,6 +27,8 @@ const props = withDefaults(
   }
 );
 
+const easeList: EaseType[] = Object.values(EaseType);
+
 const currentNode = computed(() => {
   if (!props.node) return null;
   return mainNodeMap.value[props.node.id()];
@@ -210,26 +212,39 @@ const openModal = (node: Node) => {
       v-if="exactNodeAndTween && currentTimelineNode && node"
       class="mt-1 flex flex-col items-start gap-y-2 border-t border-neutral-200 pt-2"
     >
-      <div
-        v-if="timelineNodeType === 'bar'"
-        class="flex w-full flex-row items-center justify-start gap-x-2"
-      >
-        <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarFromVars"
-          >更新起點<UKbd size="xs">S</UKbd></UButton
-        >
-        <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarToVars"
-          >更新終點<UKbd size="xs">D</UKbd></UButton
-        >
-        <UButton
-          size="xs"
-          color="rose"
-          variant="solid"
-          @click="deleteTween(node, currentTimelineNode)"
-          >刪除動畫<UKbd size="xs">⌫</UKbd></UButton
-        >
-        <UButton v-if="false" size="xs" color="gray" variant="solid" @click="lookTween"
-          >動畫紀錄</UButton
-        >
+      <div v-if="timelineNodeType === 'bar'" class="flex w-full flex-col gap-y-2">
+        <div class="flex flex-row items-center justify-start gap-x-2">
+          <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarFromVars"
+            >更新起點<UKbd size="xs">S</UKbd></UButton
+          >
+          <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarToVars"
+            >更新終點<UKbd size="xs">D</UKbd></UButton
+          >
+          <UButton
+            size="xs"
+            color="rose"
+            variant="solid"
+            @click="deleteTween(node, currentTimelineNode)"
+            >刪除動畫<UKbd size="xs">⌫</UKbd></UButton
+          >
+          <UButton v-if="false" size="xs" color="gray" variant="solid" @click="lookTween"
+            >動畫紀錄</UButton
+          >
+        </div>
+        <div class="flex flex-row items-center justify-between">
+          <div class="flex flex-row items-center gap-x-2">
+            <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Ease</UKbd>
+            <!-- TODO: 更新 tween ease -->
+            <USelect size="xs" value="none" :options="easeList" />
+          </div>
+          <ULink
+            class="text-primary text-sm underline"
+            to="https://gsap.com/docs/v3/Eases/"
+            target="_blank"
+          >
+            Ease 說明
+          </ULink>
+        </div>
       </div>
       <div
         v-if="timelineNodeType === 'circle'"

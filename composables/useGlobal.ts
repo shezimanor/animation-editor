@@ -6,6 +6,39 @@ import type { ImageConfig } from 'konva/lib/shapes/Image';
 import { v4 as uuid } from 'uuid';
 console.log('exec useGlobal');
 
+export enum EaseType {
+  None = 'none',
+  power1In = 'power1.in',
+  power1InOut = 'power1.inOut',
+  power1Out = 'power1.out',
+  power2In = 'power2.in',
+  power2InOut = 'power2.inOut',
+  power2Out = 'power1.out',
+  power3In = 'power3.in',
+  power3InOut = 'power3.inOut',
+  power3Out = 'power3.out',
+  power4In = 'power4.in',
+  power4InOut = 'power4.inOut',
+  power4Out = 'power4.out',
+  backIn = 'back.in',
+  backInOut = 'back.inOut',
+  backOut = 'back.out',
+  bounceIn = 'bounce.in',
+  bounceInOut = 'bounce.inOut',
+  bounceOut = 'bounce.out',
+  circIn = 'circ.in',
+  circInOut = 'circ.inOut',
+  circOut = 'circ.out',
+  expoIn = 'expo.in',
+  expoInOut = 'expo.inOut',
+  expoOut = 'expo.out',
+  sineIn = 'sine.in',
+  sineInOut = 'sine.inOut',
+  sineOut = 'sine.out',
+  elasticIn = 'elastic.in(1.5,0.2)',
+  elasticInOut = 'elastic.inOut(1.5,0.2)',
+  elasticOut = 'elastic.out(1.5,0.2)'
+}
 export interface MyNode {
   id: string;
   name: string;
@@ -18,6 +51,7 @@ export interface MyNode {
   height: number;
   opacity: number;
   rotation: number;
+  ease: string;
 }
 interface TweenVars {
   x?: number;
@@ -143,7 +177,7 @@ export const useGlobal = () => {
     }
     // 新增 Transformer
     const newTransformer = new Konva.Transformer({
-      borderStroke: 'rgba(255, 255, 255, 0.6)',
+      borderStroke: 'rgba(355, 255, 255, 0.6)',
       rotateEnabled: false,
       rotateLineVisible: false,
       enabledAnchors: ['middle-left', 'middle-right'],
