@@ -569,7 +569,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const addMainNode = (imgItem: Konva.Image, imgNode: MyNode) => {
-    console.log(imgItem);
+    // console.log(imgItem);
     mainNodeList.value.push(imgNode);
     // 更新數據
     updateNodeAndMainNodeAttributes(imgItem, imgNode);

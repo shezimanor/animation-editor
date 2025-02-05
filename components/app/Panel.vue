@@ -35,7 +35,7 @@ const updateKonvaNode = (attrName: string, newValue: number) => {
 };
 // 更新起點
 const updateAnimationBarFromVars = () => {
-  console.log('updateAnimationBarFromVars');
+  // console.log('updateAnimationBarFromVars');
   if (!currentTimelineNode.value || !currentNode.value || !props.node) return;
   const currentTween = getTween(props.node.id(), currentTimelineNode.value.id());
   if (!currentTween) return;
@@ -49,7 +49,7 @@ const updateAnimationBarFromVars = () => {
 };
 // 更新終點
 const updateAnimationBarToVars = () => {
-  console.log('updateAnimationBarToVars');
+  // console.log('updateAnimationBarToVars');
   if (!currentTimelineNode.value || !currentNode.value || !props.node) return;
   const currentTween = getTween(props.node.id(), currentTimelineNode.value.id());
   if (!currentTween) return;
@@ -63,7 +63,7 @@ const updateAnimationBarToVars = () => {
 };
 // 更新節點
 const updateAnimationPointVars = () => {
-  console.log('updateAnimationPointVars');
+  // console.log('updateAnimationPointVars');
   if (!currentTimelineNode.value || !currentNode.value || !props.node) return;
   const currentTween = getTween(props.node.id(), currentTimelineNode.value.id());
   if (!currentTween) return;
