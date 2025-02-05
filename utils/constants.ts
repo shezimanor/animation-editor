@@ -1,3 +1,5 @@
+export const GUIDELINE_OFFSET = 5; // 對齊線偏移量
+export const GUIDELINE_COLOR = '#38bdf8'; // Snapping 對齊線顏色
 export const TOTAL_DURATION = 6; // 預設總時長(秒)
 export const ASIDE_WIDTH = 0; // 左側欄寬度(目前沒有左側欄)
 export const HEADER_HEIGHT = 56; // 頁首高度

@@ -4,6 +4,7 @@ import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
 import type { Node } from 'konva/lib/Node';
 import { v4 as uuid } from 'uuid';
+
 const {
   adModuleX,
   adModuleY,
@@ -107,19 +108,21 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       if (isClipMode.value) addLayerClip();
     });
 
-    // 註冊 Stage 事件
+    // 註冊頂層事件
     if (
       stage.value !== null &&
       mainTransformer.value !== null &&
       mainSelectionRect.value !== null &&
       mainContainer.value !== null
-    )
+    ) {
+      // 註冊 Stage 事件
       addStageEvents(
         stage.value,
         mainTransformer.value,
         mainSelectionRect.value,
         mainContainer.value
       );
+    }
   };
 
   // 用來觀察 Konva 的函數
@@ -164,9 +167,10 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
 
   const createTransformer = () => {
     mainTransformer.value = new Konva.Transformer({
+      label: 'mainTransformer',
       // 外框線顏色
       borderStroke: '#6366f1',
-      anchorStyleFunc: (anchor) => {
+      anchorStyleFunc(anchor) {
         anchor.cornerRadius(10);
         anchor.stroke('#6366f1');
         // 中間的錨點樣式
@@ -185,6 +189,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       }
     });
 
+    mainTransformer.value.boundBoxFunc((oldBox, newBox) => newBox);
+
     // 事件監聽
     mainTransformer.value.on('transform', (e) => {
       const selectedNodes = mainTransformer.value?.nodes();
@@ -197,19 +203,54 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       });
     });
     mainTransformer.value.on('dragmove', (e) => {
-      const selectedNodes = mainTransformer.value?.nodes();
+      if (!mainTransformer.value || !adModuleRect.value || !mainLayer.value) return;
+      const selectedNodes = mainTransformer.value.nodes();
       if (!selectedNodes) return;
-      selectedNodes.forEach((node) => {
-        const x = node.x();
-        const y = node.y();
-        // 將變形後的屬性設定回去
-        node.setAttrs({
-          x,
-          y
-        });
+      selectedNodes.forEach(() => {
         // 同時更新 mainNodeList
         updateMainNodePosition(selectedNodes);
       });
+      // 清除所有對齊線
+      mainLayer.value.find('.guide-line').forEach((line) => line.destroy());
+      // 群組選取時不做對齊
+      if (mainTransformer.value.nodes().length > 1) return;
+      // 尋找對齊線
+      const lineGuideStops = getLineGuideStops(
+        mainTransformer.value.nodes() as Konva.Image[],
+        adModuleRect.value,
+        mainLayer.value
+      );
+      // 尋找物件的對齊點
+      const targetItem = mainTransformer.value.nodes()[0];
+
+      const itemBounds = getItemSnappingEdges(targetItem as Konva.Image);
+      // 尋找可以對齊物件
+      const guides = getGuides(lineGuideStops, itemBounds);
+      // 沒有對齊物件時不做任何事
+      if (!guides.length) return;
+      // 繪製對齊線
+      drawGuides(guides, mainLayer.value);
+
+      // 強制對齊物件位置
+      const absPos = targetItem.absolutePosition();
+      guides.forEach((lg) => {
+        switch (lg.orientation) {
+          case 'V': {
+            absPos.x = lg.lineGuide + lg.offset;
+            break;
+          }
+          case 'H': {
+            absPos.y = lg.lineGuide + lg.offset;
+            break;
+          }
+        }
+      });
+      targetItem.absolutePosition(absPos);
+    });
+
+    mainTransformer.value.on('dragend', function (e) {
+      // clear all previous lines on the screen
+      mainLayer.value?.find('.guide-line').forEach((line) => line.destroy());
     });
 
     mainLayer.value?.add(mainTransformer.value);
