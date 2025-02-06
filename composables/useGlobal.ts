@@ -51,7 +51,6 @@ export interface MyNode {
   height: number;
   opacity: number;
   rotation: number;
-  ease: string;
 }
 interface TweenVars {
   x?: number;
@@ -331,7 +330,8 @@ export const useGlobal = () => {
     // 動畫條實體
     const barItem = addRect({
       id: barId,
-      name: `item_bar item_tween item_tween_active`,
+      // 不要加 item_tween_active, 讓  activateNode() 裡面處理
+      name: `item_bar item_tween`,
       // 這裡的 x,y 位置是相對於 group 的位置
       x: barInitialX,
       y: 0,
@@ -434,7 +434,8 @@ export const useGlobal = () => {
     // 節點實體
     const circleItem = addCircle({
       id: circleId,
-      name: `item_circle item_tween item_tween_active`,
+      // 不要加 item_tween_active, 讓  activateNode() 裡面處理
+      name: `item_circle item_tween`,
       // 這裡的 x,y 位置是相對於 group 的位置
       x: circleInitialX,
       y: TIMELINE_TRACK_HEIGHT / 2,
@@ -491,6 +492,7 @@ export const useGlobal = () => {
     nodeItemId: string,
     nodeItem: Konva.Rect | Konva.Circle
   ) => {
+    console.log('activateNode');
     // highlight active bar
     inactivateNode();
     nodeItem.fill(TIMELINE_NODE_ACTIVE_COLOR);
@@ -506,7 +508,9 @@ export const useGlobal = () => {
   };
   // 移除動畫單元的顯目顯示
   const inactivateNode = () => {
+    console.log('inactivateNode');
     const activeNode = timelineLayer.value?.findOne('.item_tween_active');
+    console.log('activeNode=', activeNode);
     if (activeNode && activeNode instanceof Konva.Rect) {
       activeNode.fill(TIMELINE_NODE_COLOR);
       activeNode.name('item_bar item_tween');
@@ -525,6 +529,7 @@ export const useGlobal = () => {
     targetNode: Node,
     updateName: 'fromVars' | 'toVars' | 'duration' | 'start'
   ) => {
+    console.log('oldTween:', oldTween);
     if (!gsapTimeline) return;
     const {
       width: fromWidth,
@@ -544,7 +549,8 @@ export const useGlobal = () => {
       x: toX,
       y: toY,
       rotation: toRotation,
-      opacity: toOpacity
+      opacity: toOpacity,
+      ease: toEase
     } = oldTween.vars as TweenVars;
     const {
       width: newWidth,
@@ -589,7 +595,7 @@ export const useGlobal = () => {
             y: newY + adModuleY.value,
             rotation: newRotation,
             opacity: newOpacity,
-            ease: 'none'
+            ease: toEase
           }
         : {
             width: toWidth,
@@ -600,7 +606,7 @@ export const useGlobal = () => {
             y: toY,
             rotation: toRotation,
             opacity: toOpacity,
-            ease: 'none'
+            ease: toEase
           };
     const duration = getDurationByBarWidth(targetBarNode.width());
     const start = getTimeByNodeX(targetBarNode.x());
@@ -705,18 +711,24 @@ export const useGlobal = () => {
     console.log('getTween');
     return gsapTimelineNodeTweenMap[nodeId][timelineNodeId];
   };
+  const getTweenEase = (nodeId: string, timelineNodeId: string) => {
+    console.log('getTweenEase');
+    return gsapTimelineNodeTweenMap[nodeId][timelineNodeId].vars.ease;
+  };
   const removeGSAPTween = (tween: GSAPTween) => {
     console.log('removeGSAPTween');
     // gsapTimeline.remove 可刪除 .fromTo() 和 .set()
     gsapTimeline?.remove(tween);
   };
   const createTween = (targetNode: Node) => {
-    console.log('createTween');
+    // console.log('createTween');
     const nodeId = targetNode.id();
     const duration = 1; // TODO: 可能會因為其他已存在的動畫影響位置
     const start = currentTime.value; //  使用時間軸當前指向的時間（暫時先無視其他動畫）TODO: 需要考慮該時間是否已有其他動畫
     // 先建立時間為 1 秒的空動畫
     const tween = addInitialTween(targetNode, duration, start);
+    console.log(tween);
+
     // 加入對應的時間軸動畫條(動畫條 ID 會回傳)
     const { barId, transformer } = addTimelineBar(nodeId, duration, start);
     if (!barId || !transformer || !tween) return toastError('動畫建立失敗');
@@ -734,7 +746,7 @@ export const useGlobal = () => {
     toastSuccess('動畫已建立');
   };
   const createSetPoint = (targetNode: Node) => {
-    console.log('createTween');
+    // console.log('createSetPoint');
     const nodeId = targetNode.id();
     const start = currentTime.value; // 使用當前時間
     // 先建立時間為 1 秒的空動畫, TODO: start 需要考慮其他因素, duration 也會有相關限制
@@ -944,6 +956,7 @@ export const useGlobal = () => {
     activateNode, // method
     inactivateNode, // method
     getTween, // method
+    getTweenEase, // method
     createTween, // method
     createSetPoint, // method
     removeGSAPTween, // method (just call gsap method)
