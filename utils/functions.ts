@@ -197,10 +197,8 @@ export const getGuides = (
 };
 
 export const drawGuides = (guides: GuideData[], layer: Konva.Layer) => {
-  console.log(guides.length);
   guides.forEach((lg) => {
     if (lg.orientation === 'H') {
-      console.log('h');
       const line = new Konva.Line({
         points: [-6000, 0, 6000, 0],
         stroke: GUIDELINE_COLOR,
@@ -214,7 +212,6 @@ export const drawGuides = (guides: GuideData[], layer: Konva.Layer) => {
         y: lg.lineGuide
       });
     } else if (lg.orientation === 'V') {
-      console.log('v');
       const line = new Konva.Line({
         points: [0, -6000, 0, 6000],
         stroke: GUIDELINE_COLOR,

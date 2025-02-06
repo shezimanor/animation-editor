@@ -26,9 +26,9 @@ export const useTimeline = () => {
     // create Stage
     createStage();
     // create Layer
-    const layer = createLayer();
-    layer.on('click', function (event) {
-      console.log('timelineLayer Clicked:');
+    createLayer();
+    timelineStage.value?.on('click', function (event) {
+      console.log('timelineStage Clicked:');
       const targetElement = event.target;
       if (targetElement instanceof Konva.Rect || targetElement instanceof Konva.Circle) {
         const targetId = targetElement.id();

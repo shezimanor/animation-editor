@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Node } from 'konva/lib/Node';
 import { AppBeforeDeleteModal } from '#components';
+type EaseOption = { label: string; value: gsap.EaseString };
 // console.log('-panel-');
 const modal = useModal();
 const {
@@ -9,6 +10,7 @@ const {
   currentActiveTimelineNodeId,
   timelineNodeType,
   getTween,
+  getTweenEase,
   updateGsapTimelineByTween,
   updateGsapTimelineBySetPoint,
   createTween,
@@ -27,7 +29,41 @@ const props = withDefaults(
   }
 );
 
-const easeList: EaseType[] = Object.values(EaseType);
+const easeList: EaseOption[] = [
+  { label: 'None', value: 'none' },
+  { label: 'Power1In', value: 'power1.in' },
+  { label: 'Power1InOut', value: 'power1.inOut' },
+  { label: 'Power1Out', value: 'power1.out' },
+  { label: 'Power2In', value: 'power2.in' },
+  { label: 'Power2InOut', value: 'power2.inOut' },
+  { label: 'Power2Out', value: 'power2.out' },
+  { label: 'Power3In', value: 'power3.in' },
+  { label: 'Power3InOut', value: 'power3.inOut' },
+  { label: 'Power3Out', value: 'power3.out' },
+  { label: 'Power4In', value: 'power4.in' },
+  { label: 'Power4InOut', value: 'power4.inOut' },
+  { label: 'Power4Out', value: 'power4.out' },
+  { label: 'BackIn', value: 'back.in' },
+  { label: 'BackInOut', value: 'back.inOut' },
+  { label: 'BackOut', value: 'back.out' },
+  { label: 'BounceIn', value: 'bounce.in' },
+  { label: 'BounceInOut', value: 'bounce.inOut' },
+  { label: 'BounceOut', value: 'bounce.out' },
+  { label: 'CircIn', value: 'circ.in' },
+  { label: 'CircInOut', value: 'circ.inOut' },
+  { label: 'CircOut', value: 'circ.out' },
+  { label: 'ExpoIn', value: 'expo.in' },
+  { label: 'ExpoInOut', value: 'expo.inOut' },
+  { label: 'ExpoOut', value: 'expo.out' },
+  { label: 'SineIn', value: 'sine.in' },
+  { label: 'SineInOut', value: 'sine.inOut' },
+  { label: 'SineOut', value: 'sine.out' },
+  { label: 'ElasticIn', value: 'elastic.in(1,0.2)' },
+  { label: 'ElasticInOut', value: 'elastic.inOut(1,0.2)' },
+  { label: 'ElasticOut', value: 'elastic.out(1,0.2)' }
+];
+
+const easeValue = ref<gsap.EaseString | gsap.EaseFunction>('none');
 
 const currentNode = computed(() => {
   if (!props.node) return null;
@@ -104,6 +140,39 @@ const openModal = (node: Node) => {
     }
   });
 };
+// 更新 ease
+const changeEase = () => {
+  console.log('changeEase');
+  // console.log('updateAnimationBarToVars');
+  if (!currentTimelineNode.value || !currentNode.value || !props.node) return;
+  const currentTween = getTween(props.node.id(), currentTimelineNode.value.id());
+  if (!currentTween) return;
+  updateGsapTimelineByTween(
+    currentTween,
+    currentTimelineNode.value,
+    currentNode.value,
+    props.node,
+    'ease',
+    easeValue.value
+  );
+};
+
+// 監聽 currentTimelineNode 變化
+watch(currentTimelineNode, () => {
+  if (!currentTimelineNode.value || !props.node) return;
+  const currentEase = getTweenEase(props.node.id(), currentTimelineNode.value.id());
+  easeValue.value = currentEase || 'none';
+});
+
+onMounted(() => {
+  // 初始化 easeValue
+  if (!exactNodeAndTween.value || !currentTimelineNode.value || !props.node) {
+    easeValue.value = 'none';
+  } else {
+    const currentEase = getTweenEase(props.node.id(), currentTimelineNode.value.id());
+    easeValue.value = currentEase || 'none';
+  }
+});
 </script>
 
 <template>
@@ -235,7 +304,7 @@ const openModal = (node: Node) => {
           <div class="flex flex-row items-center gap-x-2">
             <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Ease</UKbd>
             <!-- TODO: 更新 tween ease -->
-            <USelect size="xs" value="none" :options="easeList" />
+            <USelect size="xs" v-model="easeValue" :options="easeList" @change="changeEase" />
           </div>
           <ULink
             class="text-primary text-sm underline"

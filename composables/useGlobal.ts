@@ -5,40 +5,6 @@ import type { Node, NodeConfig } from 'konva/lib/Node';
 import type { ImageConfig } from 'konva/lib/shapes/Image';
 import { v4 as uuid } from 'uuid';
 console.log('exec useGlobal');
-
-export enum EaseType {
-  None = 'none',
-  power1In = 'power1.in',
-  power1InOut = 'power1.inOut',
-  power1Out = 'power1.out',
-  power2In = 'power2.in',
-  power2InOut = 'power2.inOut',
-  power2Out = 'power1.out',
-  power3In = 'power3.in',
-  power3InOut = 'power3.inOut',
-  power3Out = 'power3.out',
-  power4In = 'power4.in',
-  power4InOut = 'power4.inOut',
-  power4Out = 'power4.out',
-  backIn = 'back.in',
-  backInOut = 'back.inOut',
-  backOut = 'back.out',
-  bounceIn = 'bounce.in',
-  bounceInOut = 'bounce.inOut',
-  bounceOut = 'bounce.out',
-  circIn = 'circ.in',
-  circInOut = 'circ.inOut',
-  circOut = 'circ.out',
-  expoIn = 'expo.in',
-  expoInOut = 'expo.inOut',
-  expoOut = 'expo.out',
-  sineIn = 'sine.in',
-  sineInOut = 'sine.inOut',
-  sineOut = 'sine.out',
-  elasticIn = 'elastic.in(1.5,0.2)',
-  elasticInOut = 'elastic.inOut(1.5,0.2)',
-  elasticOut = 'elastic.out(1.5,0.2)'
-}
 export interface MyNode {
   id: string;
   name: string;
@@ -61,7 +27,7 @@ interface TweenVars {
   scaleY?: number;
   opacity?: number;
   rotation?: number;
-  ease?: string;
+  ease?: gsap.EaseString | gsap.EaseFunction;
 }
 interface SimpleTween {
   duration?: number;
@@ -510,7 +476,6 @@ export const useGlobal = () => {
   const inactivateNode = () => {
     console.log('inactivateNode');
     const activeNode = timelineLayer.value?.findOne('.item_tween_active');
-    console.log('activeNode=', activeNode);
     if (activeNode && activeNode instanceof Konva.Rect) {
       activeNode.fill(TIMELINE_NODE_COLOR);
       activeNode.name('item_bar item_tween');
@@ -527,9 +492,9 @@ export const useGlobal = () => {
     targetBarNode: Node,
     targetMainNode: MyNode,
     targetNode: Node,
-    updateName: 'fromVars' | 'toVars' | 'duration' | 'start'
+    updateName: 'fromVars' | 'toVars' | 'duration' | 'start' | 'ease',
+    newEase: gsap.EaseString | gsap.EaseFunction = 'none'
   ) => {
-    console.log('oldTween:', oldTween);
     if (!gsapTimeline) return;
     const {
       width: fromWidth,
@@ -597,27 +562,38 @@ export const useGlobal = () => {
             opacity: newOpacity,
             ease: toEase
           }
-        : {
-            width: toWidth,
-            height: toHeight,
-            scaleX: toScaleX,
-            scaleY: toScaleY,
-            x: toX,
-            y: toY,
-            rotation: toRotation,
-            opacity: toOpacity,
-            ease: toEase
-          };
+        : updateName === 'ease'
+          ? {
+              width: toWidth,
+              height: toHeight,
+              scaleX: toScaleX,
+              scaleY: toScaleY,
+              x: toX,
+              y: toY,
+              rotation: toRotation,
+              opacity: toOpacity,
+              ease: newEase
+            }
+          : {
+              width: toWidth,
+              height: toHeight,
+              scaleX: toScaleX,
+              scaleY: toScaleY,
+              x: toX,
+              y: toY,
+              rotation: toRotation,
+              opacity: toOpacity,
+              ease: toEase
+            };
     const duration = getDurationByBarWidth(targetBarNode.width());
     const start = getTimeByNodeX(targetBarNode.x());
-    // console.log('fromVars:', fromVars);
-    // console.log('toVars:', toVars);
 
     const nodeId = targetNode.id();
     const barId = targetBarNode.id();
     // 移除原本的 oldTween
     removeGSAPTween(oldTween);
     // 重新建立新的 Tween
+    console.log('toVars:', toVars);
     const newTween = addFromToTween(targetNode, duration, start, fromVars, toVars);
 
     if (newTween) {
@@ -634,6 +610,9 @@ export const useGlobal = () => {
         break;
       case 'toVars':
         toastSuccess('已更新結尾點');
+        break;
+      case 'ease':
+        toastSuccess('已更新 Ease');
         break;
       default:
         break;
