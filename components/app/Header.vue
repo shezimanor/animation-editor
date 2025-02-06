@@ -21,19 +21,26 @@ watch(isClipMode, (newValue) => {
     class="fixed left-0 top-0 z-[100] flex h-14 w-full flex-row items-center justify-between px-4 shadow"
   >
     <div class="flex flex-row items-center gap-x-2 text-neutral-700">
-      <NuxtLink
+      <!-- <NuxtLink
         to="/"
         class="mr-2 flex flex-row items-center gap-x-2 rounded px-2 py-1.5 font-bold dark:bg-white"
       >
         <Icon name="gravity-ui:timeline" size="1.25em" class="hover:opacity-75" /> 捲軸動畫編輯器
-      </NuxtLink>
+      </NuxtLink> -->
+      <span
+        class="mr-2 flex flex-row items-center gap-x-2 rounded px-2 py-1.5 font-bold dark:bg-white"
+      >
+        <Icon name="gravity-ui:timeline" size="1.25em" class="hover:opacity-75" />
+        捲軸動畫編輯器
+      </span>
     </div>
     <AppTimelineController
       class="absolute bottom-0 left-0 right-0 top-0 m-auto h-10 w-10 rounded-md bg-white py-0 shadow-std"
     />
     <div class="flex flex-row items-center gap-x-2">
       <UBadge color="primary" variant="soft">{{ adModule.width + ' x ' + adModule.height }}</UBadge>
-      <UCheckbox v-model="isClipMode" name="isClipMode" label="隱藏空白區域" />
+      <!-- 有 Bug 暫時不用 -->
+      <!-- <UCheckbox v-model="isClipMode" name="isClipMode" label="隱藏空白區域" /> -->
     </div>
   </header>
 </template>

@@ -284,17 +284,17 @@ onMounted(() => {
       <div v-if="timelineNodeType === 'bar'" class="flex w-full flex-col gap-y-2">
         <div class="flex flex-row items-center justify-start gap-x-2">
           <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarFromVars"
-            >更新起點<UKbd size="xs">S</UKbd></UButton
+            >更新起點</UButton
           >
           <UButton size="xs" color="primary" variant="solid" @click="updateAnimationBarToVars"
-            >更新終點<UKbd size="xs">D</UKbd></UButton
+            >更新終點</UButton
           >
           <UButton
             size="xs"
             color="rose"
             variant="solid"
             @click="deleteTween(node, currentTimelineNode)"
-            >刪除動畫<UKbd size="xs">⌫</UKbd></UButton
+            >刪除動畫</UButton
           >
           <UButton v-if="false" size="xs" color="gray" variant="solid" @click="lookTween"
             >動畫紀錄</UButton
@@ -303,7 +303,6 @@ onMounted(() => {
         <div class="flex flex-row items-center justify-between">
           <div class="flex flex-row items-center gap-x-2">
             <UKbd size="md" :ui="{ base: 'text-neutral-500 dark:text-white' }">Ease</UKbd>
-            <!-- TODO: 更新 tween ease -->
             <USelect size="xs" v-model="easeValue" :options="easeList" @change="changeEase" />
           </div>
           <ULink
@@ -320,14 +319,14 @@ onMounted(() => {
         class="flex w-full flex-row items-center justify-start gap-x-2"
       >
         <UButton size="xs" color="primary" variant="solid" @click="updateAnimationPointVars"
-          >更新節點<UKbd size="xs">S</UKbd></UButton
+          >更新節點</UButton
         >
         <UButton
           size="xs"
           color="rose"
           variant="solid"
           @click="deleteSetPoint(node, currentTimelineNode)"
-          >刪除節點<UKbd size="xs">⌫</UKbd></UButton
+          >刪除節點</UButton
         >
       </div>
     </div>

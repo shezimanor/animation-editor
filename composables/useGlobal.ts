@@ -868,7 +868,7 @@ export const useGlobal = () => {
     // 因為這個工具的 gsapTimeline 只有一個，所以程式執行時就會存在，這邊的 createGsapTimeline 只用來新增事件和設定結尾點
     // 設定 onUpdate
     gsapTimeline.eventCallback('onUpdate', () => {
-      console.log('onUpdate');
+      // console.log('onUpdate');
       // 更新 currentTime
       const time = gsapTimeline.time();
       currentTime.value = time;

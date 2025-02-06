@@ -452,11 +452,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     if (!selectedNodes || selectedNodes.length === 0) return;
 
     switch (e.key) {
-      case 'Delete':
-      case 'Backspace':
-        // deleteItems(selectedNodes);
-        clearTransformer();
-        break;
       case 'Escape':
         clearTransformer();
         break;
@@ -484,16 +479,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       case 'e': // 快捷鍵新增節點
         if (selectedNodes.length !== 1) break;
         createSetPoint(selectedNodes[0]);
-        currentNodeId.value = selectedNodes[0].id();
-        break;
-      case 's': // 快捷鍵更新起點
-        if (selectedNodes.length !== 1) break;
-        // TODO:
-        currentNodeId.value = selectedNodes[0].id();
-        break;
-      case 'd': // 快捷鍵更新終點
-        if (selectedNodes.length !== 1) break;
-        // TODO:
         currentNodeId.value = selectedNodes[0].id();
         break;
       default:
