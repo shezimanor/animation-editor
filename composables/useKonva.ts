@@ -434,9 +434,10 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       // 更新裁切邊界, mainLayer.value?.clip().x === undefined 表示沒有開過這個功能
       if (!isClipMode.value && mainLayer.value?.clip().x !== undefined) removeLayerClip();
 
+      // 更新背景圖的縮放
       if (mainStageBgRef.value) {
         const scaleCorrection = Number((1 / newScale).toFixed(2));
-        mainStageBgRef.value.style.transform = `scale(${newScale})`;
+        mainStageBgRef.value.style.transform = `scale(${newScale}, ${newScale})`;
         mainStageBgRef.value.style.width = `${scaleCorrection * 100}%`;
         mainStageBgRef.value.style.height = `${scaleCorrection * 100}%`;
       }
@@ -524,6 +525,21 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         };
     mainLayer.value?.clip(bound);
     // console.log(bound);
+  };
+
+  const resetZooming = () => {
+    if (!stage.value) return;
+    const currentStage = stage.value;
+    currentStage.scale({ x: 1, y: 1 });
+    currentStage.position({ x: 0, y: 0 });
+    // 更新裁切邊界, mainLayer.value?.clip().x === undefined 表示沒有開過這個功能
+    if (!isClipMode.value && mainLayer.value?.clip().x !== undefined) removeLayerClip();
+    // 更新背景圖的縮放
+    if (mainStageBgRef.value) {
+      mainStageBgRef.value.style.transform = `scale(1,1)`;
+      mainStageBgRef.value.style.width = `100%`;
+      mainStageBgRef.value.style.height = `100%`;
+    }
   };
 
   const updateMainNodePosition = (selectedNodes: Node[]) => {
@@ -681,6 +697,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     addImage,
     changeImage,
     deleteMainItem,
+    resetZooming,
     logKonva,
     logKonvaJSON,
     updateKonvaNodeAttribute,

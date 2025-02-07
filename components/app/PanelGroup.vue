@@ -2,7 +2,7 @@
 // console.log('-panel group-');
 import { useDebounceFn } from '@vueuse/core';
 const { currentTime, mainTransformer, mainNodeMap, logGsapTimeline } = useGlobal();
-const { updateNodeAndMainNodeAttributes, logKonvaJSON } = useKonva();
+const { updateNodeAndMainNodeAttributes, resetZooming, logKonvaJSON } = useKonva();
 
 const debouncedUpdateMainNode = useDebounceFn(() => {
   updateMainNode();
@@ -33,7 +33,11 @@ watch(currentTime, () => {
         /></UKbd>
         +
         <UKbd size="xs"><UIcon name="i-iconamoon-mouse" class="h-3 w-3" /></UKbd>
-        <span class="ml-1.5 text-xs">縮放畫布</span>
+        <UTooltip text="點擊還原100%" :popper="{ placement: 'bottom' }">
+          <span class="ml-1.5 cursor-pointer text-xs hover:text-blue-500" @click="resetZooming"
+            >縮放畫布</span
+          >
+        </UTooltip>
       </div>
     </header>
     <div v-if="mainTransformer && mainTransformer.nodes().length > 0" class="flex flex-col">
