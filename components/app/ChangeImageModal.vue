@@ -14,10 +14,27 @@ const props = withDefaults(
     content: '將圖片拖曳進來，再按下確認。'
   }
 );
-const emit = defineEmits(['save']);
+const emit = defineEmits<{
+  save: [img: HTMLImageElement];
+}>();
 
+const activeColor = 'bg-green-50';
 const originImgSrc = ref('');
+const newImg = ref<HTMLImageElement | null>(null);
 const newImgSrc = ref('');
+const modalBody = ref<HTMLDivElement | null>(null);
+
+const handleDropLeave = (e: DragEvent) => {
+  modalBody.value?.parentElement?.classList.remove(activeColor);
+  e.stopPropagation();
+  e.preventDefault();
+};
+
+const handleDropOver = (e: DragEvent) => {
+  modalBody.value?.parentElement?.classList.add(activeColor);
+  e.stopPropagation();
+  e.preventDefault();
+};
 
 const handleDrop = async (e: DragEvent) => {
   e.stopPropagation();
@@ -33,14 +50,19 @@ const handleDrop = async (e: DragEvent) => {
   try {
     const imgObj = await getImageData(fileList[0]);
     newImgSrc.value = imgObj.src;
+    newImg.value = imgObj;
+    // console.log(imgObj.naturalWidth, imgObj.naturalHeight);
   } catch {
     toastError('圖片載入失敗');
+  } finally {
+    e.dataTransfer?.clearData();
+    modalBody.value?.parentElement?.classList.remove(activeColor);
   }
 };
 
 onMounted(() => {
+  console.log('onMounted');
   originImgSrc.value = props.node.attrs.image.src;
-  console.log('newImgSrc', newImgSrc.value);
 });
 </script>
 <template>
@@ -89,14 +111,16 @@ onMounted(() => {
           />
         </div>
       </template>
-      <div class="flex flex-col gap-y-2 text-sm">
+      <div
+        ref="modalBody"
+        class="flex flex-col gap-y-2 text-sm"
+        @dragover="handleDropOver"
+        @dragleave="handleDropLeave"
+        @dragenter.prevent.stop
+        @drop="handleDrop"
+      >
         <p>{{ content }}</p>
-        <div
-          class="flex flex-row items-center justify-between px-4"
-          @dragover.prevent.stop
-          @dragenter.prevent.stop
-          @drop="handleDrop"
-        >
+        <div class="flex flex-row items-center justify-between px-4">
           <img :src="originImgSrc" alt="image" class="img-item" />
           <UIcon name="i-mdi-arrow-right-thick" class="h-12 w-12 text-neutral-500" />
           <div
@@ -111,7 +135,12 @@ onMounted(() => {
       <template #footer>
         <div class="flex justify-end gap-x-2">
           <UButton color="gray" @click="modal.close()">取消</UButton>
-          <UButton color="primary" @click="emit('save')">確認</UButton>
+          <UButton
+            color="primary"
+            :disabled="!newImg"
+            @click="emit('save', <HTMLImageElement>newImg)"
+            >確認</UButton
+          >
         </div>
       </template>
     </UCard>
@@ -120,6 +149,6 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .img-item {
-  @apply h-36 w-36 rounded border object-contain;
+  @apply h-36 w-36 rounded border bg-white object-contain dark:bg-neutral-800;
 }
 </style>
