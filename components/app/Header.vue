@@ -40,7 +40,7 @@ watch(isClipMode, (newValue) => {
     <div class="flex flex-row items-center gap-x-2">
       <UBadge color="primary" variant="soft">{{ adModule.width + ' x ' + adModule.height }}</UBadge>
       <!-- 有 Bug 暫時不用 -->
-      <!-- <UCheckbox v-model="isClipMode" name="isClipMode" label="隱藏空白區域" /> -->
+      <UCheckbox v-model="isClipMode" name="isClipMode" label="隱藏空白區域" />
     </div>
   </header>
 </template>

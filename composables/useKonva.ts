@@ -431,6 +431,9 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       currentStage.scale({ x: newScale, y: newScale });
       currentStage.position(newPos);
 
+      // 更新裁切邊界, mainLayer.value?.clip().x === undefined 表示沒有開過這個功能
+      if (!isClipMode.value && mainLayer.value?.clip().x !== undefined) removeLayerClip();
+
       if (mainStageBgRef.value) {
         const scaleCorrection = Number((1 / newScale).toFixed(2));
         mainStageBgRef.value.style.transform = `scale(${newScale})`;
@@ -494,21 +497,33 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const addLayerClip = () => {
-    mainLayer.value?.clip({
+    const bound = {
       x: adModuleX.value,
       y: adModuleY.value,
       width: adModuleRect.value?.width() || 640,
       height: adModuleRect.value?.height() || 320
-    });
+    };
+    mainLayer.value?.clip(bound);
+    // console.log(bound);
   };
 
   const removeLayerClip = () => {
-    mainLayer.value?.clip({
-      x: 0,
-      y: 0,
-      width: stage.value?.width() || window.innerWidth - ASIDE_WIDTH,
-      height: stage.value?.height() || window.innerHeight - (FOOTER_HEIGHT + HEADER_HEIGHT)
-    });
+    console.log('removeLayerClip');
+    const bound = stage.value
+      ? {
+          x: -stage.value.x() / stage.value.scaleX(),
+          y: -stage.value.y() / stage.value.scaleY(),
+          width: stage.value.width() / stage.value.scaleX(),
+          height: stage.value.height() / stage.value.scaleY()
+        }
+      : {
+          x: 0,
+          y: 0,
+          width: window.innerWidth - ASIDE_WIDTH,
+          height: window.innerHeight - (FOOTER_HEIGHT + HEADER_HEIGHT)
+        };
+    mainLayer.value?.clip(bound);
+    // console.log(bound);
   };
 
   const updateMainNodePosition = (selectedNodes: Node[]) => {
