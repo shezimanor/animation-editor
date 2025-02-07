@@ -209,6 +209,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         // 同時更新 mainNodeList
         updateMainNodePosition(selectedNodes);
       });
+
+      // 下面是 Snap to item/rect 的功能
       // 清除所有對齊線
       mainLayer.value.find('.guide-line').forEach((line) => line.destroy());
       // 群組選取時不做對齊
@@ -221,8 +223,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       );
       // 尋找物件的對齊點
       const targetItem = mainTransformer.value.nodes()[0];
-
       const itemBounds = getItemSnappingEdges(targetItem as Konva.Image);
+
       // 尋找可以對齊物件
       const guides = getGuides(lineGuideStops, itemBounds);
       // 沒有對齊物件時不做任何事
@@ -244,7 +246,13 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
           }
         }
       });
+
       targetItem.absolutePosition(absPos);
+      // 同時更新 mainNode
+      const targetMainNode = mainNodeMap.value[targetItem.id()];
+      if (targetMainNode) {
+        updateNodeAndMainNodeAttributes(targetItem, targetMainNode);
+      }
     });
 
     mainTransformer.value.on('dragend', function (e) {
