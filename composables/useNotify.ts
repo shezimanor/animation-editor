@@ -13,6 +13,13 @@ export const useNotify = () => {
         color: 'green',
         title
       }),
+    toastWarning: (title: string) =>
+      toast.add({
+        timeout: 1800,
+        icon: 'i-heroicons-exclamation-circle',
+        color: 'amber',
+        title
+      }),
     toastError: (title: string) =>
       toast.add({
         ...toastConfig,
