@@ -1,6 +1,6 @@
 <!-- 編輯頁：所以工具列在這頁 -->
 <script setup lang="ts">
-import testImg1 from '~/assets/images/demo/pokedex-0144.png';
+import testImg1 from '~/assets/images/demo/pokedex-0146-1.png';
 import testImg2 from '~/assets/images/demo/pokedex-0145.png';
 
 export interface AdModuleConfig {

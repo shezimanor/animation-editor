@@ -497,8 +497,6 @@ export const useGlobal = () => {
   ) => {
     if (!gsapTimeline) return;
     const {
-      width: fromWidth,
-      height: fromHeight,
       scaleX: fromScaleX,
       scaleY: fromScaleY,
       x: fromX,
@@ -507,8 +505,6 @@ export const useGlobal = () => {
       opacity: fromOpacity
     } = oldTween.vars.startAt as TweenVars;
     const {
-      width: toWidth,
-      height: toHeight,
       scaleX: toScaleX,
       scaleY: toScaleY,
       x: toX,
@@ -518,8 +514,6 @@ export const useGlobal = () => {
       ease: toEase
     } = oldTween.vars as TweenVars;
     const {
-      width: newWidth,
-      height: newHeight,
       scaleX: newScaleX,
       scaleY: newScaleY,
       x: newX,
@@ -530,8 +524,6 @@ export const useGlobal = () => {
     let fromVars =
       updateName === 'fromVars'
         ? {
-            width: newWidth,
-            height: newHeight,
             scaleX: newScaleX,
             scaleY: newScaleY,
             x: newX + adModuleX.value,
@@ -540,8 +532,6 @@ export const useGlobal = () => {
             opacity: newOpacity
           }
         : {
-            width: fromWidth,
-            height: fromHeight,
             scaleX: fromScaleX,
             scaleY: fromScaleY,
             x: fromX,
@@ -552,8 +542,6 @@ export const useGlobal = () => {
     let toVars =
       updateName === 'toVars'
         ? {
-            width: newWidth,
-            height: newHeight,
             scaleX: newScaleX,
             scaleY: newScaleY,
             x: newX + adModuleX.value,
@@ -564,8 +552,6 @@ export const useGlobal = () => {
           }
         : updateName === 'ease'
           ? {
-              width: toWidth,
-              height: toHeight,
               scaleX: toScaleX,
               scaleY: toScaleY,
               x: toX,
@@ -575,8 +561,6 @@ export const useGlobal = () => {
               ease: newEase
             }
           : {
-              width: toWidth,
-              height: toHeight,
               scaleX: toScaleX,
               scaleY: toScaleY,
               x: toX,
@@ -627,36 +611,36 @@ export const useGlobal = () => {
   ) => {
     if (!gsapTimeline) return;
     const {
-      width: originalWidth,
-      height: originalHeight,
       x: originalX,
       y: originalY,
+      scaleX: originalScaleX,
+      scaleY: originalScaleY,
       rotation: originalRotation,
       opacity: originalOpacity
     } = oldTween.vars as TweenVars;
     const {
-      width: newWidth,
-      height: newHeight,
       x: newX,
       y: newY,
+      scaleX: newScaleX,
+      scaleY: newScaleY,
       rotation: newRotation,
       opacity: newOpacity
     } = targetMainNode;
     let tweenVars =
       updateName === 'vars'
         ? {
-            width: newWidth,
-            height: newHeight,
             x: newX + adModuleX.value,
             y: newY + adModuleY.value,
+            scaleX: newScaleX,
+            scaleY: newScaleY,
             rotation: newRotation,
             opacity: newOpacity
           }
         : {
-            width: originalWidth,
-            height: originalHeight,
             x: originalX,
             y: originalY,
+            scaleX: originalScaleX,
+            scaleY: originalScaleY,
             rotation: originalRotation,
             opacity: originalOpacity
           };
@@ -789,12 +773,10 @@ export const useGlobal = () => {
     const id = targetNode.id();
     const targetMainNode = mainNodeMap.value[id]; // 響應式 Node
     if (!targetMainNode) return;
-    const { width, height, scaleX, scaleY, x, y, rotation, opacity } = targetMainNode;
+    const { scaleX, scaleY, x, y, rotation, opacity } = targetMainNode;
     const tweenVars = {
       x: x + adModuleX.value,
       y: y + adModuleY.value,
-      width,
-      height,
       scaleX,
       scaleY,
       opacity,
@@ -811,12 +793,10 @@ export const useGlobal = () => {
     const id = targetNode.id();
     const targetMainNode = mainNodeMap.value[id]; // 響應式 Node
     if (!targetMainNode) return;
-    const { width, height, scaleX, scaleY, x, y, rotation, opacity } = targetMainNode;
+    const { scaleX, scaleY, x, y, rotation, opacity } = targetMainNode;
     const tweenVars = {
       x: x + adModuleX.value,
       y: y + adModuleY.value,
-      width,
-      height,
       scaleX,
       scaleY,
       opacity,
