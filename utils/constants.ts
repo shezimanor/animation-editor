@@ -31,3 +31,5 @@ export const AD_MODULE_COOKIE_CONFIG = {
     title: '標題'
   })
 };
+export const SOURCE_IMG_LIMIT = 6; // 來源圖片數量限制
+export const SUPPORTED_IMAGE_FORMATS = ['image/jpeg', 'image/png']; // 支援的圖片格式

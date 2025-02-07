@@ -4,7 +4,6 @@ export const getImageData = async (file: File): Promise<HTMLImageElement> => {
     const url = URL.createObjectURL(file);
     let img = new Image();
     img.onload = () => {
-      // TODO: 這裡暫時用瀏覽器生成的網址來處理，後續必須使用上傳後的網址
       resolve(img);
     };
     img.onerror = () => {
@@ -26,4 +25,9 @@ export const getImageDataByUrl = async (url: string): Promise<HTMLImageElement> 
     };
     img.src = url;
   });
+};
+
+// 檢查副檔名是否為圖片
+export const isSupportedImageFile = (file: File): boolean => {
+  return SUPPORTED_IMAGE_FORMATS.includes(file.type);
 };

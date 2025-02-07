@@ -1,7 +1,7 @@
 <!-- 編輯頁：所以工具列在這頁 -->
 <script setup lang="ts">
-import testImg1 from '~/assets/images/demo/pokedex-0144-1.png';
-import testImg2 from '~/assets/images/demo/pokedex-0145-1.png';
+import testImg1 from '~/assets/images/demo/pokedex-0144.png';
+import testImg2 from '~/assets/images/demo/pokedex-0145.png';
 
 export interface AdModuleConfig {
   width: number;
@@ -27,6 +27,8 @@ const {
   destroyTimelineKonva,
   updateCurrentTimeByRangeInput
 } = useTimeline();
+
+const { toastError } = useNotify();
 
 const isHidedGridDot = useState('isHidedGridDot', () => false);
 
@@ -62,6 +64,12 @@ const handleDrop = async (e: DragEvent) => {
   e.preventDefault();
   const fileList = e.dataTransfer?.files;
   if (!fileList || fileList.length === 0) return;
+  // 先檢查 fileList 內的所有檔案是否為圖片，若有非圖片檔案則不處理
+  const isAllImage = Array.from(fileList).every((file) => isSupportedImageFile(file));
+  if (!isAllImage) {
+    toastError('僅支援圖片檔案(jpg, png)');
+    return;
+  }
   try {
     const imgObjList = await Promise.all(Array.from(fileList).map((file) => getImageData(file)));
     imgObjList.forEach((imgObj) => {
@@ -69,7 +77,7 @@ const handleDrop = async (e: DragEvent) => {
       addImage(imgObj);
     });
   } catch {
-    throw new Error('Failed to load image data.');
+    toastError('圖片載入失敗');
   }
 };
 
@@ -78,6 +86,7 @@ const handleTimelineChange = (value: string) => {
   updateCurrentTimeByRangeInput(time);
 };
 
+// 主動在載入圖片
 const loadImages = async (imageUrls: string[]) => {
   try {
     const imgObjList = await Promise.all(imageUrls.map((url) => getImageDataByUrl(url)));
@@ -94,7 +103,7 @@ onMounted(() => {
   initKonva();
   initTimelineKonva();
   // 自動建立測試圖層
-  loadImages([testImg1, testImg2]);
+  // loadImages([testImg1, testImg2]);
 });
 onUnmounted(() => {
   destroyKonva();

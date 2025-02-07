@@ -30,11 +30,10 @@ interface AdModuleConfig {
   height: number;
 }
 
-const { toastSuccess } = useNotify();
+const { toastSuccess, toastWarning } = useNotify();
 
 export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   // composable 專用常數
-  const SOURCE_IMG_LIMIT = 10;
   const DELTA = 1;
   // ---
   const mainStageRef = useState<HTMLDivElement | null>('mainStageRef', () => shallowRef(null));
@@ -585,7 +584,10 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   const addImage = (imgObj: HTMLImageElement) => {
-    if (mainNodeLength.value >= SOURCE_IMG_LIMIT) return;
+    if (mainNodeLength.value >= SOURCE_IMG_LIMIT) {
+      toastWarning(`圖層已達上限${SOURCE_IMG_LIMIT}張，請先刪除不要的圖層。`);
+      return;
+    }
     const id = uuid();
     const imgConfig = {
       id: id,
@@ -634,7 +636,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     mainStageBgRef,
     stage,
     isClipMode,
-    SOURCE_IMG_LIMIT,
     // action
     initKonva,
     destroyKonva,

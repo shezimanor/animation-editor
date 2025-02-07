@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Node } from 'konva/lib/Node';
-import { AppBeforeDeleteModal } from '#components';
+import { AppBeforeDeleteModal, AppChangeImageModal } from '#components';
 type EaseOption = { label: string; value: gsap.EaseString };
 // console.log('-panel-');
 const modal = useModal();
@@ -129,12 +129,24 @@ const lookTween = () => {
   if (!currentTween) return;
   console.log(currentTween, currentNode.value);
 };
+// 替換圖片
+const openChangeImageModal = (node: Node) => {
+  modal.open(AppChangeImageModal, {
+    title: '替換圖片',
+    content: '將圖片拖曳進來，再按下確認。',
+    node: node,
+    onSave() {
+      // deleteMainItem(node);
+      modal.close();
+    }
+  });
+};
 // 刪除圖層
-const openModal = (node: Node) => {
+const openBeforeDeleteModal = (node: Node) => {
   modal.open(AppBeforeDeleteModal, {
     title: '刪除圖層',
-    content: '確定要刪除此圖層嗎？刪除後所屬的動畫也會一併刪除，且無法復原。',
-    onDelete: () => {
+    content: '確定要刪除嗎？刪除後所屬的動畫也會一併刪除，且無法復原。',
+    onDelete() {
       deleteMainItem(node);
       modal.close();
     }
@@ -179,7 +191,20 @@ onMounted(() => {
   <div class="mt-2 flex flex-col gap-y-1 rounded border p-2" v-if="currentNode && node">
     <div class="mb-1 flex items-center justify-between">
       <!-- <h3 class="text-sm font-semibold"></h3> -->
-      <UInput v-model="currentNode.label" size="xs" />
+      <div class="flex flex-row gap-x-1">
+        <UInput v-model="currentNode.label" size="xs" />
+        <UTooltip text="替換圖片" :popper="{ placement: 'bottom' }">
+          <UButton
+            :square="true"
+            class="delete-button"
+            icon="i-material-symbols-imagesmode-outline"
+            size="xs"
+            color="white"
+            variant="solid"
+            @click="openChangeImageModal(node)"
+          />
+        </UTooltip>
+      </div>
       <UTooltip text="刪除圖層" :popper="{ placement: 'bottom' }">
         <UButton
           :padded="false"
@@ -188,7 +213,7 @@ onMounted(() => {
           size="sm"
           color="red"
           variant="link"
-          @click="openModal(node)"
+          @click="openBeforeDeleteModal(node)"
         />
       </UTooltip>
     </div>
