@@ -18,7 +18,7 @@ const {
   deleteTween,
   deleteSetPoint
 } = useGlobal();
-const { updateKonvaNodeAttribute, deleteMainItem } = useKonva();
+const { updateKonvaNodeAttribute, deleteMainItem, changeImage } = useKonva();
 
 const props = withDefaults(
   defineProps<{
@@ -135,8 +135,8 @@ const openChangeImageModal = (node: Node) => {
     title: '替換圖片',
     content: '將圖片拖曳進來，再按下確認。',
     node: node,
-    onSave() {
-      // deleteMainItem(node);
+    onSave(newImg: HTMLImageElement) {
+      changeImage(node, newImg);
       modal.close();
     }
   });

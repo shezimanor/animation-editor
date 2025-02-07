@@ -618,6 +618,22 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     updateInitialPosition();
   };
 
+  const changeImage = (node: Node, imgObj: HTMLImageElement) => {
+    if (!node) return;
+    const imgNode = mainNodeMap.value[node.id()];
+    if (!imgNode) return;
+    node.attrs.image = imgObj;
+    node.width(imgObj.naturalWidth);
+    node.height(imgObj.naturalHeight);
+    node.offsetX(imgObj.naturalWidth / 2);
+    node.offsetY(imgObj.naturalHeight / 2);
+    // 更新寬高(因效能問題 updateNodeAndMainNodeAttributes 不會更新寬高)
+    imgNode.width = imgObj.naturalWidth;
+    imgNode.height = imgObj.naturalHeight;
+    // 更新數據
+    updateNodeAndMainNodeAttributes(node, imgNode);
+  };
+
   const addMainNode = (imgItem: Konva.Image, imgNode: MyNode) => {
     // console.log(imgItem);
     mainNodeList.value.push(imgNode);
@@ -640,6 +656,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     initKonva,
     destroyKonva,
     addImage,
+    changeImage,
     deleteMainItem,
     logKonva,
     logKonvaJSON,

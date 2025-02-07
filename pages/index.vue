@@ -103,7 +103,7 @@ onMounted(() => {
   initKonva();
   initTimelineKonva();
   // 自動建立測試圖層
-  // loadImages([testImg1, testImg2]);
+  loadImages([testImg1]);
 });
 onUnmounted(() => {
   destroyKonva();
