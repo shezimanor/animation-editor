@@ -26,11 +26,14 @@ watch(currentTime, () => {
 <template>
   <div class="panel-group-wrapper">
     <header class="flex items-center justify-between">
-      <h2>圖層資訊</h2>
-      <div class="flex gap-x-1">
-        <UButton size="xs" @click="logKonvaJSON">json</UButton>
-
-        <UButton size="xs" @click="logGsapTimeline">Log</UButton>
+      <h2 class="text-sm">圖層資訊</h2>
+      <div class="flex flex-row items-center gap-x-1">
+        <UKbd size="xs"
+          ><UIcon name="i-material-symbols-keyboard-command-key" class="h-3 w-3"
+        /></UKbd>
+        +
+        <UKbd size="xs"><UIcon name="i-iconamoon-mouse" class="h-3 w-3" /></UKbd>
+        <span class="ml-1.5 text-xs">縮放畫布</span>
       </div>
     </header>
     <div v-if="mainTransformer && mainTransformer.nodes().length > 0" class="flex flex-col">
@@ -41,6 +44,6 @@ watch(currentTime, () => {
 
 <style lang="scss" scoped>
 .panel-group-wrapper {
-  @apply fixed right-4 top-15 z-[12] flex w-84 flex-col rounded-lg bg-white px-2 py-2 shadow-std dark:bg-neutral-900;
+  @apply w-76 fixed right-4 top-15 z-[12] flex flex-col rounded-lg bg-white px-2 py-2 shadow-std dark:bg-neutral-900;
 }
 </style>
