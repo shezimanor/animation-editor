@@ -69,4 +69,4 @@ const emit = defineEmits(['delete']);
   </UModal>
 </template>
 
-<style></style>
+<style lang="scss" scoped></style>
