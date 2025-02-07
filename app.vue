@@ -30,11 +30,12 @@ useHead({
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+    <UModals />
     <UNotifications
       :ui="{
+        wrapper: 'z-[5000]',
         width: 'w-72'
       }"
     />
-    <UModals />
   </div>
 </template>
