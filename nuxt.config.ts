@@ -1,6 +1,9 @@
 import removeConsole from 'vite-plugin-remove-console';
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  app: {
+    baseURL: '/animation-editor/'
+  },
   ssr: false,
   modules: [
     '@nuxt/eslint',
