@@ -3,7 +3,6 @@ import Konva from 'konva';
 import type { GroupConfig } from 'konva/lib/Group';
 import type { Node, NodeConfig } from 'konva/lib/Node';
 import type { ImageConfig } from 'konva/lib/shapes/Image';
-import { v4 as uuid } from 'uuid';
 console.log('exec useGlobal');
 export interface MyNode {
   id: string;
@@ -29,9 +28,43 @@ interface TweenVars {
   rotation?: number;
   ease?: gsap.EaseString | gsap.EaseFunction;
 }
-interface SimpleTween {
-  duration?: number;
+export interface FromToTween {
+  id: string;
+  nodeId: string;
+  type: 'tween';
+  duration: number;
   start: number;
+  fromVars: {
+    x: number;
+    y: number;
+    scaleX: number;
+    scaleY: number;
+    opacity: number;
+    rotation: number;
+  };
+  toVars: {
+    x: number;
+    y: number;
+    scaleX: number;
+    scaleY: number;
+    opacity: number;
+    rotation: number;
+    ease: gsap.EaseString | gsap.EaseFunction;
+  };
+}
+export interface SetPoint {
+  id: string;
+  nodeId: string;
+  type: 'setPoint';
+  start: number;
+  vars: {
+    x: number;
+    y: number;
+    scaleX: number;
+    scaleY: number;
+    opacity: number;
+    rotation: number;
+  };
 }
 
 const paused = ref(true);
@@ -49,8 +82,8 @@ const gsapHiddenNode = { x: 0 }; // 用來製作 timeline 固定結尾點的物�
 const initializedGsap = ref(false);
 const currentTime = ref(0);
 const gsapTimelineNodeTweenMap: Record<string, Record<string, GSAPTween>> = {};
-// 是拿來用 barId 和 circleId 來取得精確的 start & duration(沒有像上面的 map 綁 targetNodeId)
-const gsapTimelineNodeTweenInfoMap: Record<string, SimpleTween> = {};
+// schema 儲存會用到的 timeline 資訊
+const gsapTimelineInfoMap: Record<string, Record<string, FromToTween | SetPoint>> = {};
 // 拿來用 barId 來取得 timelineBar 當下的 Transformer
 const timelineBarInTransformerMap: Record<string, Konva.Transformer> = {};
 
@@ -288,7 +321,7 @@ export const useGlobal = () => {
   const addTimelineBar = (id: string, duration: number, start: number) => {
     const groupItem = getTargetNodeFromTimeline(`group_${id}`);
     if (!groupItem || !(groupItem instanceof Konva.Group)) return { barId: '', transformer: null };
-    const barId = `bar_${uuid()}_${id}`;
+    const barId = `bar_${uid.rnd()}_${id}`;
     const trackWidth =
       window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION - TIMELINE_TRACK_START_X;
     const barInitialX = trackWidth * (start / TOTAL_DURATION);
@@ -393,7 +426,7 @@ export const useGlobal = () => {
   const addTimelineCircle = (id: string, start: number): string => {
     const groupItem = getTargetNodeFromTimeline(`group_${id}`);
     if (!groupItem || !(groupItem instanceof Konva.Group)) return '';
-    const circleId = `circle_${uuid()}_${id}`;
+    const circleId = `circle_${uid.rnd()}_${id}`;
     const trackWidth =
       window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION - TIMELINE_TRACK_START_X;
     const circleInitialX = trackWidth * (start / TOTAL_DURATION);
@@ -583,9 +616,14 @@ export const useGlobal = () => {
     if (newTween) {
       // 儲存新的 Tween 到 gsapTimelineNodeTweenMap 裡面
       gsapTimelineNodeTweenMap[nodeId][barId] = newTween;
-      // 儲存新的 Tween 資訊到 gsapTimelineNodeTweenInfoMap 裡面
-      gsapTimelineNodeTweenInfoMap[barId].duration = duration;
-      gsapTimelineNodeTweenInfoMap[barId].start = start;
+      // 儲存新的 Tween 資訊到 gsapTimelineInfoMap 裡面
+      gsapTimelineInfoMap[nodeId][barId] = {
+        ...gsapTimelineInfoMap[nodeId][barId],
+        duration,
+        start,
+        fromVars,
+        toVars
+      } as FromToTween;
     }
 
     switch (updateName) {
@@ -645,9 +683,6 @@ export const useGlobal = () => {
             opacity: originalOpacity
           };
     const start = getTimeByNodeX(targetCircleNode.x());
-
-    console.log('tweenVars:', tweenVars);
-
     const nodeId = targetNode.id();
     const circleId = targetCircleNode.id();
     // 移除原本的 oldTween
@@ -658,8 +693,12 @@ export const useGlobal = () => {
     if (newTween) {
       // 儲存新的 Tween 到 gsapTimelineNodeTweenMap 裡面
       gsapTimelineNodeTweenMap[nodeId][circleId] = newTween;
-      // 儲存新的 Tween 資訊到 gsapTimelineNodeTweenInfoMap 裡面
-      gsapTimelineNodeTweenInfoMap[circleId].start = start;
+      // 儲存新的 Tween 資訊到 gsapTimelineInfoMap 裡面
+      gsapTimelineInfoMap[nodeId][circleId] = {
+        ...gsapTimelineInfoMap[nodeId][circleId],
+        start,
+        vars: tweenVars
+      } as SetPoint;
     }
 
     switch (updateName) {
@@ -689,19 +728,23 @@ export const useGlobal = () => {
     const duration = 1; // TODO: 可能會因為其他已存在的動畫影響位置
     const start = currentTime.value; //  使用時間軸當前指向的時間（暫時先無視其他動畫）TODO: 需要考慮該時間是否已有其他動畫
     // 先建立時間為 1 秒的空動畫
-    const tween = addInitialTween(targetNode, duration, start);
-    console.log(tween);
-
+    const { tween, tweenVars } = addInitialTween(targetNode, duration, start);
     // 加入對應的時間軸動畫條(動畫條 ID 會回傳)
     const { barId, transformer } = addTimelineBar(nodeId, duration, start);
-    if (!barId || !transformer || !tween) return toastError('動畫建立失敗');
+    if (!barId || !transformer || !tween || !tweenVars) return toastError('動畫建立失敗');
     // 儲存 Tween 到 gsapTimelineNodeTweenMap 裡面
     if (!gsapTimelineNodeTweenMap[nodeId]) gsapTimelineNodeTweenMap[nodeId] = {};
     gsapTimelineNodeTweenMap[nodeId][barId] = tween;
-    // 儲存 Tween 資訊到 gsapTimelineNodeTweenInfoMap 裡面
-    gsapTimelineNodeTweenInfoMap[barId] = {
+    // 儲存 Tween 資訊到 gsapTimelineInfoMap 裡面
+    if (!gsapTimelineInfoMap[nodeId]) gsapTimelineInfoMap[nodeId] = {};
+    gsapTimelineInfoMap[nodeId][barId] = {
+      id: barId,
+      nodeId,
+      type: 'tween',
       duration,
-      start
+      start,
+      fromVars: tweenVars,
+      toVars: { ...tweenVars, ease: 'none' }
     };
     // 儲存 TransformerId 到 timelineBarInTransformerMap 裡面
     timelineBarInTransformerMap[barId] = transformer;
@@ -713,16 +756,21 @@ export const useGlobal = () => {
     const nodeId = targetNode.id();
     const start = currentTime.value; // 使用當前時間
     // 先建立時間為 1 秒的空動畫, TODO: start 需要考慮其他因素, duration 也會有相關限制
-    const tween = addSetPoint(targetNode, start);
+    const { tween, tweenVars } = addSetPoint(targetNode, start);
     // 加入對應的時間軸動畫條(動畫條 ID 會回傳)
     const pointId = addTimelineCircle(nodeId, start);
-    if (!pointId || !tween) return toastError('節點建立失敗');
+    if (!pointId || !tween || !tweenVars) return toastError('節點建立失敗');
     // 儲存 Tween 到 gsapTimelineNodeTweenMap 裡面
     if (!gsapTimelineNodeTweenMap[nodeId]) gsapTimelineNodeTweenMap[nodeId] = {};
     gsapTimelineNodeTweenMap[nodeId][pointId] = tween;
-    // 儲存 Tween 資訊到 gsapTimelineNodeTweenInfoMap 裡面
-    gsapTimelineNodeTweenInfoMap[pointId] = {
-      start
+    // 儲存 Tween 資訊到 gsapTimelineInfoMap 裡面
+    if (!gsapTimelineInfoMap[nodeId]) gsapTimelineInfoMap[nodeId] = {};
+    gsapTimelineInfoMap[nodeId][pointId] = {
+      id: pointId,
+      nodeId,
+      type: 'setPoint',
+      start,
+      vars: tweenVars
     };
     // console.log('建立節點:', tween);
     toastSuccess('節點已建立');
@@ -733,14 +781,15 @@ export const useGlobal = () => {
     const timelineNodeId = timelineNode.id();
     const tween = getTween(nodeId, timelineNodeId);
     const gsapTimelineNodeTweenMapTargetMap = gsapTimelineNodeTweenMap[nodeId];
+    const gsapTimelineInfoMapTargetMap = gsapTimelineInfoMap[nodeId];
     // 刪除 GSAP 動畫
     removeGSAPTween(tween);
     // 刪除 Tween from gsapTimelineNodeTweenMap
     if (gsapTimelineNodeTweenMapTargetMap.hasOwnProperty(timelineNodeId))
       delete gsapTimelineNodeTweenMapTargetMap[timelineNodeId];
-    // 刪除 Tween 資訊 from gsapTimelineNodeTweenInfoMap
-    if (gsapTimelineNodeTweenInfoMap.hasOwnProperty(timelineNodeId))
-      delete gsapTimelineNodeTweenInfoMap[timelineNodeId];
+    // 刪除 Tween 資訊 from gsapTimelineInfoMap
+    if (gsapTimelineInfoMapTargetMap.hasOwnProperty(timelineNodeId))
+      delete gsapTimelineInfoMapTargetMap[timelineNodeId];
     // 刪除 TransformerId from timelineBarInTransformerMap
     if (isBar && timelineBarInTransformerMap.hasOwnProperty(timelineNodeId)) {
       // 關閉 Transformer 與 Bar 的關聯
@@ -772,7 +821,7 @@ export const useGlobal = () => {
   const addInitialTween = (targetNode: Node, duration: number, start: number) => {
     const id = targetNode.id();
     const targetMainNode = mainNodeMap.value[id]; // 響應式 Node
-    if (!targetMainNode) return;
+    if (!targetMainNode) return { tween: null, tweenVars: null };
     const { scaleX, scaleY, x, y, rotation, opacity } = targetMainNode;
     const tweenVars = {
       x: x + adModuleX.value,
@@ -786,13 +835,13 @@ export const useGlobal = () => {
       ...tweenVars,
       ease: 'none'
     });
-    return tween;
+    return { tween, tweenVars };
   };
   // 建立一個 set() in GSAP timeline
   const addSetPoint = (targetNode: Node, start: number) => {
     const id = targetNode.id();
     const targetMainNode = mainNodeMap.value[id]; // 響應式 Node
-    if (!targetMainNode) return;
+    if (!targetMainNode) return { tween: null, tweenVars: null };
     const { scaleX, scaleY, x, y, rotation, opacity } = targetMainNode;
     const tweenVars = {
       x: x + adModuleX.value,
@@ -803,7 +852,7 @@ export const useGlobal = () => {
       rotation
     };
     const tween = addZeroDurationTween(targetNode, start, tweenVars);
-    return tween;
+    return { tween, tweenVars };
   };
   // 建立新的 Tween
   const addFromToTween = (
@@ -843,6 +892,7 @@ export const useGlobal = () => {
   const logGsapTimeline = () => {
     console.log('gsapTimeline: ', gsapTimeline);
     console.log('duration: ', gsapTimeline?.duration());
+    console.log('gsapTimelineInfoMap: ', gsapTimelineInfoMap);
   };
   const createGsapTimeline = () => {
     // 因為這個工具的 gsapTimeline 只有一個，所以程式執行時就會存在，這邊的 createGsapTimeline 只用來新增事件和設定結尾點
@@ -931,7 +981,7 @@ export const useGlobal = () => {
     // gsap
     gsapTimeline, // 原生物件
     gsapTimelineNodeTweenMap, // 原生物件
-    gsapTimelineNodeTweenInfoMap, // 原生物件
+    gsapTimelineInfoMap, // 原生物件
     initializedGsap, // state
     paused, // state
     currentTime, // state

@@ -3,7 +3,6 @@ console.log('exec useKonva');
 import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
 import type { Node } from 'konva/lib/Node';
-import { v4 as uuid } from 'uuid';
 
 const {
   adModuleX,
@@ -627,7 +626,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       toastWarning(`圖層已達上限${SOURCE_IMG_LIMIT}張，請先刪除不要的圖層。`);
       return;
     }
-    const id = uuid();
+    const id = uid.rnd();
     const imgConfig = {
       id: id,
       name: 'item',

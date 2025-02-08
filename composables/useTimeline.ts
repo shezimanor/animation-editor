@@ -2,6 +2,7 @@ console.log('exec useTimeline');
 // Konva: https://konvajs.org/api/Konva.html
 import { useResizeObserver } from '@vueuse/core';
 import Konva from 'konva';
+import type { FromToTween, SetPoint } from './useGlobal';
 
 const {
   paused,
@@ -10,7 +11,7 @@ const {
   seekGsapTimeline,
   timelineStage,
   timelineLayer,
-  gsapTimelineNodeTweenInfoMap,
+  gsapTimelineInfoMap,
   inactivateNode
 } = useGlobal();
 
@@ -60,16 +61,18 @@ export const useTimeline = () => {
       const barItems = timelineLayer.value?.find('.item_bar');
       barItems?.forEach((barItem) => {
         const barId = barItem.id();
-        barItem.width(
-          trackWidth * ((gsapTimelineNodeTweenInfoMap[barId].duration ?? 0) / TOTAL_DURATION)
-        );
-        barItem.x(trackWidth * (gsapTimelineNodeTweenInfoMap[barId].start / TOTAL_DURATION));
+        const nodeId = barId.split('_')[2];
+        const tweenInfo = <FromToTween>gsapTimelineInfoMap[nodeId][barId];
+        barItem.width(trackWidth * ((tweenInfo.duration ?? 0) / TOTAL_DURATION));
+        barItem.x(trackWidth * (tweenInfo.start / TOTAL_DURATION));
       });
       // 調整所有節點的 x
       const circleItems = timelineLayer.value?.find('.item_circle');
       circleItems?.forEach((circleItem) => {
         const circleId = circleItem.id();
-        circleItem.x(trackWidth * (gsapTimelineNodeTweenInfoMap[circleId].start / TOTAL_DURATION));
+        const nodeId = circleId.split('_')[2];
+        const setPointInfo = <SetPoint>gsapTimelineInfoMap[nodeId][circleId];
+        circleItem.x(trackWidth * (setPointInfo.start / TOTAL_DURATION));
       });
     });
   };
