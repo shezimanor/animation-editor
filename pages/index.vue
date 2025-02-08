@@ -102,8 +102,6 @@ const loadImages = async (imageUrls: string[]) => {
 onMounted(() => {
   initKonva();
   initTimelineKonva();
-  // 自動建立測試圖層
-  loadImages([testImg1]);
 });
 onUnmounted(() => {
   destroyKonva();
@@ -113,7 +111,7 @@ onUnmounted(() => {
 
 <template>
   <div class="flex h-full flex-row items-stretch">
-    <main class="flex w-full flex-col justify-stretch bg-neutral-200">
+    <main class="flex w-full flex-col justify-stretch bg-neutral-200 dark:bg-neutral-700">
       <!-- 編輯器主畫布 -->
       <div class="flex w-full flex-shrink flex-grow items-center justify-center overflow-hidden">
         <div class="main-canvas" @dragover.prevent.stop @dragenter.prevent.stop @drop="handleDrop">
@@ -161,7 +159,8 @@ onUnmounted(() => {
                   base: '[&::-webkit-slider-thumb]:-top-[5px] [&::-moz-range-thumb]:-top-[5px]'
                 },
                 track: {
-                  base: '[&::-webkit-slider-runnable-track]:group-disabled:bg-opacity-100 [&::-moz-range-track]:group-disabled:bg-opacity-100'
+                  background:
+                    '[&::-webkit-slider-runnable-track]:bg-neutral-200 [&::-moz-range-track]:bg-neutral-200 [&::-webkit-slider-runnable-track]:dark:bg-neutral-700 [&::-moz-range-track]:dark:bg-neutral-700'
                 }
               }"
               :disabled="!paused"
