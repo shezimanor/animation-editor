@@ -30,7 +30,7 @@ watch(isClipMode, (newValue) => {
       <span
         class="mr-2 flex flex-row items-center gap-x-2 rounded px-2 py-1.5 font-bold dark:bg-white"
       >
-        <Icon name="gravity-ui:timeline" size="1.25em" class="hover:opacity-75" />
+        <Icon name="i-clarity-animation-solid" size="1.25em" class="hover:opacity-75" />
         捲軸動畫編輯器
       </span>
     </div>
