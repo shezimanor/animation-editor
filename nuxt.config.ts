@@ -9,6 +9,7 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
     '@vueuse/nuxt',
+    '@nuxtjs/i18n',
     '@nuxtjs/color-mode',
     '@nuxtjs/google-fonts',
     '@nuxt/icon',
@@ -35,6 +36,31 @@ export default defineNuxtConfig({
         commaDangle: 'never'
       }
     }
+  },
+  i18n: {
+    baseUrl: 'https://shezimanor.github.io/animation-editor/',
+    locales: [
+      {
+        name: '繁體中文',
+        code: 'zh',
+        language: 'zh-TW',
+        file: 'zh.json'
+      },
+      {
+        name: 'en',
+        code: 'en',
+        language: 'en',
+        file: 'en.json'
+      },
+      {
+        name: 'Ja',
+        code: 'jp',
+        language: 'ja',
+        file: 'ja.json'
+      }
+    ],
+    defaultLocale: 'zh' // locale code
+    // detectBrowserLanguage: false
   },
   colorMode: {
     preference: 'light', // default value of $colorMode.preference
