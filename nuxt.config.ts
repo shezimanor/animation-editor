@@ -1,14 +1,18 @@
 import removeConsole from 'vite-plugin-remove-console';
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  ssr: false,
   app: {
     baseURL: '/animation-editor/'
   },
-  ssr: false,
+  router: {
+    options: {
+      hashMode: true
+    }
+  },
   modules: [
     '@nuxt/eslint',
     '@vueuse/nuxt',
-    '@nuxtjs/i18n',
     '@nuxtjs/color-mode',
     '@nuxtjs/google-fonts',
     '@nuxt/icon',
@@ -35,31 +39,6 @@ export default defineNuxtConfig({
         commaDangle: 'never'
       }
     }
-  },
-  i18n: {
-    baseUrl: 'http://localhost:3000', // TODO:
-    locales: [
-      {
-        name: '繁體中文',
-        code: 'zh',
-        language: 'zh-TW',
-        file: 'zh.json'
-      },
-      {
-        name: 'en',
-        code: 'en',
-        language: 'en',
-        file: 'en.json'
-      },
-      {
-        name: 'Ja',
-        code: 'jp',
-        language: 'ja',
-        file: 'ja.json'
-      }
-    ],
-    defaultLocale: 'zh' // locale code
-    // detectBrowserLanguage: false
   },
   colorMode: {
     preference: 'light', // default value of $colorMode.preference
