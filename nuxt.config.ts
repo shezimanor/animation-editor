@@ -3,12 +3,8 @@ import removeConsole from 'vite-plugin-remove-console';
 export default defineNuxtConfig({
   ssr: false,
   app: {
+    buildAssetsDir: '/static/', // 預設是 _nuxt, 在 github pages 會有問題
     baseURL: '/animation-editor/'
-  },
-  router: {
-    options: {
-      hashMode: true
-    }
   },
   modules: [
     '@nuxt/eslint',
