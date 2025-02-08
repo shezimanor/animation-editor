@@ -1,4 +1,5 @@
 import Konva from 'konva';
+import ShortUniqueId from 'short-unique-id';
 
 interface SnapData {
   lineGuide: number;
@@ -18,6 +19,9 @@ interface GuideData {
   orientation: string;
   snap: string;
 }
+
+// id 產生器
+export const uid = new ShortUniqueId();
 
 // 傳入檔案產生圖片
 export const getImageData = async (file: File): Promise<HTMLImageElement> => {

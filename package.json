@@ -23,7 +23,7 @@
     "gsap": "^3.12.5",
     "konva": "^9.3.16",
     "nuxt": "^3.14.1592",
-    "uuid": "^11.0.3",
+    "short-unique-id": "^5.2.0",
     "vue": "latest",
     "vue-router": "latest",
     "vue-scrollto": "^2.20.0"
