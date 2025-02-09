@@ -1,7 +1,6 @@
 <!-- 編輯頁：所以工具列在這頁 -->
 <script setup lang="ts">
-import testImg1 from '~/assets/images/demo/pokedex-0146-1.png';
-import testImg2 from '~/assets/images/demo/pokedex-0145.png';
+import { AppGuideModal } from '#components';
 
 export interface AdModuleConfig {
   width: number;
@@ -29,6 +28,8 @@ const {
 } = useTimeline();
 
 const { toastError } = useNotify();
+
+const modal = useModal();
 
 const isHidedGridDot = useState('isHidedGridDot', () => false);
 
@@ -86,7 +87,7 @@ const handleTimelineChange = (value: string) => {
   updateCurrentTimeByRangeInput(time);
 };
 
-// 主動在載入圖片
+// 主動載入圖片
 const loadImages = async (imageUrls: string[]) => {
   try {
     const imgObjList = await Promise.all(imageUrls.map((url) => getImageDataByUrl(url)));
@@ -99,9 +100,20 @@ const loadImages = async (imageUrls: string[]) => {
   }
 };
 
+const openGuideModal = () => {
+  modal.open(AppGuideModal, {
+    title: '立即開始',
+    content: '將圖片拖曳到畫布開始編輯。',
+    onConfirm() {
+      modal.close();
+    }
+  });
+};
+
 onMounted(() => {
   initKonva();
   initTimelineKonva();
+  openGuideModal();
 });
 onUnmounted(() => {
   destroyKonva();
