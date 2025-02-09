@@ -3,7 +3,7 @@ const { t } = useI18n();
 const i18nHead = useLocaleHead();
 
 useHead({
-  title: '捲軸動畫編輯器 | Cr.ED',
+  title: '動畫編輯器',
   htmlAttrs: {
     lang: i18nHead.value.htmlAttrs!.lang,
     dir: i18nHead.value.htmlAttrs!.dir
