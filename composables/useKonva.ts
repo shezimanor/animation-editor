@@ -1,6 +1,6 @@
 console.log('exec useKonva');
 // Konva: https://konvajs.org/api/Konva.html
-import { useResizeObserver } from '@vueuse/core';
+import { useResizeObserver, useDebounceFn } from '@vueuse/core';
 import Konva from 'konva';
 import type { Node } from 'konva/lib/Node';
 
@@ -52,6 +52,45 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const y2 = ref(0);
   const scaleBy = 1.05; // scale 的單位幅度
 
+  const modifyAdModulePositionByResizeWindow = useDebounceFn((width: number, height: number) => {
+    if (!stage.value || !mainLayer.value) return;
+    stage.value.width(width);
+    stage.value.height(height);
+    // 調整 newItemInitial
+    mainItemInitialX.value = stage.value.width() / 2;
+    mainItemInitialY.value = stage.value.height() / 2;
+    // 調整 adModuleRect 位置
+    const oldX = adModuleX.value;
+    const oldY = adModuleY.value;
+    adModuleX.value = stage.value.width() / 2 - (adModuleConfig?.width || 320) / 2;
+    adModuleY.value = stage.value.height() / 2 - (adModuleConfig?.height || 320) / 2;
+    adModuleRect.value?.setAttrs({
+      x: adModuleX.value,
+      y: adModuleY.value
+    });
+    const diffX = adModuleX.value - oldX;
+    const diffY = adModuleY.value - oldY;
+    // 調整 layer 所有 node 的位置
+    mainLayer.value.getChildren().forEach((node) => {
+      if (node.hasName('item')) {
+        const nodeNewX = node.x() + diffX;
+        const nodeNewY = node.y() + diffY;
+        // 這是真實在 Stage 上的 x, y
+        node.x(nodeNewX);
+        node.y(nodeNewY);
+        // 同時調整 mainNodeList (mainNode 的 x, y 是相對於 adModuleRect 的)
+        const targetMainNode = mainNodeMap.value[node.id()];
+        if (targetMainNode) {
+          targetMainNode.x = nodeNewX - adModuleX.value;
+          targetMainNode.y = nodeNewY - adModuleY.value;
+        }
+      }
+    });
+    // 調整 layer 的 clip
+    if (isClipMode.value) addLayerClip();
+    // TODO: 調整所有動畫的 x, y
+  }, 200);
+
   const initKonva = () => {
     // create Stage
     createStage();
@@ -68,44 +107,10 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
 
     // 使用 resize 觀察者
     useResizeObserver(mainStageRef, (entries) => {
-      if (!stage.value || !mainLayer.value) return;
       const entry = entries[0];
       // 響應式調整 Stage 寬高
       const { width, height } = entry.contentRect;
-      stage.value.width(width);
-      stage.value.height(height);
-      // 調整 newItemInitial
-      mainItemInitialX.value = stage.value.width() / 2;
-      mainItemInitialY.value = stage.value.height() / 2;
-      // 調整 adModuleRect 位置
-      const oldX = adModuleX.value;
-      const oldY = adModuleY.value;
-      adModuleX.value = stage.value.width() / 2 - (adModuleConfig?.width || 320) / 2;
-      adModuleY.value = stage.value.height() / 2 - (adModuleConfig?.height || 320) / 2;
-      adModuleRect.value?.setAttrs({
-        x: adModuleX.value,
-        y: adModuleY.value
-      });
-      const diffX = adModuleX.value - oldX;
-      const diffY = adModuleY.value - oldY;
-      // 調整 layer 所有 node 的位置
-      mainLayer.value.getChildren().forEach((node) => {
-        if (node.hasName('item')) {
-          const nodeNewX = node.x() + diffX;
-          const nodeNewY = node.y() + diffY;
-          // 這是真實在 Stage 上的 x, y
-          node.x(nodeNewX);
-          node.y(nodeNewY);
-          // 同時調整 mainNodeList (mainNode 的 x, y 是相對於 adModuleRect 的)
-          const targetMainNode = mainNodeMap.value[node.id()];
-          if (targetMainNode) {
-            targetMainNode.x = nodeNewX - adModuleX.value;
-            targetMainNode.y = nodeNewY - adModuleY.value;
-          }
-        }
-      });
-      // 調整 layer 的 clip
-      if (isClipMode.value) addLayerClip();
+      modifyAdModulePositionByResizeWindow(width, height);
     });
 
     // 註冊頂層事件
