@@ -86,11 +86,13 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
         x: adModuleX.value,
         y: adModuleY.value
       });
+      const diffX = adModuleX.value - oldX;
+      const diffY = adModuleY.value - oldY;
       // 調整 layer 所有 node 的位置
       mainLayer.value.getChildren().forEach((node) => {
         if (node.hasName('item')) {
-          const nodeNewX = node.x() + (adModuleX.value - oldX);
-          const nodeNewY = node.y() + (adModuleY.value - oldY);
+          const nodeNewX = node.x() + diffX;
+          const nodeNewY = node.y() + diffY;
           // 這是真實在 Stage 上的 x, y
           node.x(nodeNewX);
           node.y(nodeNewY);
@@ -649,6 +651,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       image: imgObj,
       draggable: true
     });
+    mainLayer.value?.add(imgItem);
     focusOnItem(imgItem);
     addMainNode(imgItem, imgConfig);
     // 替這張圖片新增 TimelineItem

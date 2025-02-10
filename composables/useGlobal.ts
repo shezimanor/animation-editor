@@ -128,7 +128,6 @@ export const useGlobal = () => {
     if (targetNode) focusOnItem(targetNode);
   };
   const focusOnItem = (item: Konva.Shape | Konva.Group | Konva.Image) => {
-    mainLayer.value?.add(item);
     mainTransformer.value?.nodes([item]);
     // 把變形器移到最上面
     mainTransformer.value?.moveToTop();
