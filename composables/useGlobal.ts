@@ -743,7 +743,7 @@ export const useGlobal = () => {
     };
     let toVars = {
       x: toX + diffX,
-      y: toY + diffX,
+      y: toY + diffY,
       scaleX: toScaleX,
       scaleY: toScaleY,
       rotation: toRotation,
