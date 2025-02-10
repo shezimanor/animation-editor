@@ -529,74 +529,74 @@ export const useGlobal = () => {
   ) => {
     if (!gsapTimeline) return;
     const {
-      scaleX: fromScaleX,
-      scaleY: fromScaleY,
       x: fromX,
       y: fromY,
+      scaleX: fromScaleX,
+      scaleY: fromScaleY,
       rotation: fromRotation,
       opacity: fromOpacity
     } = oldTween.vars.startAt as TweenVars;
     const {
-      scaleX: toScaleX,
-      scaleY: toScaleY,
       x: toX,
       y: toY,
+      scaleX: toScaleX,
+      scaleY: toScaleY,
       rotation: toRotation,
       opacity: toOpacity,
       ease: toEase
     } = oldTween.vars as TweenVars;
     const {
-      scaleX: newScaleX,
-      scaleY: newScaleY,
       x: newX,
       y: newY,
+      scaleX: newScaleX,
+      scaleY: newScaleY,
       rotation: newRotation,
       opacity: newOpacity
     } = targetMainNode;
     let fromVars =
       updateName === 'fromVars'
         ? {
-            scaleX: newScaleX,
-            scaleY: newScaleY,
             x: newX + adModuleX.value,
             y: newY + adModuleY.value,
+            scaleX: newScaleX,
+            scaleY: newScaleY,
             rotation: newRotation,
             opacity: newOpacity
           }
         : {
-            scaleX: fromScaleX,
-            scaleY: fromScaleY,
             x: fromX,
             y: fromY,
+            scaleX: fromScaleX,
+            scaleY: fromScaleY,
             rotation: fromRotation,
             opacity: fromOpacity
           };
     let toVars =
       updateName === 'toVars'
         ? {
-            scaleX: newScaleX,
-            scaleY: newScaleY,
             x: newX + adModuleX.value,
             y: newY + adModuleY.value,
+            scaleX: newScaleX,
+            scaleY: newScaleY,
             rotation: newRotation,
             opacity: newOpacity,
             ease: toEase
           }
         : updateName === 'ease'
           ? {
-              scaleX: toScaleX,
-              scaleY: toScaleY,
               x: toX,
               y: toY,
+              scaleX: toScaleX,
+              scaleY: toScaleY,
               rotation: toRotation,
               opacity: toOpacity,
               ease: newEase
             }
           : {
-              scaleX: toScaleX,
-              scaleY: toScaleY,
               x: toX,
               y: toY,
+              scaleX: toScaleX,
+              scaleY: toScaleY,
               rotation: toRotation,
               opacity: toOpacity,
               ease: toEase
@@ -609,7 +609,6 @@ export const useGlobal = () => {
     // 移除原本的 oldTween
     removeGSAPTween(oldTween);
     // 重新建立新的 Tween
-    console.log('toVars:', toVars);
     const newTween = addFromToTween(targetNode, duration, start, fromVars, toVars);
 
     if (newTween) {
