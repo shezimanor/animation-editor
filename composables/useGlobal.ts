@@ -18,14 +18,14 @@ export interface MyNode {
   rotation: number;
 }
 interface TweenVars {
-  x?: number;
-  y?: number;
+  x: number;
+  y: number;
   width?: number;
   height?: number;
-  scaleX?: number;
-  scaleY?: number;
-  opacity?: number;
-  rotation?: number;
+  scaleX: number;
+  scaleY: number;
+  rotation: number;
+  opacity: number;
   ease?: gsap.EaseString | gsap.EaseFunction;
 }
 export interface FromToTween {
@@ -518,7 +518,6 @@ export const useGlobal = () => {
     // 設定 currentActiveTimelineNodeId
     currentActiveTimelineNodeId.value = null;
   };
-
   const updateGsapTimelineByTween = (
     oldTween: GSAPTween,
     targetBarNode: Node,
@@ -707,6 +706,133 @@ export const useGlobal = () => {
         break;
     }
   };
+  // 更新 fromTo 動畫(by resize window)
+  const updateGsapTimelineByTween2 = (
+    oldTween: GSAPTween,
+    targetBarNode: Node,
+    targetNode: Node,
+    diffX: number,
+    diffY: number
+  ) => {
+    if (!gsapTimeline) return;
+    const {
+      x: fromX,
+      y: fromY,
+      scaleX: fromScaleX,
+      scaleY: fromScaleY,
+      rotation: fromRotation,
+      opacity: fromOpacity
+    } = oldTween.vars.startAt as TweenVars;
+    const {
+      x: toX,
+      y: toY,
+      scaleX: toScaleX,
+      scaleY: toScaleY,
+      rotation: toRotation,
+      opacity: toOpacity,
+      ease: toEase
+    } = oldTween.vars as TweenVars;
+
+    let fromVars = {
+      x: fromX + diffX,
+      y: fromY + diffY,
+      scaleX: fromScaleX,
+      scaleY: fromScaleY,
+      rotation: fromRotation,
+      opacity: fromOpacity
+    };
+    let toVars = {
+      x: toX + diffX,
+      y: toY + diffX,
+      scaleX: toScaleX,
+      scaleY: toScaleY,
+      rotation: toRotation,
+      opacity: toOpacity,
+      ease: toEase
+    };
+    const duration = getDurationByBarWidth(targetBarNode.width());
+    const start = getTimeByNodeX(targetBarNode.x());
+    const nodeId = targetNode.id();
+    const barId = targetBarNode.id();
+    // 移除原本的 oldTween
+    removeGSAPTween(oldTween);
+    // 重新建立新的 Tween
+    const newTween = addFromToTween(targetNode, duration, start, fromVars, toVars);
+
+    if (newTween) {
+      // 儲存新的 Tween 到 gsapTimelineNodeTweenMap 裡面
+      gsapTimelineNodeTweenMap[nodeId][barId] = newTween;
+      // 儲存新的 Tween 資訊到 gsapTimelineInfoMap 裡面
+      gsapTimelineInfoMap[nodeId][barId] = {
+        ...gsapTimelineInfoMap[nodeId][barId],
+        duration,
+        start,
+        fromVars,
+        toVars
+      } as FromToTween;
+    }
+  };
+  // 更新 set 動畫(by resize window)
+  const updateGsapTimelineBySetPoint2 = (
+    oldTween: GSAPTween,
+    targetCircleNode: Node,
+    targetNode: Node,
+    diffX: number,
+    diffY: number
+  ) => {
+    if (!gsapTimeline) return;
+    const {
+      x: originalX,
+      y: originalY,
+      scaleX: originalScaleX,
+      scaleY: originalScaleY,
+      rotation: originalRotation,
+      opacity: originalOpacity
+    } = oldTween.vars as TweenVars;
+    let tweenVars = {
+      x: originalX + diffX,
+      y: originalY + diffY,
+      scaleX: originalScaleX,
+      scaleY: originalScaleY,
+      rotation: originalRotation,
+      opacity: originalOpacity
+    };
+    const start = getTimeByNodeX(targetCircleNode.x());
+    const nodeId = targetNode.id();
+    const circleId = targetCircleNode.id();
+    // 移除原本的 oldTween
+    removeGSAPTween(oldTween);
+    // 重新建立新的 Tween
+    const newTween = addZeroDurationTween(targetNode, start, tweenVars);
+
+    if (newTween) {
+      // 儲存新的 Tween 到 gsapTimelineNodeTweenMap 裡面
+      gsapTimelineNodeTweenMap[nodeId][circleId] = newTween;
+      // 儲存新的 Tween 資訊到 gsapTimelineInfoMap 裡面
+      gsapTimelineInfoMap[nodeId][circleId] = {
+        ...gsapTimelineInfoMap[nodeId][circleId],
+        start,
+        vars: tweenVars
+      } as SetPoint;
+    }
+  };
+  const updateAllTweenPosition = (diffX: number = 0, diffY: number = 0) => {
+    // 取得所有的 tween in gsapTimelineNodeTweenMap
+    for (const nodeId in gsapTimelineNodeTweenMap) {
+      const nodeTweenMap = gsapTimelineNodeTweenMap[nodeId];
+      for (const timelineNodeId in nodeTweenMap) {
+        const tween = nodeTweenMap[timelineNodeId];
+        const targetNode = getTargetNodeFromMain(nodeId);
+        const targetTimelineNode = getTargetNodeFromTimeline(timelineNodeId);
+        if (!targetNode || !targetTimelineNode) continue;
+        if (timelineNodeId.startsWith('bar_')) {
+          updateGsapTimelineByTween2(tween, targetTimelineNode, targetNode, diffX, diffY);
+        } else if (timelineNodeId.startsWith('circle_')) {
+          updateGsapTimelineBySetPoint2(tween, targetTimelineNode, targetNode, diffX, diffY);
+        }
+      }
+    }
+  };
   const getTween = (nodeId: string, timelineNodeId: string) => {
     console.log('getTween');
     return gsapTimelineNodeTweenMap[nodeId][timelineNodeId];
@@ -826,8 +952,8 @@ export const useGlobal = () => {
       y: y + adModuleY.value,
       scaleX,
       scaleY,
-      opacity,
-      rotation
+      rotation,
+      opacity
     };
     const tween = addFromToTween(targetNode, duration, start, tweenVars, {
       ...tweenVars,
@@ -846,8 +972,8 @@ export const useGlobal = () => {
       y: y + adModuleY.value,
       scaleX,
       scaleY,
-      opacity,
-      rotation
+      rotation,
+      opacity
     };
     const tween = addZeroDurationTween(targetNode, start, tweenVars);
     return { tween, tweenVars };
@@ -971,6 +1097,7 @@ export const useGlobal = () => {
     deleteSetPoint, // method
     updateGsapTimelineByTween, // method
     updateGsapTimelineBySetPoint, // method
+    updateAllTweenPosition, // method
     addRect, // method
     addImage, // method
     addGroup, // method

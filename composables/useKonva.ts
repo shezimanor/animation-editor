@@ -21,7 +21,8 @@ const {
   createGsapTimeline,
   currentNodeId,
   createTween,
-  createSetPoint
+  createSetPoint,
+  updateAllTweenPosition
 } = useGlobal();
 
 interface AdModuleConfig {
@@ -88,7 +89,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     });
     // 調整 layer 的 clip
     if (isClipMode.value) addLayerClip();
-    // TODO: 調整所有動畫的 x, y
+    // 調整所有動畫的 x, y
+    updateAllTweenPosition(adModuleX.value - oldX, adModuleY.value - oldY);
   }, 200);
 
   const initKonva = () => {
