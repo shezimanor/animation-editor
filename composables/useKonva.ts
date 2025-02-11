@@ -15,7 +15,6 @@ const {
   mainSelectionRect,
   mainTransformer,
   focusOnItem,
-  timelineTransformers,
   addTimelineTrack,
   deleteTimelineTrack,
   createGsapTimeline,
@@ -133,10 +132,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   };
 
   // 用來觀察 Konva 的函數
-  const logKonva = () => {
-    console.log('timelineTransformers:', timelineTransformers.value);
-  };
-
   const logKonvaJSON = () => {
     console.log(stage.value?.toJSON());
     console.log(mainNodeList.value);
@@ -707,7 +702,6 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
     changeImage,
     deleteMainItem,
     resetZooming,
-    logKonva,
     logKonvaJSON,
     updateKonvaNodeAttribute,
     updateMainNodeState,

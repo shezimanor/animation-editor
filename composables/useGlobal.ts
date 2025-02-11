@@ -84,8 +84,6 @@ const currentTime = ref(0);
 const gsapTimelineNodeTweenMap: Record<string, Record<string, GSAPTween>> = {};
 // schema 儲存會用到的 timeline 資訊
 const gsapTimelineInfoMap: Record<string, Record<string, FromToTween | SetPoint>> = {};
-// 拿來用 barId 來取得 timelineBar 當下的 Transformer
-const timelineBarInTransformerMap: Record<string, Konva.Transformer> = {};
 
 const { toastSuccess, toastError } = useNotify();
 
@@ -140,10 +138,12 @@ export const useGlobal = () => {
   // 時間軸畫布 stage, layer
   const timelineStage = useState<Konva.Stage | null>('timelineStage', () => shallowRef(null));
   const timelineLayer = useState<Konva.Layer | null>('timelineLayer', () => shallowRef(null));
-  const timelineTransformers = useState<Konva.Transformer[]>('timelineTransformers', () => []);
   const timelineItemInitialY = ref(0);
   const getTargetNodeFromTimeline = (id: string) => {
     return timelineLayer.value?.findOne(`#${id}`);
+  };
+  const getTargetTransFormerFromTimeline = (id: string) => {
+    return timelineLayer.value?.findOne(`#tf_${id}`);
   };
   const updateTimelineLayer = () => {
     timelineLayer.value?.draw();
@@ -160,20 +160,10 @@ export const useGlobal = () => {
   const addGroup = (groupConfig: GroupConfig) => {
     return new Konva.Group(groupConfig);
   };
-
-  const addTransformer = () => {
-    if (timelineTransformers.value.length > 0) {
-      const currentTransformer = timelineTransformers.value.find(
-        (transformer) => transformer.nodes().length === 0
-      );
-      // 先開啟 visible 後回傳 Transformer
-      if (currentTransformer) {
-        currentTransformer.visible(true);
-        return currentTransformer;
-      }
-    }
+  const addTransformer = (barId: string) => {
     // 新增 Transformer
     const newTransformer = new Konva.Transformer({
+      id: `tf_${barId}`,
       borderStroke: 'rgba(355, 255, 255, 0.6)',
       rotateEnabled: false,
       rotateLineVisible: false,
@@ -203,7 +193,6 @@ export const useGlobal = () => {
       }
     });
     timelineLayer.value?.add(newTransformer);
-    timelineTransformers.value.push(newTransformer);
     return newTransformer;
   };
   // 更新起始位置 (用 track 來找)
@@ -211,17 +200,13 @@ export const useGlobal = () => {
     const tracks = timelineLayer.value?.find('.item_track') ?? [];
     timelineItemInitialY.value = tracks.length * (TIMELINE_TRACK_HEIGHT + TIMELINE_TRACK_GAP_Y);
   };
-  // 隱藏空的變形器
-  const hideEmptyTransformer = (id: string) => {
-    // console.log('hideEmptyTransformer', timelineTransformers.value);
-    for (let i = 0; i < timelineTransformers.value.length; i++) {
-      const transformer = timelineTransformers.value[i];
-      // 依據 function `addTimelineBar` 邏輯 transformer nodes 會長這樣: transformer.nodes([barItem])
-      const barItems = transformer.nodes();
-      if (barItems.length > 0 && barItems[0].id().endsWith(`${id}`)) {
-        transformer.visible(false);
-        transformer.nodes([]);
-      }
+  // 刪除變形器
+  const deleteTransformer = (id: string) => {
+    const transformer = getTargetTransFormerFromTimeline(id);
+    if (transformer && transformer instanceof Konva.Transformer) {
+      transformer.visible(false);
+      transformer.nodes([]);
+      transformer.destroy();
     }
   };
   // 更新相同類型物件的位置
@@ -290,8 +275,6 @@ export const useGlobal = () => {
     updateTimelineTrackInitialPosition();
   };
   const deleteTimelineTrack = (id: string) => {
-    // 隱藏空的變形器
-    hideEmptyTransformer(id);
     const imgItem = getTargetNodeFromTimeline(`img_${id}`);
     if (imgItem && imgItem instanceof Konva.Image) {
       // 刪除 Img
@@ -308,6 +291,12 @@ export const useGlobal = () => {
     }
     const groupItem = getTargetNodeFromTimeline(`group_${id}`);
     if (groupItem && groupItem instanceof Konva.Group) {
+      const barItems = groupItem.find('.item_bar');
+      for (const barItem of barItems) {
+        const barId = barItem.id();
+        // 刪除 Bar 的變形器
+        deleteTransformer(barId);
+      }
       // 刪除 Bar Group
       groupItem.destroy();
       // 更新所有 Bar Group 的位置
@@ -319,7 +308,7 @@ export const useGlobal = () => {
   // 建立動畫條(動畫單元)
   const addTimelineBar = (id: string, duration: number, start: number) => {
     const groupItem = getTargetNodeFromTimeline(`group_${id}`);
-    if (!groupItem || !(groupItem instanceof Konva.Group)) return { barId: '', transformer: null };
+    if (!groupItem || !(groupItem instanceof Konva.Group)) return '';
     const barId = `bar_${uid.rnd()}_${id}`;
     const trackWidth =
       window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION - TIMELINE_TRACK_START_X;
@@ -399,7 +388,7 @@ export const useGlobal = () => {
     // 加入到 groupItem
     groupItem.add(barItem);
     // 加上變形器
-    const transformerItem = addTransformer();
+    const transformerItem = addTransformer(barId);
     // 快取 barItem 的 x 位置
     let cacheX = barInitialX;
     // 維持 scaleX = 1, 並將 width 設為原本的 scaleX * width
@@ -427,7 +416,7 @@ export const useGlobal = () => {
     // highlight
     activateNode(id, barId, barItem);
     // 回傳 barId, transformer
-    return { barId, transformer: transformerItem };
+    return barId;
   };
   // 建立節點(動畫單元)
   const addTimelineCircle = (id: string, start: number): string => {
@@ -862,8 +851,8 @@ export const useGlobal = () => {
     // 先建立時間為 1 秒的空動畫
     const { tween, tweenVars } = addInitialTween(targetNode, duration, start);
     // 加入對應的時間軸動畫條(動畫條 ID 會回傳)
-    const { barId, transformer } = addTimelineBar(nodeId, duration, start);
-    if (!barId || !transformer || !tween || !tweenVars) return toastError('動畫建立失敗');
+    const barId = addTimelineBar(nodeId, duration, start);
+    if (!barId || !tween || !tweenVars) return toastError('動畫建立失敗');
     // 儲存 Tween 到 gsapTimelineNodeTweenMap 裡面
     if (!gsapTimelineNodeTweenMap[nodeId]) gsapTimelineNodeTweenMap[nodeId] = {};
     gsapTimelineNodeTweenMap[nodeId][barId] = tween;
@@ -878,8 +867,6 @@ export const useGlobal = () => {
       fromVars: tweenVars,
       toVars: { ...tweenVars, ease: 'none' }
     };
-    // 儲存 TransformerId 到 timelineBarInTransformerMap 裡面
-    timelineBarInTransformerMap[barId] = transformer;
     // console.log('建立動畫:', tween);
     toastSuccess('動畫已建立');
   };
@@ -922,15 +909,9 @@ export const useGlobal = () => {
     // 刪除 Tween 資訊 from gsapTimelineInfoMap
     if (gsapTimelineInfoMapTargetMap.hasOwnProperty(timelineNodeId))
       delete gsapTimelineInfoMapTargetMap[timelineNodeId];
-    // 刪除 TransformerId from timelineBarInTransformerMap
-    if (isBar && timelineBarInTransformerMap.hasOwnProperty(timelineNodeId)) {
-      // 關閉 Transformer 與 Bar 的關聯
-      const currentTransformer = timelineBarInTransformerMap[timelineNodeId];
-      if (currentTransformer) {
-        currentTransformer.nodes([]);
-        currentTransformer.visible(false);
-      }
-      delete timelineBarInTransformerMap[timelineNodeId];
+    // 刪除 bar 的 Transformer
+    if (isBar) {
+      deleteTransformer(timelineNodeId);
     }
     // 刪除時間軸動畫條、節點
     timelineNode.destroy();
@@ -1091,11 +1072,12 @@ export const useGlobal = () => {
     updateTimelineLayer, // method
 
     // 時間軸物件
-    timelineTransformers, // state
     addTimelineTrack, // method
     deleteTimelineTrack, // method
     activateNode, // method
     inactivateNode, // method
+    getTargetNodeFromTimeline, // method
+    getTargetTransFormerFromTimeline, // method
     getTween, // method
     getTweenEase, // method
     createTween, // method
