@@ -1,6 +1,6 @@
 console.log('exec useTimeline');
 // Konva: https://konvajs.org/api/Konva.html
-import { useResizeObserver } from '@vueuse/core';
+import { useResizeObserver, useDebounceFn } from '@vueuse/core';
 import Konva from 'konva';
 import type { FromToTween, SetPoint } from './useGlobal';
 
@@ -12,7 +12,8 @@ const {
   timelineStage,
   timelineLayer,
   gsapTimelineInfoMap,
-  inactivateNode
+  inactivateNode,
+  gsapTimeline
 } = useGlobal();
 
 export const useTimeline = () => {
@@ -49,33 +50,41 @@ export const useTimeline = () => {
       const entry = entries[0];
       // 響應式調整 Stage 寬高
       const { width } = entry.contentRect;
-      timelineStage.value?.width(width);
-      const trackWidth =
-        window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION - TIMELINE_TRACK_START_X;
-      // 調整軌道長度
-      const trackItems = timelineLayer.value?.find('.item_track');
-      trackItems?.forEach((trackItem) => {
-        trackItem.width(trackWidth);
-      });
-      // 調整所有動畫條的 x & width
-      const barItems = timelineLayer.value?.find('.item_bar');
-      barItems?.forEach((barItem) => {
-        const barId = barItem.id();
-        const nodeId = barId.split('_')[2];
-        const tweenInfo = <FromToTween>gsapTimelineInfoMap[nodeId][barId];
-        barItem.width(trackWidth * ((tweenInfo.duration ?? 0) / TOTAL_DURATION));
-        barItem.x(trackWidth * (tweenInfo.start / TOTAL_DURATION));
-      });
-      // 調整所有節點的 x
-      const circleItems = timelineLayer.value?.find('.item_circle');
-      circleItems?.forEach((circleItem) => {
-        const circleId = circleItem.id();
-        const nodeId = circleId.split('_')[2];
-        const setPointInfo = <SetPoint>gsapTimelineInfoMap[nodeId][circleId];
-        circleItem.x(trackWidth * (setPointInfo.start / TOTAL_DURATION));
-      });
+      // 暫停播放器播放
+      gsapTimeline?.pause();
+      paused.value = true;
+      // resizeTimelineStageHandler 是 DebounceFn
+      resizeTimelineStageHandler(width);
     });
   };
+
+  const resizeTimelineStageHandler = useDebounceFn((width: number) => {
+    timelineStage.value?.width(width);
+    const trackWidth =
+      window.innerWidth - TIMELINE_TRACK_WIDTH_SUBTRACTION - TIMELINE_TRACK_START_X;
+    // 調整軌道長度
+    const trackItems = timelineLayer.value?.find('.item_track');
+    trackItems?.forEach((trackItem) => {
+      trackItem.width(trackWidth);
+    });
+    // 調整所有動畫條的 x & width
+    const barItems = timelineLayer.value?.find('.item_bar');
+    barItems?.forEach((barItem) => {
+      const barId = barItem.id();
+      const nodeId = barId.split('_')[2];
+      const tweenInfo = <FromToTween>gsapTimelineInfoMap[nodeId][barId];
+      barItem.width(trackWidth * ((tweenInfo.duration ?? 0) / TOTAL_DURATION));
+      barItem.x(trackWidth * (tweenInfo.start / TOTAL_DURATION));
+    });
+    // 調整所有節點的 x
+    const circleItems = timelineLayer.value?.find('.item_circle');
+    circleItems?.forEach((circleItem) => {
+      const circleId = circleItem.id();
+      const nodeId = circleId.split('_')[2];
+      const setPointInfo = <SetPoint>gsapTimelineInfoMap[nodeId][circleId];
+      circleItem.x(trackWidth * (setPointInfo.start / TOTAL_DURATION));
+    });
+  }, 100);
 
   // TODO: 清除 Konva
   const destroyTimelineKonva = () => {};

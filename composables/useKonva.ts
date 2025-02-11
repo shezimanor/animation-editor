@@ -52,7 +52,7 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
   const y2 = ref(0);
   const scaleBy = 1.05; // scale 的單位幅度
 
-  const modifyAdModulePositionByResizeWindow = useDebounceFn((width: number, height: number) => {
+  const resizeMainStageHandler = useDebounceFn((width: number, height: number) => {
     if (!stage.value || !mainLayer.value) return;
     stage.value.width(width);
     stage.value.height(height);
@@ -111,7 +111,8 @@ export const useKonva = (adModuleConfig?: AdModuleConfig) => {
       const entry = entries[0];
       // 響應式調整 Stage 寬高
       const { width, height } = entry.contentRect;
-      modifyAdModulePositionByResizeWindow(width, height);
+      // resizeMainStageHandler 是 DebounceFn
+      resizeMainStageHandler(width, height);
     });
 
     // 註冊頂層事件
