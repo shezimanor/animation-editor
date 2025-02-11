@@ -344,8 +344,16 @@ export const useGlobal = () => {
           x:
             pos.x < TIMELINE_TRACK_START_X
               ? TIMELINE_TRACK_START_X
-              : pos.x + this.width() > trackWidth + TIMELINE_TRACK_START_X
-                ? trackWidth - this.width() + TIMELINE_TRACK_START_X
+              : pos.x + this.width() >
+                  window.innerWidth -
+                    TIMELINE_TRACK_WIDTH_SUBTRACTION -
+                    TIMELINE_TRACK_START_X +
+                    TIMELINE_TRACK_START_X
+                ? window.innerWidth -
+                  TIMELINE_TRACK_WIDTH_SUBTRACTION -
+                  TIMELINE_TRACK_START_X -
+                  this.width() +
+                  TIMELINE_TRACK_START_X
                 : pos.x,
           y: this.absolutePosition().y
         };
